@@ -1,0 +1,40 @@
+name: Keep-Alive — Prevent Cold Starts
+# Author: Karthik Kathari (github.com/Karthik-Kathari)
+# Pings all services every 14 minutes during business hours (9am-7pm IST, Mon-Fri)
+# Ensures recruiters experience zero cold starts on Render free tier
+
+on:
+  schedule:
+    # Every 14 minutes during 3:30 UTC - 13:30 UTC (9am-7pm IST, Mon-Fri)
+    - cron: '*/14 3-13 * * 1-5'
+  workflow_dispatch:
+
+jobs:
+  keep-alive:
+    name: Ping All Services
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping API Gateway Health
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" \
+            --max-time 30 \
+            https://vectrabase-api.onrender.com/health || echo "000")
+          echo "API Gateway: HTTP $response"
+
+      - name: Ping RAG Engine Health
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" \
+            --max-time 30 \
+            https://vectrabase-rag.onrender.com/health || echo "000")
+          echo "RAG Engine: HTTP $response"
+
+      - name: Ping Next.js Dashboard
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" \
+            --max-time 30 \
+            https://vectrabase-ai.vercel.app || echo "000")
+          echo "Dashboard: HTTP $response"
+
+      - name: Report Status
+        run: echo "✓ Keep-alive pings completed at $(date -u)"
+

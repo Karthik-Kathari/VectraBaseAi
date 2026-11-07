@@ -1,0 +1,42 @@
+{
+  "name": "vectrabase-ai",
+  "version": "1.0.0",
+  "private": true,
+  "description": "VectraBase AI — Multi-Tenant RAG Knowledge Engine & Embeddable Vue.js Widget",
+  "author": {
+    "name": "Karthik Kathari",
+    "email": "karthikmk.workspace@gmail.com",
+    "url": "https://github.com/Karthik-Kathari"
+  },
+  "license": "MIT",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck",
+    "lint": "turbo run lint",
+    "clean": "turbo run clean",
+    "db:migrate": "turbo run db:migrate --filter=api-gateway",
+    "db:seed": "turbo run db:seed --filter=api-gateway",
+    "db:seed:1m": "turbo run db:seed:1m --filter=api-gateway",
+    "benchmark": "turbo run benchmark --filter=benchmark-suite",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "devDependencies": {
+    "turbo": "^2.3.3",
+    "typescript": "^5.7.2",
+    "prettier": "^3.4.2",
+    "@types/node": "^22.10.2"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@12.18.0"
+}
+

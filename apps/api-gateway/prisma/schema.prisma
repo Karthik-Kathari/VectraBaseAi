@@ -1,0 +1,222 @@
+// Prisma Schema for VectraBase AI
+// Author: Karthik Kathari
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [vector, pg_trgm, uuidOssp(map: "uuid-ossp")]
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum Plan {
+  FREE
+  PRO
+  ENTERPRISE
+}
+
+enum UserRole {
+  WORKSPACE_OWNER
+  AI_ENGINEER
+  VIEWER_ANALYST
+}
+
+enum DocumentStatus {
+  PENDING
+  PROCESSING
+  INDEXED
+  FAILED
+}
+
+enum DocumentSource {
+  PDF
+  MARKDOWN
+  URL
+  TXT
+}
+
+// ─── Models ───────────────────────────────────────────────────────────────────
+
+model Tenant {
+  id         String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name       String
+  slug       String   @unique
+  plan       Plan     @default(FREE)
+  apiKey     String   @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  users      User[]
+  documents  Document[]
+  telemetry  RagTelemetryLog[]
+  governance GovernanceConfig?
+}
+
+model User {
+  id                   String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  tenantId             String    @db.Uuid
+  email                String    @unique
+  passwordHash         String
+  role                 UserRole  @default(VIEWER_ANALYST)
+  refreshToken         String?
+  refreshTokenExpiresAt DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  tenant               Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  refreshTokenFamilies RefreshTokenFamily[]
+
+  @@index([tenantId])
+}
+
+model Document {
+  id               String         @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  tenantId         String         @db.Uuid
+  name             String
+  originalFilename String
+  mimeType         String
+  filePath         String?
+  sha256Hash       String         @unique
+  status           DocumentStatus @default(PENDING)
+  source           DocumentSource
+  fileSizeBytes    Int?
+  totalChunks      Int            @default(0)
+  totalTokens      Int            @default(0)
+  errorMessage     String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  tenant           Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  chunks           DocumentChunk[]
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([sha256Hash])
+}
+
+model DocumentChunk {
+  id          String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  documentId  String   @db.Uuid
+  tenantId    String   @db.Uuid
+  content     String
+  chunkIndex  Int
+  tokenCount  Int
+  pageNumber  Int?
+  embedding   Unsupported("vector(1536)")?
+  createdAt   DateTime @default(now())
+
+  document    Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([documentId])
+  @@index([tenantId])
+}
+
+model RagTelemetryLog {
+  id                   String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  tenantId             String   @db.Uuid
+  queryText            String
+  normalizedQueryHash  String
+  queryEmbeddingMs     Int
+  vectorSearchMs       Int
+  llmStreamMs          Int
+  totalLatencyMs       Int
+  cacheHit             Boolean  @default(false)
+  rateLimited          Boolean  @default(false)
+  guardrailBlocked     Boolean  @default(false)
+  chunkCount           Int
+  topScore             Float?
+  tokensUsed           Int      @default(0)
+  createdAt            DateTime @default(now())
+
+  tenant               Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, createdAt(sort: Desc)])
+}
+
+model GovernanceConfig {
+  id                        String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  tenantId                  String   @unique @db.Uuid
+
+  // Step 1: Workspace Identity (10 fields)
+  workspaceName             String   @default("")
+  workspaceDescription      String   @default("")
+  contactEmail              String   @default("")
+  dataRetentionDays         Int      @default(90)
+  defaultLanguage           String   @default("en")
+  timezone                  String   @default("UTC")
+  logoUrl                   String   @default("")
+  primaryColor              String   @default("#6366f1")
+  secondaryColor            String   @default("#8b5cf6")
+  supportEmail              String   @default("")
+
+  // Step 2: Vector & Chunking Hyperparameters (10 fields)
+  chunkSize                 Int      @default(512)
+  chunkOverlap              Int      @default(64)
+  embeddingModel            String   @default("text-embedding-3-small")
+  similarityThreshold       Float    @default(0.75)
+  maxChunksPerQuery         Int      @default(5)
+  hnswM                     Int      @default(16)
+  hnswEfConstruction        Int      @default(200)
+  hnswEfSearch              Int      @default(100)
+  hybridSearchWeight        Float    @default(0.7)
+  rerankerEnabled           Boolean  @default(false)
+
+  // Step 3: Guardrails & PII Masking (10 fields)
+  piiMaskingEnabled         Boolean  @default(true)
+  piiMaskingLevel           String   @default("moderate")
+  promptInjectionThreshold  Float    @default(0.85)
+  contentModerationEnabled  Boolean  @default(true)
+  blockedKeywords           String[] @default([])
+  maxQueryLength            Int      @default(2000)
+  jailbreakDetection        Boolean  @default(true)
+  hallucinationGuard        Boolean  @default(false)
+  safetyLevel               String   @default("balanced")
+  auditLogsEnabled          Boolean  @default(true)
+
+  // Step 4: Widget Branding & CORS Security (10 fields)
+  widgetTitle               String   @default("AI Assistant")
+  widgetGreeting            String   @default("Hello! How can I help you today?")
+  widgetPlaceholder         String   @default("Ask me anything...")
+  widgetPosition            String   @default("bottom-right")
+  corsAllowedOrigins        String[] @default([])
+  widgetTheme               String   @default("dark")
+  widgetFontFamily          String   @default("Inter")
+  showCitationCards         Boolean  @default(true)
+  showTypingIndicator       Boolean  @default(true)
+  widgetBorderRadius        Int      @default(12)
+
+  // Step 5: Rate-Limit & Webhook Quotas (10 fields)
+  rateLimitPerMinute        Int      @default(60)
+  rateLimitPerHour          Int      @default(1000)
+  rateLimitPerDay           Int      @default(10000)
+  maxConcurrentRequests     Int      @default(10)
+  webhookUrl                String   @default("")
+  webhookSecret             String   @default("")
+  webhookEnabled            Boolean  @default(false)
+  webhookRetryCount         Int      @default(3)
+  cacheTtlSeconds           Int      @default(60)
+  monthlyTokenQuota         Int      @default(1000000)
+
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+
+  tenant                    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+}
+
+model RefreshTokenFamily {
+  id        String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId    String   @db.Uuid
+  tokenHash String   @unique
+  used      Boolean  @default(false)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}

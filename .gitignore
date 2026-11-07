@@ -1,0 +1,62 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+.next/
+dist/
+build/
+out/
+.vite/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.env
+venv/
+.venv/
+*.pyc
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+!.env.example
+!.env*.example
+
+# Turbo
+.turbo/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/settings.json
+.idea/
+*.swp
+
+# Test coverage
+coverage/
+
+# Prisma
+apps/api-gateway/prisma/migrations/
+
+# Benchmark results (keep structure, ignore large data)
+packages/benchmark-suite/results/*.json
+
+# Docker volumes
+postgres-data/
+redis-data/
+
+# Python venv
+apps/rag-engine/.venv/
+apps/rag-engine/venv/
+

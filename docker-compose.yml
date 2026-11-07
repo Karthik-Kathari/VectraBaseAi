@@ -1,0 +1,79 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: vectrabase_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: vectrabase
+      POSTGRES_PASSWORD: vectrabase_secret
+      POSTGRES_DB: vectrabase_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vectrabase -d vectrabase_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: vectrabase_redis
+    restart: unless-stopped
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru --save 60 1
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api-gateway:
+    build:
+      context: ./apps/api-gateway
+      dockerfile: Dockerfile
+    container_name: vectrabase_api
+    restart: unless-stopped
+    env_file:
+      - ./apps/api-gateway/.env
+    ports:
+      - "4000:4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://vectrabase:vectrabase_secret@postgres:5432/vectrabase_db
+      REDIS_URL: redis://redis:6379
+    volumes:
+      - uploads_data:/app/uploads
+
+  rag-engine:
+    build:
+      context: ./apps/rag-engine
+      dockerfile: Dockerfile
+    container_name: vectrabase_rag
+    restart: unless-stopped
+    env_file:
+      - ./apps/rag-engine/.env
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://vectrabase:vectrabase_secret@postgres:5432/vectrabase_db
+    volumes:
+      - uploads_data:/app/uploads
+
+volumes:
+  postgres_data:
+  redis_data:
+  uploads_data:
+

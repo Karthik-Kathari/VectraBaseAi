@@ -17,8 +17,9 @@ export default function WidgetPlaygroundPage() {
   const [pipelineActive, setPipelineActive] = useState(false);
   const [cacheHitState, setCacheHitState] = useState(false);
 
-  const embedSnippet = `<div id="vectrabase-widget"></div>
-<script src="https://vectrabase-ai.vercel.app/widget.js"><\/script>
+  const embedSnippet = `<link rel="stylesheet" href="https://vectrabaseai.vercel.app/widget.css">
+<div id="vectrabase-widget"></div>
+<script src="https://vectrabaseai.vercel.app/widget.js"><\/script>
 <script>
   VectraBaseWidget.init({
     tenantId: '00000000-0000-0000-0000-000000000001',

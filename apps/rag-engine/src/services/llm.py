@@ -141,3 +141,4 @@ async def stream_rag_response(
     for word in words:
         yield word + " "
         await asyncio.sleep(0.015)
+

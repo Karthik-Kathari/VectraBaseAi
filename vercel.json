@@ -4,3 +4,4 @@
   "buildCommand": "pnpm --filter web-dashboard build",
   "outputDirectory": "apps/web-dashboard/.next"
 }
+

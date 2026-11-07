@@ -157,3 +157,4 @@ async def update_document_status(
     """
     async with pool.acquire() as conn:
         await conn.execute(query, status, total_chunks, total_tokens, error_message, document_id)
+

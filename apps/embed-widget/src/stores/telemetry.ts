@@ -67,3 +67,4 @@ export const useTelemetryStore = defineStore('telemetry', () => {
     reset,
   };
 });
+

@@ -201,3 +201,4 @@ export function BenchmarkDrawer({ isOpen, onClose }: BenchmarkDrawerProps) {
     </div>
   );
 }
+

@@ -94,3 +94,4 @@ watch(() => props.citation, updateProgress);
     </div>
   </div>
 </template>
+

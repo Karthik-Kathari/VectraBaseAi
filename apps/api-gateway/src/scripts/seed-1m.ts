@@ -112,3 +112,4 @@ seedOneMillion()
   .finally(async () => {
     await prisma.$disconnect();
   });
+

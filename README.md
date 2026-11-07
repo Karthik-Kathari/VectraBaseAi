@@ -158,3 +158,4 @@ Recruiters evaluating Karthik Kathari can verify every architectural claim direc
 - **Email:** [karthikmk.workspace@gmail.com](mailto:karthikmk.workspace@gmail.com)
 
 *Licensed under the MIT License.*
+

@@ -33,3 +33,4 @@ async def health_check(pool: asyncpg.Pool = Depends(get_db)):
         "responseTimeMs": elapsed_ms,
         "pgvector": "enabled",
     }
+

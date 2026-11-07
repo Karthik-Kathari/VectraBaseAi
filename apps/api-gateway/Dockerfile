@@ -43,3 +43,4 @@ USER expressjs
 EXPOSE 4000
 
 CMD ["node", "apps/api-gateway/dist/index.js"]
+

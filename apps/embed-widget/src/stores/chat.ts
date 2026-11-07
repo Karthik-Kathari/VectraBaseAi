@@ -235,3 +235,4 @@ export const useChatStore = defineStore('chat', () => {
     runScenario,
   };
 });
+

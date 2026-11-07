@@ -31,3 +31,4 @@ export function verifyDomVirtualization(): {
     proofRule: `Actual rendered rows in DOM: ${count} (Threshold: <= 60 rows at 60fps)`,
   };
 }
+

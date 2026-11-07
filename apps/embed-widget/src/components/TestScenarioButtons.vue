@@ -59,3 +59,4 @@ function getColorClasses(color: string) {
     </div>
   </div>
 </template>
+

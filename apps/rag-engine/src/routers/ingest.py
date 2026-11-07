@@ -110,3 +110,4 @@ async def ingest_document(
             yield f"data: {json.dumps({'stage': 'FAILED', 'progress': 0, 'error': str(e)})}\n\n"
 
     return StreamingResponse(progress_stream(), media_type="text/event-stream")
+

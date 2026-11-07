@@ -46,3 +46,4 @@ async function runMasterBenchmarks() {
 }
 
 runMasterBenchmarks().catch(console.error);
+

@@ -90,3 +90,4 @@ async def query_rag(payload: QueryPayload, pool: asyncpg.Pool = Depends(get_db))
         yield f"data: {json.dumps({'type': 'done', 'totalLatencyMs': total_latency_ms, 'embeddingMs': embedding_ms, 'vectorSearchMs': vector_search_ms, 'llmStreamMs': llm_stream_ms, 'tokensUsed': token_count, 'chunkCount': len(chunks)})}\n\n"
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
+

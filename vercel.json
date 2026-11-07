@@ -1,7 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
-  "buildCommand": "pnpm --filter web-dashboard build",
+  "installCommand": "pnpm install",
+  "buildCommand": "pnpm turbo run build --filter=web-dashboard",
   "outputDirectory": "apps/web-dashboard/.next"
 }
-

@@ -138,6 +138,14 @@
 - [x] 8.11 Started API Gateway on port 4000 and verified `/health`, `/api/auth/login`, `/api/governance`, `/api/documents`, and `/api/benchmark/explain`
 - [x] 8.12 Git commit & push Neon configuration to GitHub remote
 
+### Phase 9: Vercel Monorepo Deployment & Vercel MCP Configuration
+- [x] 9.1 Root package.json: Added `next` and `vercel` to devDependencies for Vercel Next.js framework detector
+- [x] 9.2 Root vercel.json: Configured Turborepo monorepo build pipeline (`pnpm turbo run build --filter=web-dashboard`, output: `apps/web-dashboard/.next`)
+- [x] 9.3 apps/web-dashboard/vercel.json: Added app-level Vercel Next.js configuration
+- [x] 9.4 Verified `pnpm turbo run build --filter=web-dashboard` passes 100% (all 9 App Router pages prerendered)
+- [x] 9.5 Configured official Vercel MCP Server (`https://mcp.vercel.com`) across IDE, Gemini, and Copilot configs
+- [x] 9.6 Prepared Vercel OAuth device code login and project root directory instructions
+
 ## ENVIRONMENT VARIABLES ESTABLISHED
 ```
 # apps/api-gateway/.env

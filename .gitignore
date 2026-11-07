@@ -61,3 +61,6 @@ apps/rag-engine/.venv/
 apps/rag-engine/venv/
 
 .neon
+
+.vercel
+.env*

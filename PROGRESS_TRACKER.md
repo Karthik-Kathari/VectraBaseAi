@@ -144,7 +144,14 @@
 - [x] 9.3 apps/web-dashboard/vercel.json: Added app-level Vercel Next.js configuration
 - [x] 9.4 Verified `pnpm turbo run build --filter=web-dashboard` passes 100% (all 9 App Router pages prerendered)
 - [x] 9.5 Configured official Vercel MCP Server (`https://mcp.vercel.com`) across IDE, Gemini, and Copilot configs
-- [x] 9.6 Prepared Vercel OAuth device code login and project root directory instructions
+- [x] 9.6 Verified Vercel CLI authenticated as `karthikkathari74-8386` and configured VS Code / Copilot MCP
+
+### Phase 10: Upstash Remote MCP & Agent Skills Integration
+- [x] 10.1 Installed and configured Upstash setup non-interactively (`npx -y upstash setup --yes`)
+- [x] 10.2 Added Upstash remote MCP server (`https://mcp.upstash.com/mcp`) across Gemini, Antigravity, and Copilot configs
+- [x] 10.3 Installed all 14 official Upstash skills globally via `npx -y skills add upstash/skills --global`
+- [x] 10.4 Granted global permission grants for `mcp(upstash)` and `mcp(Upstash)`
+- [x] 10.5 Verified skill suite: Redis, Ratelimit, QStash, Workflow, Vector, Search, Blob, Box, and CLI
 
 ## ENVIRONMENT VARIABLES ESTABLISHED
 ```

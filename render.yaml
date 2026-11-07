@@ -25,7 +25,7 @@ services:
       - key: JWT_REFRESH_SECRET
         generateValue: true
       - key: CORS_ORIGINS
-        value: https://vectrabase-ai.vercel.app,http://localhost:3000,http://localhost:5173
+        value: https://vectrabaseai.vercel.app,https://vectrabase-ai.vercel.app,http://localhost:3000,http://localhost:5173
       - key: RAG_ENGINE_URL
         value: https://vectrabase-rag.onrender.com
 

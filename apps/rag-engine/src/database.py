@@ -62,8 +62,6 @@ def get_pool() -> asyncpg.Pool:
     return _pool
 
 
-async def get_db() -> AsyncGenerator[asyncpg.Connection, None]:
-    """FastAPI dependency: yield a single connection from the pool."""
-    pool = get_pool()
-    async with pool.acquire() as connection:
-        yield connection
+def get_db() -> asyncpg.Pool:
+    """FastAPI dependency: returns the active asyncpg connection pool."""
+    return get_pool()

@@ -1,18 +1,20 @@
 # VECTRABASE AI — LIVE BUILD & CONTINUITY TRACKER
 
 - **Project Creator & Owner:** Karthik Kathari (github.com/Karthik-Kathari)
-- **Target Production URL:** https://vectrabase-ai.vercel.app
+- **Target Production URL:** https://vectrabaseai.vercel.app
+- **Render API Gateway URL:** https://vectrabase-api.onrender.com
+- **Render RAG Engine URL:** https://vectrabase-rag.onrender.com
 - **GitHub Remote:** https://github.com/Karthik-Kathari/VectraBaseAi.git
-- **Last Active Phase:** Phase 8 — Neon Lakebase Postgres Setup & End-to-End Verification Complete
-- **Last Updated Timestamp:** 2026-11-07T16:55:00+05:30
-- **Current Build Health:** PASSING (All Turborepo tasks + Neon live tests verified)
+- **Last Active Phase:** Phase 11 — Render Production Deployment & Vercel Environment Integration
+- **Last Updated Timestamp:** 2026-11-07T19:48:00+05:30
+- **Current Build Health:** PASSING (Vercel Production ● Ready, Render API Gateway 200 OK, RAG Engine 200 OK)
 
 ## EXACT RESUME POINT (FOR AGENT HANDOFF)
 
-- **Currently Active Task:** Phase 8.12 — Git Commit & Push Neon Increment to Remote
-- **Last Completed File:** apps/api-gateway/src/lib/redis.ts
-- **Next Immediate Action:** Commit and push working increment to `https://github.com/Karthik-Kathari/VectraBaseAi.git`
-- **Verification Command to Run First:** `pnpm --filter api-gateway exec tsx src/scripts/test-neon.ts` (Neon Lakebase query & pgvector check passing)
+- **Currently Active Task:** Phase 11.4 — Production Verification and Auto-deploy Monitoring
+- **Last Completed File:** apps/rag-engine/src/database.py, apps/api-gateway/src/app.ts
+- **Next Immediate Action:** Commit and push asyncpg pool fix and wildcard Vercel CORS support to `main`
+- **Verification Command to Run First:** `curl.exe -s https://vectrabaseai.vercel.app` & `curl.exe -s https://vectrabase-api.onrender.com/health`
 
 ## MASTER EXECUTION CHECKLIST
 

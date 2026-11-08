@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en" style="height: 100%; margin: 0; padding: 0;">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VectraBase AI Assistant Widget</title>
+  <link rel="stylesheet" href="/widget.css">
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      background: #090A0F;
+      overflow: hidden;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+    #vectrabase-widget {
+      height: 100%;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+  </style>
+</head>
+<body>
+  <div id="vectrabase-widget"></div>
+  <script src="/widget.js"></script>
+  <script>
+    (function() {
+      function start() {
+        var w = window.VectraBaseWidget;
+        if (!w) {
+          console.warn("[VectraBase] Widget script not yet ready, retrying...");
+          setTimeout(start, 50);
+          return;
+        }
+        var initFn = typeof w.init === 'function' ? w.init : (w.default && typeof w.default.init === 'function' ? w.default.init : null);
+        if (initFn) {
+          initFn({
+            tenantId: '00000000-0000-0000-0000-000000000001',
+            apiUrl: 'https://vectrabase-api.onrender.com'
+          });
+        }
+      }
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', start);
+      } else {
+        start();
+      }
+    })();
+  </script>
+</body>
+</html>

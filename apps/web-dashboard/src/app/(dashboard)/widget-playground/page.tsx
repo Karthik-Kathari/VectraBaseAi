@@ -197,7 +197,7 @@ export default function WidgetPlaygroundPage() {
           </div>
 
           <iframe
-            srcDoc={iframeHtml}
+            src="/widget-frame.html"
             title="VectraBase AI Vue.js 3 Embed Widget Mockup"
             className="flex-1 w-full h-full border-none"
           />
@@ -331,7 +331,7 @@ export default function WidgetPlaygroundPage() {
               </button>
             </div>
             <iframe
-              srcDoc={iframeHtml}
+              src="/widget-frame.html"
               title="Floating AI Assistant"
               className="flex-1 w-full h-full border-none"
             />

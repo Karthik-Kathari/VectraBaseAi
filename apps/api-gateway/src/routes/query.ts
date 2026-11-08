@@ -65,7 +65,7 @@ queryRouter.post(
             topScore: cachedData.citations?.[0]?.similarity || 1.0,
             tokensUsed: 0,
           },
-        }).catch((err) => console.error('[Telemetry Log Error]', err.message));
+        }).catch((err: any) => console.error('[Telemetry Log Error]', err.message));
 
         // Return cached answer with green CACHE HIT metadata (<2ms)
         return res.json({

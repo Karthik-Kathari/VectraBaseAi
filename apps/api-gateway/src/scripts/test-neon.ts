@@ -23,7 +23,7 @@ async function main() {
   for (const tenant of tenants) {
     console.log(`Tenant: "${tenant.name}" (ID: ${tenant.id})`);
     console.log(`Plan: ${tenant.plan}`);
-    console.log(`Users: ${tenant.users.map((u) => u.email).join(', ')}`);
+    console.log(`Users: ${tenant.users.map((u: any) => u.email).join(', ')}`);
     console.log(`Documents: ${tenant.documents.length}`);
     for (const doc of tenant.documents) {
       console.log(`  - Doc: "${doc.name}" | Chunks: ${doc.chunks.length} | Status: ${doc.status}`);

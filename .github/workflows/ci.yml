@@ -9,6 +9,8 @@ on:
 
 env:
   NODE_VERSION: '20'
+  DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/mockdb"
+  DATABASE_URL_UNPOOLED: "postgresql://postgres:postgres@localhost:5432/mockdb"
 
 jobs:
   typecheck-lint:
@@ -29,6 +31,10 @@ jobs:
 
       - name: Build shared-types
         run: pnpm turbo run build --filter=@vectrabase/shared-types
+
+      - name: Generate Prisma Client
+        working-directory: apps/api-gateway
+        run: pnpm prisma generate
 
       - name: Typecheck all packages
         run: pnpm turbo run typecheck
@@ -83,11 +89,13 @@ jobs:
         working-directory: apps/api-gateway
         env:
           DATABASE_URL: postgresql://vectrabase:vectrabase_secret@localhost:5432/vectrabase_test
+          DATABASE_URL_UNPOOLED: postgresql://vectrabase:vectrabase_secret@localhost:5432/vectrabase_test
         run: pnpm prisma migrate deploy || pnpm prisma db push --skip-generate
 
       - name: Run tests
         env:
           DATABASE_URL: postgresql://vectrabase:vectrabase_secret@localhost:5432/vectrabase_test
+          DATABASE_URL_UNPOOLED: postgresql://vectrabase:vectrabase_secret@localhost:5432/vectrabase_test
           REDIS_URL: redis://localhost:6379
           JWT_SECRET: test_jwt_secret_at_least_32_characters_long
           JWT_REFRESH_SECRET: test_refresh_secret_at_least_32_characters
@@ -110,6 +118,10 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        working-directory: apps/api-gateway
+        run: pnpm prisma generate
 
       - name: Build all packages
         env:

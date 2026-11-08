@@ -101,7 +101,7 @@ authRouter.post('/register', authRateLimiter, async (req: Request, res: Response
   const refreshTokenExpiresAt = new Date(Date.now() + REFRESH_TOKEN_TTL_MS);
 
   // Create tenant and user in a transaction
-  const { tenant, user } = await prisma.$transaction(async (tx) => {
+  const { tenant, user } = await prisma.$transaction(async (tx: any) => {
     const tenant = await tx.tenant.create({
       data: { name: tenantName, slug },
     });

@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * VectraBase AI — Obsidian Control Plane Shell Layout
+ * VectraBase AI — Dashboard Control Plane Shell
  * Author: Karthik Kathari (github.com/Karthik-Kathari)
  */
 
@@ -15,73 +15,55 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const navItems = [
-    { label: 'Control Plane', path: '/dashboard', icon: '📊' },
-    { label: 'RAG Studio', path: '/rag-studio', icon: '📄' },
-    { label: '1M Telemetry Grid', path: '/telemetry', icon: '⚡' },
-    { label: 'AI Governance Wizard', path: '/governance', icon: '🛡️' },
-    { label: 'Vue Widget Live Lab', path: '/widget-playground', icon: '💬' },
+    { label: 'Overview', path: '/dashboard', icon: '📊' },
+    { label: 'Knowledge Base', path: '/rag-studio', icon: '📄' },
+    { label: 'Chat Playground', path: '/widget-playground', icon: '💬' },
+    { label: 'Telemetry & Logs', path: '/telemetry', icon: '⚡' },
+    { label: 'AI Governance', path: '/governance', icon: '🛡️' },
   ];
 
   return (
-    <div className="min-h-screen bg-[#090A0F] text-slate-100 flex flex-col font-sans">
-      {/* Top Header Bar */}
-      <header className="h-14 border-b border-[#1E2230] bg-[#11131C] px-4 flex items-center justify-between sticky top-0 z-30">
+    <div className="flex-1 flex flex-col w-full bg-[#090A0F]">
+      {/* Sub-header Workspace Bar */}
+      <div className="h-12 border-b border-[#1E2230] bg-[#11131C]/60 px-4 sm:px-6 flex items-center justify-between text-xs font-mono">
         <div className="flex items-center gap-3">
-          <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center p-1 shadow-md shadow-cyan-500/20">
-              <svg className="w-full h-full text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <polygon points="12 2 2 7 12 12 22 7 12 2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                <polyline points="2 17 12 22 22 17" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                <polyline points="2 12 12 17 22 12" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </div>
-            <span className="font-mono font-bold text-sm text-white">VectraBase AI</span>
-          </Link>
+          <div className="flex items-center gap-2 px-2.5 py-1 rounded-md bg-[#090A0F] border border-[#1E2230]">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span className="text-slate-200 font-medium">Workspace: vectrabase-demo</span>
+            <Badge variant="cyan" className="text-[10px] py-0 px-1.5">Enterprise</Badge>
+          </div>
 
-          <span className="text-slate-600 font-mono">/</span>
+          <span className="hidden sm:inline text-slate-600">|</span>
 
-          {/* Workspace Switcher */}
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#090A0F] border border-[#1E2230] text-xs font-mono">
-            <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-            <span className="text-slate-200 font-medium">vectrabase-demo</span>
-            <span className="text-slate-500 text-[10px]">▼</span>
+          <div className="hidden sm:flex items-center gap-1.5 text-slate-400">
+            <span>Database:</span>
+            <span className="text-emerald-400 font-semibold">Neon Lakebase (pgvector active)</span>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Cmd+K Command Search Button */}
-          <button
-            onClick={() => {
-              window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }));
-            }}
-            className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#090A0F] border border-[#1E2230] hover:border-cyan-500/40 text-xs font-mono text-slate-400 transition-colors cursor-pointer"
+          <Link
+            href="/widget-playground"
+            className="flex items-center gap-1.5 text-xs text-cyan-400 hover:text-cyan-300 font-medium"
           >
-            <span>Search or jump to...</span>
-            <kbd className="px-1.5 py-0.5 rounded bg-[#1E2230] text-[10px] text-slate-300">Ctrl K</kbd>
-          </button>
-
-          {/* User Profile Badge */}
-          <div className="flex items-center gap-2.5 pl-2 border-l border-[#1E2230]">
-            <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-indigo-500 to-cyan-500 flex items-center justify-center font-bold text-xs text-white shadow-sm font-mono">
-              KK
-            </div>
-            <div className="hidden md:block text-left font-mono">
-              <span className="text-xs font-bold text-white block leading-none">Karthik Kathari</span>
-              <span className="text-[10px] text-cyan-400 leading-none">Principal Architect</span>
-            </div>
-          </div>
+            <span>Test Chat Assistant</span>
+            <span>→</span>
+          </Link>
         </div>
-      </header>
+      </div>
 
       {/* Main Body: Sidebar + Content Area */}
       <div className="flex flex-1">
         {/* Sidebar */}
         <aside
           className={`border-r border-[#1E2230] bg-[#11131C] p-3 flex flex-col justify-between transition-all duration-200 flex-shrink-0 ${
-            isCollapsed ? 'w-16' : 'w-60'
+            isCollapsed ? 'w-16' : 'w-56'
           }`}
         >
           <div className="space-y-1">
+            <div className="px-3 py-1.5 text-[11px] font-mono text-slate-500 uppercase tracking-wider">
+              {!isCollapsed && 'Navigation'}
+            </div>
             {navItems.map((item) => {
               const isActive = pathname === item.path;
               return (
@@ -90,7 +72,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   href={item.path as any}
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-mono transition-colors ${
                     isActive
-                      ? 'bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 font-semibold'
+                      ? 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 font-semibold shadow-sm'
                       : 'text-slate-400 hover:text-slate-200 hover:bg-[#1E2230]'
                   }`}
                   title={item.label}
@@ -106,9 +88,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="pt-4 border-t border-[#1E2230] space-y-2">
             {!isCollapsed && (
               <div className="p-2.5 rounded-lg bg-[#090A0F] border border-[#1E2230] text-[11px] font-mono text-slate-400">
-                <span className="block text-slate-500">Sole Creator:</span>
+                <span className="block text-slate-500">Architect & Engineer:</span>
                 <span className="font-bold text-white block">Karthik Kathari</span>
-                <span className="text-[10px] text-cyan-400 block mt-0.5">VectraBase AI Engine</span>
+                <span className="text-[10px] text-cyan-400 block mt-0.5">VectraBase AI Platform</span>
               </div>
             )}
 
@@ -122,11 +104,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </aside>
 
         {/* Content Area */}
-        <main className="flex-1 p-6 overflow-y-auto max-w-7xl mx-auto w-full">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto max-w-7xl mx-auto w-full">
           {children}
         </main>
       </div>
     </div>
   );
 }
-

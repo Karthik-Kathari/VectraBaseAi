@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * VectraBase AI — Split-Screen Live Playground & Embed Generator
+ * VectraBase AI — Interactive Assistant Playground & Embed Generator
  * Author: Karthik Kathari (github.com/Karthik-Kathari)
  */
 
@@ -16,6 +16,11 @@ export default function WidgetPlaygroundPage() {
   const [copied, setCopied] = useState(false);
   const [pipelineActive, setPipelineActive] = useState(false);
   const [cacheHitState, setCacheHitState] = useState(false);
+  const [testQuery, setTestQuery] = useState('Explain how VectraBase AI achieves sub-2ms latency?');
+  const [isQuerying, setIsQuerying] = useState(false);
+  const [answerOutput, setAnswerOutput] = useState<string | null>(
+    'VectraBase AI utilizes an aggressive Redis semantic cache that checks incoming query hashes before dispatching to the LLM. Cache hits are resolved in <2ms directly from in-memory key-value stores.'
+  );
 
   const embedSnippet = `<link rel="stylesheet" href="https://vectrabaseai.vercel.app/widget.css">
 <div id="vectrabase-widget"></div>
@@ -44,112 +49,272 @@ export default function WidgetPlaygroundPage() {
     }, 2200);
   }
 
+  async function runLiveQuery(promptText: string, isHit = false) {
+    setTestQuery(promptText);
+    setCacheHitState(isHit);
+    setPipelineActive(true);
+    setIsQuerying(true);
+
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://vectrabase-api.onrender.com';
+      const res = await fetch(`${apiUrl}/api/query`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: promptText,
+          tenantId: '00000000-0000-0000-0000-000000000001',
+        }),
+      });
+      const data = await res.json();
+      if (data?.data?.answer) {
+        setAnswerOutput(data.data.answer);
+        if (data.data.cacheHit) setCacheHitState(true);
+      }
+    } catch {
+      // Fallback response for playground
+      if (isHit) {
+        setAnswerOutput('VectraBase AI achieves sub-2ms latency by caching normalized semantic query hashes in Redis with a 60s TTL.');
+      } else {
+        setAnswerOutput('The pgvector HNSW index uses m=16, efConstruction=64, and cosine distance to perform sub-15ms vector similarity queries over 1,000,000 document chunks.');
+      }
+    } finally {
+      setIsQuerying(false);
+      setTimeout(() => setPipelineActive(false), 2000);
+    }
+  }
+
+  const iframeHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/widget.css">
+  <style>
+    body {
+      margin: 0;
+      background: #090A0F;
+      color: #f1f5f9;
+      font-family: system-ui, -apple-system, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px;
+      box-sizing: border-box;
+      text-align: center;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      background: rgba(6, 182, 212, 0.1);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      color: #22d3ee;
+      font-size: 11px;
+      font-family: monospace;
+      margin-bottom: 12px;
+    }
+    h2 { margin: 0 0 8px 0; font-size: 20px; font-weight: 700; color: #fff; }
+    p { margin: 0; font-size: 13px; color: #94a3b8; max-width: 340px; line-height: 1.5; }
+    .hint {
+      margin-top: 16px;
+      font-size: 11px;
+      color: #38bdf8;
+      background: rgba(14, 165, 233, 0.1);
+      border: 1px dashed rgba(14, 165, 233, 0.3);
+      padding: 8px 12px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="badge">● Live Production Widget</div>
+  <h2>Customer Website Preview</h2>
+  <p>The floating AI assistant is active in the bottom-right corner. Click the launcher bubble to test chat.</p>
+  <div class="hint">↘ Click the chat icon in the bottom right corner</div>
+
+  <div id="vectrabase-widget"></div>
+  <script src="/widget.js"><\/script>
+  <script>
+    if (window.VectraBaseWidget) {
+      window.VectraBaseWidget.init({
+        tenantId: '00000000-0000-0000-0000-000000000001',
+        apiUrl: 'https://vectrabase-api.onrender.com',
+        theme: 'dark',
+        position: 'bottom-right'
+      });
+    }
+  <\/script>
+</body>
+</html>`;
+
   return (
-    <div className="space-y-6">
-      {/* Page Title & Copy Embed Action */}
+    <div className="space-y-8 max-w-6xl mx-auto">
+      {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold font-mono text-white flex items-center gap-2">
-            Vue.js 3 Embed Widget Split-Screen Live Lab
-            <Badge variant="cyan">Iframe Sandboxed</Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant="cyan">Interactive Lab</Badge>
+            <span className="text-xs text-slate-500 font-mono">Vue.js 3 + GSAP Physics</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-white mt-1 tracking-tight">
+            Chat Assistant Playground &amp; Embed Generator
           </h1>
-          <p className="text-xs text-slate-400 font-sans mt-0.5">
-            Interact with the embeddable Vue 3 client assistant on the left while monitoring Next.js real-time pipeline telemetry on the right.
+          <p className="text-sm text-slate-400 mt-1 max-w-2xl leading-relaxed">
+            Test your assistant with real queries on the left while monitoring latency, similarity scores, and grounded citations on the right.
           </p>
         </div>
 
         <Button
           variant="primary"
           onClick={copyEmbedSnippet}
-          className="shadow-lg shadow-cyan-950 flex items-center gap-2"
+          className="shadow-lg shadow-cyan-950 flex items-center gap-2 font-semibold text-xs tracking-tight whitespace-nowrap self-start md:self-auto"
         >
-          <span>{copied ? '✓ Copied' : '</> Get Copy-Paste HTML Embed Code'}</span>
+          <span>{copied ? '✓ Copied to Clipboard!' : '</> Copy HTML Embed Code'}</span>
         </Button>
       </div>
 
       {/* GSAP Pipeline Map Live Observer */}
-      <RAGPipelineVisualizer
-        isActive={pipelineActive}
-        cacheHit={cacheHitState}
-      />
+      <div className="space-y-2">
+        <div className="flex items-center justify-between px-1">
+          <span className="text-xs font-mono text-slate-400 uppercase tracking-wider font-semibold">
+            Query Execution Telemetry:
+          </span>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => simulateWidgetQuery(false)} className="text-xs">
+              Simulate Cache Miss
+            </Button>
+            <Button variant="emerald" size="sm" onClick={() => simulateWidgetQuery(true)} className="text-xs">
+              Simulate Cache Hit (&lt;2ms)
+            </Button>
+          </div>
+        </div>
+
+        <RAGPipelineVisualizer
+          isActive={pipelineActive}
+          cacheHit={cacheHitState}
+        />
+      </div>
 
       {/* Split-Screen 2-Column Lab Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-[620px]">
-        {/* Left Column: Embeddable Vue.js 3 Widget (Port 5173 / iframe) */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 min-h-[640px]">
+        {/* Left Column: Embeddable Vue.js 3 Widget (Customer Website Preview) */}
         <div className="flex flex-col h-[650px] rounded-2xl border border-[#1E2230] bg-[#090A0F] overflow-hidden shadow-2xl">
-          <div className="px-4 py-2.5 bg-[#11131C] border-b border-[#1E2230] flex items-center justify-between font-mono text-xs">
+          <div className="px-4 py-3 bg-[#11131C] border-b border-[#1E2230] flex items-center justify-between font-mono text-xs">
             <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
-              <span className="text-white font-bold">Vue.js 3 Embed Assistant</span>
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span className="text-white font-bold">Embedded Customer Website Mockup</span>
             </div>
-            <span className="text-[10px] text-cyan-400 bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-800">
-              apps/embed-widget (:5173)
+            <span className="text-[10px] text-cyan-400 bg-cyan-950/60 px-2.5 py-0.5 rounded-full border border-cyan-800">
+              Interactive Vue 3 Assistant
             </span>
           </div>
 
           <iframe
-            src="http://localhost:5173"
-            title="VectraBase AI Vue.js 3 Embed Widget"
+            srcDoc={iframeHtml}
+            title="VectraBase AI Vue.js 3 Embed Widget Mockup"
             className="flex-1 w-full h-full border-none"
-            onError={() => {
-              console.log('Local dev widget iframe loading fallback');
-            }}
           />
         </div>
 
-        {/* Right Column: Next.js 15 Backend Telemetry Observer & Inspector */}
-        <div className="flex flex-col h-[650px] space-y-4">
-          {/* Live RAG Telemetry Packet Card */}
-          <Card className="flex-1 overflow-y-auto">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Live RAG Telemetry Packet</CardTitle>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={() => simulateWidgetQuery(false)}>
-                  Trigger Query Miss
-                </Button>
-                <Button variant="emerald" size="sm" onClick={() => simulateWidgetQuery(true)}>
-                  Trigger Cache Hit
-                </Button>
-              </div>
+        {/* Right Column: Query Testing & Telemetry Console */}
+        <div className="flex flex-col h-[650px] space-y-6">
+          <Card className="flex-1 flex flex-col bg-[#11131C] border-[#1E2230] overflow-y-auto">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base text-white">Live Query Inspector</CardTitle>
+              <p className="text-xs text-slate-400 mt-0.5">Test predefined questions or observe telemetry packets</p>
             </CardHeader>
-            <CardContent className="space-y-4">
+
+            <CardContent className="space-y-4 flex-1 flex flex-col justify-between">
+              {/* Preset Prompts */}
+              <div className="space-y-2">
+                <span className="text-[11px] font-mono text-slate-400 uppercase tracking-wider block font-semibold">
+                  Sample Inquiries:
+                </span>
+                <div className="grid grid-cols-1 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => runLiveQuery('Explain how VectraBase AI achieves sub-2ms latency?', true)}
+                    className="text-left p-2.5 rounded-lg bg-[#090A0F] border border-[#1E2230] hover:border-cyan-500/50 text-xs font-mono text-slate-300 hover:text-cyan-300 transition-colors flex items-center justify-between"
+                  >
+                    <span>1. "How does VectraBase achieve sub-2ms latency?"</span>
+                    <Badge variant="emerald" className="text-[10px]">Instant Hit</Badge>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => runLiveQuery('What is the HNSW vector configuration in pgvector?', false)}
+                    className="text-left p-2.5 rounded-lg bg-[#090A0F] border border-[#1E2230] hover:border-indigo-500/50 text-xs font-mono text-slate-300 hover:text-indigo-300 transition-colors flex items-center justify-between"
+                  >
+                    <span>2. "What is the HNSW vector configuration in pgvector?"</span>
+                    <Badge variant="cyan" className="text-[10px]">Vector Search</Badge>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => runLiveQuery('How does the zero-data-loss JWT refresh work?', false)}
+                    className="text-left p-2.5 rounded-lg bg-[#090A0F] border border-[#1E2230] hover:border-amber-500/50 text-xs font-mono text-slate-300 hover:text-amber-300 transition-colors flex items-center justify-between"
+                  >
+                    <span>3. "How does the zero-data-loss JWT refresh work?"</span>
+                    <Badge variant="cyan" className="text-[10px]">Resilience</Badge>
+                  </button>
+                </div>
+              </div>
+
               {/* Telemetry Metric Cards */}
               <div className="grid grid-cols-3 gap-2 text-xs font-mono">
-                <div className="p-3 rounded-lg bg-[#090A0F] border border-[#1E2230]">
+                <div className="p-3 rounded-xl bg-[#090A0F] border border-[#1E2230]">
                   <span className="text-slate-500 block text-[10px]">CACHE STATUS</span>
                   <span className={`font-bold mt-1 block ${cacheHitState ? 'text-emerald-400' : 'text-cyan-400'}`}>
                     {cacheHitState ? 'HIT (0.9ms)' : 'MISS (310ms)'}
                   </span>
                 </div>
-                <div className="p-3 rounded-lg bg-[#090A0F] border border-[#1E2230]">
-                  <span className="text-slate-500 block text-[10px]">HNSW SIMILARITY</span>
-                  <span className="text-white font-bold mt-1 block">0.942 Cosine</span>
+                <div className="p-3 rounded-xl bg-[#090A0F] border border-[#1E2230]">
+                  <span className="text-slate-500 block text-[10px]">COSINE MATCH</span>
+                  <span className="text-white font-bold mt-1 block">0.942 HNSW</span>
                 </div>
-                <div className="p-3 rounded-lg bg-[#090A0F] border border-[#1E2230]">
-                  <span className="text-slate-500 block text-[10px]">CITATIONS RETURNED</span>
-                  <span className="text-indigo-400 font-bold mt-1 block">3 Source Chunks</span>
+                <div className="p-3 rounded-xl bg-[#090A0F] border border-[#1E2230]">
+                  <span className="text-slate-500 block text-[10px]">CITATIONS</span>
+                  <span className="text-indigo-400 font-bold mt-1 block">3 Passages</span>
                 </div>
               </div>
 
-              {/* Sample Raw Citation Stream */}
-              <div>
-                <span className="text-[11px] font-mono text-slate-400 uppercase tracking-wider block mb-2 font-semibold">
-                  Retrieved pgvector Source Paragraph (Chunk #1):
-                </span>
-                <div className="p-3 rounded-lg bg-[#090A0F] border border-[#1E2230] text-xs font-sans text-slate-300 leading-relaxed">
-                  <span className="font-mono text-cyan-400 block mb-1 font-bold">
-                    [Source 1: VectraBase_Architecture_Whitepaper.pdf — Page 1, Score: 0.94]
+              {/* Answer & Grounded Citations Output */}
+              <div className="p-4 rounded-xl bg-[#090A0F] border border-[#1E2230] space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-mono text-slate-400 uppercase tracking-wider font-semibold">
+                    Synthesized Grounded Response:
                   </span>
-                  VectraBase AI is a multi-tenant RAG knowledge engine architected by Karthik Kathari. It pairs a Next.js 15 control plane with a lightweight embeddable Vue.js 3 widget, powered by a Node.js Express API gateway, Redis sliding-window rate limiting, and a Python FastAPI microservice using pgvector for hybrid cosine similarity and keyword retrieval.
+                  {isQuerying && <span className="text-xs font-mono text-cyan-400 animate-pulse">Streaming...</span>}
+                </div>
+                <p className="text-xs text-slate-200 leading-relaxed font-sans">
+                  {answerOutput}
+                </p>
+                <div className="pt-2 border-t border-[#1E2230] flex items-center gap-2">
+                  <span className="text-[10px] font-mono text-slate-500">Cited Source:</span>
+                  <span className="text-[11px] font-mono text-cyan-400 bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-800/60">
+                    [Source 1: VectraBase_Architecture_Whitepaper.pdf · Page 1]
+                  </span>
                 </div>
               </div>
 
-              {/* Embed Code Snippet Preview */}
+              {/* Embed Code Snippet Copy Box */}
               <div>
-                <span className="text-[11px] font-mono text-slate-400 uppercase tracking-wider block mb-2 font-semibold">
-                  Copy-Paste Embed Snippet for Customer Sites:
-                </span>
-                <pre className="p-3 rounded-lg bg-[#090A0F] border border-[#1E2230] text-[11px] font-mono text-cyan-300 overflow-x-auto whitespace-pre-wrap">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-[11px] font-mono text-slate-400 uppercase tracking-wider font-semibold">
+                    Production HTML Snippet:
+                  </span>
+                  <button
+                    onClick={copyEmbedSnippet}
+                    className="text-[11px] font-mono text-cyan-400 hover:underline cursor-pointer"
+                  >
+                    {copied ? '✓ Copied' : 'Copy Code'}
+                  </button>
+                </div>
+                <pre className="p-3 rounded-xl bg-[#090A0F] border border-[#1E2230] text-[11px] font-mono text-cyan-300 overflow-x-auto whitespace-pre-wrap max-h-36">
                   {embedSnippet}
                 </pre>
               </div>
@@ -160,4 +325,3 @@ export default function WidgetPlaygroundPage() {
     </div>
   );
 }
-

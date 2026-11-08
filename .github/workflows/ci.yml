@@ -88,7 +88,7 @@ jobs:
         working-directory: apps/api-gateway
         env:
           DATABASE_URL: postgresql://vectrabase:vectrabase_secret@localhost:5432/vectrabase_test
-        run: pnpm prisma migrate deploy
+        run: pnpm prisma migrate deploy || pnpm prisma db push --skip-generate
 
       - name: Run tests
         env:

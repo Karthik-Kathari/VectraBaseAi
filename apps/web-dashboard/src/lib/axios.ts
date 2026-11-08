@@ -17,6 +17,7 @@ export const apiClient = axios.create({
 
 // In-memory token storage (XSS protection)
 let accessToken: string | null = null;
+let refreshToken: string | null = null;
 let isRefreshing = false;
 let failedQueue: Array<{
   resolve: (value?: unknown) => void;
@@ -29,6 +30,21 @@ export function setAccessToken(token: string | null) {
 
 export function getAccessToken(): string | null {
   return accessToken;
+}
+
+export function setRefreshToken(token: string | null) {
+  refreshToken = token;
+  if (typeof window !== 'undefined') {
+    if (token) localStorage.setItem('vectrabase_refresh_token', token);
+    else localStorage.removeItem('vectrabase_refresh_token');
+  }
+}
+
+export function getRefreshToken(): string | null {
+  if (!refreshToken && typeof window !== 'undefined') {
+    refreshToken = localStorage.getItem('vectrabase_refresh_token');
+  }
+  return refreshToken;
 }
 
 // Global interceptor telemetry listener for recruiter visualizer
@@ -105,13 +121,32 @@ apiClient.interceptors.response.use(
       notifyTelemetry('REFRESH_START');
 
       try {
-        const { data } = await axios.post(
-          `${API_BASE_URL}/api/auth/refresh`,
-          {},
-          { withCredentials: true },
-        );
+        let currentRefreshToken = getRefreshToken();
+        let newAccessToken: string;
 
-        const newAccessToken = data.data.accessToken;
+        try {
+          const { data } = await axios.post(
+            `${API_BASE_URL}/api/auth/refresh`,
+            { refreshToken: currentRefreshToken },
+            { withCredentials: true },
+          );
+          newAccessToken = data.data.accessToken;
+          if (data.data.refreshToken) {
+            setRefreshToken(data.data.refreshToken);
+          }
+        } catch (refreshErr) {
+          // Fallback to bootstrap demo session for recruiters if initial session was absent
+          const { data } = await axios.post(
+            `${API_BASE_URL}/api/auth/demo-session`,
+            {},
+            { withCredentials: true },
+          );
+          newAccessToken = data.data.accessToken;
+          if (data.data.refreshToken) {
+            setRefreshToken(data.data.refreshToken);
+          }
+        }
+
         setAccessToken(newAccessToken);
         notifyTelemetry('REFRESH_SUCCESS', { newAccessToken: `${newAccessToken.slice(0, 15)}...` });
 

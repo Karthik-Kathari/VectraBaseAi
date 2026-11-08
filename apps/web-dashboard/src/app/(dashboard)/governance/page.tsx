@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Input } from '@/components/ui/Input';
 import { InterceptorConsole } from '@/components/InterceptorConsole';
 import { useGovernanceDraft } from '@/hooks/useGovernanceDraft';
-import { apiClient, setAccessToken } from '@/lib/axios';
+import { apiClient, setAccessToken, setRefreshToken, getRefreshToken } from '@/lib/axios';
 import { toast } from 'sonner';
 
 export default function GovernanceWizardPage() {
@@ -105,8 +105,23 @@ export default function GovernanceWizardPage() {
   }, [loadDraft, reset]);
 
   // Interactive Recruiter Resilience Test Trigger ("Simulate Expiry at Field 48")
-  function simulateExpiryAtField48() {
+  async function simulateExpiryAtField48() {
     setCurrentStep(5);
+
+    // If no refresh token exists, obtain one first in the background so refresh rotation works cleanly
+    if (!getRefreshToken()) {
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://vectrabase-api.onrender.com';
+        const res = await fetch(`${apiUrl}/api/auth/demo-session`, { method: 'POST' });
+        const json = await res.json();
+        if (json?.data?.refreshToken) {
+          setRefreshToken(json.data.refreshToken);
+        }
+      } catch (e) {
+        // Fallback handled by axios interceptor
+      }
+    }
+
     // Forcibly expire active access token to trigger 401 on submit
     setAccessToken('EXPIRED_SIMULATED_TOKEN_TTL_0S');
     setIsTokenExpiredSimulated(true);

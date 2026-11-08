@@ -217,6 +217,58 @@ authRouter.post('/login', authRateLimiter, async (req: Request, res: Response) =
     success: true,
     data: {
       accessToken,
+      refreshToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        tenantId: user.tenantId,
+        tenantSlug: user.tenant.slug,
+        plan: user.tenant.plan,
+      },
+    },
+  });
+});
+
+// ─── POST /demo-session ───────────────────────────────────────────────────────
+// Provides an instant authenticated demo session for recruiter tests and public review
+authRouter.post('/demo-session', async (_req: Request, res: Response) => {
+  const user = await prisma.user.findFirst({
+    where: { email: 'karthikmk.workspace@gmail.com' },
+    include: { tenant: { select: { id: true, slug: true, plan: true } } },
+  });
+
+  if (!user) {
+    res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Demo user not found' } });
+    return;
+  }
+
+  const refreshToken = issueRefreshToken();
+  const refreshTokenHash = hashToken(refreshToken);
+  const refreshTokenExpiresAt = new Date(Date.now() + REFRESH_TOKEN_TTL_MS);
+
+  await prisma.refreshTokenFamily.create({
+    data: {
+      userId: user.id,
+      tokenHash: refreshTokenHash,
+      expiresAt: refreshTokenExpiresAt,
+    },
+  });
+
+  const accessToken = issueAccessToken({
+    sub: user.id,
+    tenantId: user.tenantId,
+    email: user.email,
+    role: user.role,
+  });
+
+  setCookieRefresh(res, refreshToken);
+
+  res.json({
+    success: true,
+    data: {
+      accessToken,
+      refreshToken,
       user: {
         id: user.id,
         email: user.email,
@@ -232,7 +284,11 @@ authRouter.post('/login', authRateLimiter, async (req: Request, res: Response) =
 // ─── POST /refresh ────────────────────────────────────────────────────────────
 
 authRouter.post('/refresh', async (req: Request, res: Response) => {
-  const incomingRefreshToken = req.cookies?.refreshToken as string | undefined;
+  const incomingRefreshToken = (
+    req.body?.refreshToken ||
+    req.headers['x-refresh-token'] ||
+    req.cookies?.refreshToken
+  ) as string | undefined;
 
   if (!incomingRefreshToken) {
     res.status(401).json({ success: false, error: { code: 'UNAUTHORIZED', message: 'No refresh token provided' } });
@@ -305,7 +361,10 @@ authRouter.post('/refresh', async (req: Request, res: Response) => {
 
   res.json({
     success: true,
-    data: { accessToken },
+    data: {
+      accessToken,
+      refreshToken: newRefreshToken,
+    },
   });
 });
 

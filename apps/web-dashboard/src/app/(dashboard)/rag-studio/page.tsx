@@ -146,35 +146,35 @@ export default function RAGStudioPage() {
       <div>
         <div className="flex items-center gap-2">
           <Badge variant="cyan">Knowledge Base</Badge>
-          <span className="text-xs text-slate-500 font-mono">Automatic Semantic Indexing</span>
+          <span className="text-xs text-slate-500 font-sans">Automatic Semantic Indexing</span>
         </div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-white mt-1 tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-1 tracking-tight">
           Manage Your Knowledge Base
         </h1>
-        <p className="text-sm text-slate-400 mt-1 max-w-2xl leading-relaxed">
+        <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 max-w-2xl leading-relaxed">
           Upload documents or import web pages to train your AI assistant. All content is automatically parsed, indexed with vector embeddings, and made searchable in seconds.
         </p>
       </div>
 
       {/* Success Next-Step Callout (Shown when a document is uploaded) */}
       {lastUploadedDoc && (
-        <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-950/40 via-[#11131C] to-cyan-950/40 border border-emerald-500/40 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl">
+        <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-50 via-white to-sky-50 dark:from-emerald-950/40 dark:via-[#11131C] dark:to-cyan-950/40 border border-emerald-200 dark:border-emerald-500/40 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
-              <span className="text-xs font-mono font-bold text-emerald-400 uppercase tracking-wider">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+              <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">
                 Ready for Chat
               </span>
             </div>
-            <p className="text-sm font-semibold text-white">
+            <p className="text-sm font-semibold text-slate-900 dark:text-white">
               "{lastUploadedDoc}" is now live in your Knowledge Base!
             </p>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-600 dark:text-slate-400">
               Test queries against this document in the Live Chat Playground to see citations in action.
             </p>
           </div>
           <Link href="/widget-playground">
-            <Button variant="primary" size="sm" className="whitespace-nowrap shadow-lg shadow-cyan-950">
+            <Button variant="primary" size="sm" className="whitespace-nowrap shadow-sm">
               💬 Test in Chat Playground →
             </Button>
           </Link>
@@ -184,20 +184,20 @@ export default function RAGStudioPage() {
       {/* 2-Column Workflow: Step 1 (Upload) & Step 2 (Processing Status) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Step 1: Upload Data */}
-        <Card className="bg-[#11131C] border-[#1E2230]">
+        <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="text-base text-white flex items-center gap-2">
-                <span className="w-6 h-6 rounded-full bg-cyan-500/20 text-cyan-400 text-xs font-mono flex items-center justify-center font-bold">1</span>
+              <CardTitle className="text-base text-slate-900 dark:text-white flex items-center gap-2">
+                <span className="w-6 h-6 rounded-full bg-indigo-50 dark:bg-cyan-500/20 text-indigo-600 dark:text-cyan-400 text-xs font-sans flex items-center justify-center font-bold">1</span>
                 Step 1: Add Content
               </CardTitle>
               {/* Tabs */}
-              <div className="flex rounded-lg bg-[#090A0F] p-0.5 border border-[#1E2230] text-xs font-mono">
+              <div className="flex rounded-lg bg-slate-100 dark:bg-[#090A0F] p-0.5 border border-slate-200 dark:border-slate-800 text-xs font-sans">
                 <button
                   type="button"
                   onClick={() => setActiveTab('FILE')}
                   className={`px-3 py-1 rounded-md transition-colors cursor-pointer ${
-                    activeTab === 'FILE' ? 'bg-cyan-500 text-black font-semibold' : 'text-slate-400 hover:text-white'
+                    activeTab === 'FILE' ? 'bg-indigo-600 dark:bg-cyan-500 text-white dark:text-black font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
                   Upload File
@@ -206,7 +206,7 @@ export default function RAGStudioPage() {
                   type="button"
                   onClick={() => setActiveTab('URL')}
                   className={`px-3 py-1 rounded-md transition-colors cursor-pointer ${
-                    activeTab === 'URL' ? 'bg-cyan-500 text-black font-semibold' : 'text-slate-400 hover:text-white'
+                    activeTab === 'URL' ? 'bg-indigo-600 dark:bg-cyan-500 text-white dark:text-black font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
                   Web URL
@@ -219,7 +219,7 @@ export default function RAGStudioPage() {
             {activeTab === 'FILE' ? (
               /* File Dropzone */
               <div className="space-y-2">
-                <div className="border-2 border-dashed border-[#2A2F45] hover:border-cyan-500/60 rounded-xl p-8 text-center bg-[#090A0F] transition-all relative cursor-pointer group">
+                <div className="border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-indigo-500 dark:hover:border-cyan-500/60 rounded-xl p-8 text-center bg-slate-50 dark:bg-slate-900/50 transition-all relative cursor-pointer group">
                   <input
                     type="file"
                     accept=".pdf,.md,.txt"
@@ -229,22 +229,22 @@ export default function RAGStudioPage() {
                   />
                   <div className="space-y-2 pointer-events-none">
                     <span className="text-4xl block transform group-hover:scale-110 transition-transform">📄</span>
-                    <p className="text-sm font-semibold text-white">
+                    <p className="text-sm font-semibold text-slate-900 dark:text-white">
                       {selectedFile ? selectedFile.name : 'Choose a file or drag it here'}
                     </p>
-                    <p className="text-xs text-slate-400">
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
                       Supports PDF, Markdown (.md), and Text (.txt) up to 10MB
                     </p>
                     {selectedFile && (
                       <div className="pt-2">
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-cyan-950/80 border border-cyan-500/30 text-xs font-mono text-cyan-300">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 dark:bg-cyan-950/80 border border-indigo-200 dark:border-cyan-500/30 text-xs font-mono text-indigo-700 dark:text-cyan-300">
                           ✓ {(selectedFile.size / 1024).toFixed(1)} KB selected
                         </span>
                       </div>
                     )}
                   </div>
                 </div>
-                <div className="flex items-center justify-between text-xs font-mono text-slate-400 px-1">
+                <div className="flex items-center justify-between text-xs font-sans text-slate-500 dark:text-slate-400 px-1">
                   <span>Fast Demo Preset:</span>
                   <button
                     type="button"
@@ -255,7 +255,7 @@ export default function RAGStudioPage() {
                       setSha256Hash("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855");
                       toast.info('Sample architecture document loaded! Click "Start Ingestion" below.');
                     }}
-                    className="text-cyan-400 hover:text-cyan-300 underline cursor-pointer"
+                    className="text-indigo-600 dark:text-cyan-400 hover:underline cursor-pointer font-medium"
                   >
                     ⚡ Auto-load Sample Markdown Doc
                   </button>
@@ -263,8 +263,8 @@ export default function RAGStudioPage() {
               </div>
             ) : (
               /* URL Input Tab */
-              <div className="space-y-3 p-4 rounded-xl bg-[#090A0F] border border-[#1E2230]">
-                <label className="text-xs font-medium text-slate-300 block">
+              <div className="space-y-3 p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                <label className="text-xs font-medium text-slate-700 dark:text-slate-300 block">
                   Documentation or Web Page URL
                 </label>
                 <Input
@@ -274,7 +274,7 @@ export default function RAGStudioPage() {
                   placeholder="https://docs.example.com/getting-started"
                   helperText="Enter any public documentation page to extract clean knowledge automatically."
                 />
-                <div className="flex items-center justify-between text-xs font-mono text-slate-400 pt-1">
+                <div className="flex items-center justify-between text-xs font-sans text-slate-500 dark:text-slate-400 pt-1">
                   <span>Fast Demo Preset:</span>
                   <button
                     type="button"
@@ -282,7 +282,7 @@ export default function RAGStudioPage() {
                       setUrlInput('https://docs.docker.com/engine/api/');
                       toast.info('Sample documentation URL filled! Click "Start Ingestion" below.');
                     }}
-                    className="text-cyan-400 hover:text-cyan-300 underline cursor-pointer"
+                    className="text-indigo-600 dark:text-cyan-400 hover:underline cursor-pointer font-medium"
                   >
                     ⚡ Fill Docker Docs URL
                   </button>
@@ -290,28 +290,28 @@ export default function RAGStudioPage() {
               </div>
             )}
 
-            {/* Collapsible Advanced Technical Details (De-jargonized) */}
+            {/* Collapsible Advanced Technical Details */}
             <div className="pt-1">
               <button
                 type="button"
                 onClick={() => setShowAdvanced(!showAdvanced)}
-                className="text-xs font-mono text-slate-400 hover:text-cyan-400 flex items-center gap-1.5 transition-colors cursor-pointer"
+                className="text-xs font-sans text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-cyan-400 flex items-center gap-1.5 transition-colors cursor-pointer"
               >
                 <span>{showAdvanced ? '▼' : '▶'}</span>
                 <span>Advanced Technical Details</span>
               </button>
 
               {showAdvanced && (
-                <div className="mt-2.5 p-3 rounded-lg bg-[#090A0F] border border-[#1E2230] text-[11px] font-mono text-slate-400 space-y-2">
+                <div className="mt-2.5 p-3 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-[11px] font-mono text-slate-600 dark:text-slate-400 space-y-2">
                   <div>
                     <span className="text-slate-500 block">Content Hash &amp; Idempotency:</span>
-                    <span className="text-cyan-400 font-bold break-all">
+                    <span className="text-indigo-600 dark:text-cyan-400 font-bold break-all">
                       {sha256Hash || 'Will be computed automatically upon file selection'}
                     </span>
                   </div>
                   <div>
                     <span className="text-slate-500 block">Vector Indexing:</span>
-                    <span className="text-slate-300">pgvector HNSW (m=16, efConstruction=64, cosine distance)</span>
+                    <span className="text-slate-700 dark:text-slate-300">pgvector HNSW (m=16, efConstruction=64, cosine distance)</span>
                   </div>
                 </div>
               )}
@@ -324,7 +324,7 @@ export default function RAGStudioPage() {
               onClick={startIngestion}
               isLoading={isIngesting}
               disabled={!selectedFile && !urlInput.trim()}
-              className="w-full shadow-lg shadow-cyan-950 font-semibold text-sm tracking-tight"
+              className="w-full shadow-sm font-semibold text-sm tracking-tight"
             >
               {isIngesting ? 'Processing Document...' : 'Start Ingestion →'}
             </Button>
@@ -332,41 +332,41 @@ export default function RAGStudioPage() {
         </Card>
 
         {/* Step 2: Processing Status */}
-        <Card className="bg-[#11131C] border-[#1E2230] flex flex-col justify-between">
+        <Card className="flex flex-col justify-between">
           <div>
             <CardHeader>
-              <CardTitle className="text-base text-white flex items-center gap-2">
-                <span className="w-6 h-6 rounded-full bg-indigo-500/20 text-indigo-400 text-xs font-mono flex items-center justify-center font-bold">2</span>
+              <CardTitle className="text-base text-slate-900 dark:text-white flex items-center gap-2">
+                <span className="w-6 h-6 rounded-full bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-xs font-sans flex items-center justify-center font-bold">2</span>
                 Step 2: Processing Status
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-5">
               {isIngesting || currentStage === 'Complete' ? (
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between text-xs font-mono">
-                    <span className="text-cyan-400 font-bold flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+                  <div className="flex items-center justify-between text-xs font-sans">
+                    <span className="text-indigo-600 dark:text-cyan-400 font-semibold flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-indigo-600 dark:bg-cyan-400 animate-ping"></span>
                       {currentStage}
                     </span>
-                    <span className="text-white font-bold tabular-nums">{progressPct}%</span>
+                    <span className="text-slate-900 dark:text-white font-bold tabular-nums font-mono">{progressPct}%</span>
                   </div>
 
-                  <div className="w-full bg-[#090A0F] h-2.5 rounded-full overflow-hidden border border-[#1E2230]">
+                  <div className="w-full bg-slate-100 dark:bg-slate-900 h-2.5 rounded-full overflow-hidden border border-slate-200 dark:border-slate-800">
                     <div
-                      className="h-full bg-gradient-to-r from-indigo-500 via-cyan-400 to-emerald-400 transition-all duration-300 rounded-full"
+                      className="h-full bg-gradient-to-r from-indigo-500 via-indigo-600 to-cyan-400 transition-all duration-300 rounded-full"
                       style={{ width: `${progressPct}%` }}
                     ></div>
                   </div>
 
-                  <div className="p-3.5 rounded-xl bg-[#090A0F] border border-[#1E2230] text-xs font-sans text-slate-300 space-y-1">
-                    <span className="text-[11px] font-mono text-slate-500 block">Current Task</span>
+                  <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-sans text-slate-700 dark:text-slate-300 space-y-1">
+                    <span className="text-[11px] font-sans font-medium text-slate-400 dark:text-slate-500 block">Current Task</span>
                     <p>{statusMessage}</p>
                   </div>
                 </div>
               ) : (
-                <div className="py-12 text-center text-slate-400 text-xs space-y-2">
-                  <span className="text-3xl block text-slate-600">⚡</span>
-                  <p className="font-medium text-slate-300">Ready to Process</p>
+                <div className="py-12 text-center text-slate-500 text-xs space-y-2">
+                  <span className="text-3xl block text-slate-400">⚡</span>
+                  <p className="font-semibold text-slate-800 dark:text-slate-200">Ready to Process</p>
                   <p className="text-slate-500 max-w-xs mx-auto">
                     Select a document on the left and click "Start Ingestion" to watch real-time chunking and vector storage.
                   </p>
@@ -376,11 +376,11 @@ export default function RAGStudioPage() {
           </div>
 
           {/* Quick Jump to Step 3 (Chat) */}
-          <div className="p-5 border-t border-[#1E2230] bg-[#090A0F]/50 flex items-center justify-between text-xs">
-            <span className="text-slate-400">Step 3: Test AI Chat</span>
+          <div className="p-5 border-t border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/50 flex items-center justify-between text-xs font-sans">
+            <span className="text-slate-600 dark:text-slate-400">Step 3: Test AI Chat</span>
             <Link
               href="/widget-playground"
-              className="text-cyan-400 hover:text-cyan-300 font-medium font-mono flex items-center gap-1"
+              className="text-indigo-600 dark:text-cyan-400 hover:underline font-semibold flex items-center gap-1"
             >
               <span>Open Chat Assistant</span>
               <span>→</span>
@@ -389,12 +389,12 @@ export default function RAGStudioPage() {
         </Card>
       </div>
 
-      {/* Section 3: Your Knowledge Base (Renamed from Document Ledger) */}
-      <Card className="bg-[#11131C] border-[#1E2230]">
+      {/* Section 3: Your Knowledge Base */}
+      <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-3">
           <div>
-            <CardTitle className="text-base text-white">Your Knowledge Base</CardTitle>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <CardTitle className="text-base text-slate-900 dark:text-white">Your Knowledge Base</CardTitle>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               All indexed documentation accessible to your AI assistant.
             </p>
           </div>
@@ -402,34 +402,34 @@ export default function RAGStudioPage() {
         </CardHeader>
 
         <CardContent className="p-0">
-          <div className="divide-y divide-[#1E2230] text-xs">
+          <div className="divide-y divide-slate-200 dark:divide-slate-800 text-xs">
             {documents.map((doc) => (
               <div
                 key={doc.id}
-                className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-white/[0.02] transition-colors"
+                className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors"
               >
                 <div className="flex items-start sm:items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-cyan-950/60 border border-cyan-500/30 flex items-center justify-center text-cyan-400 flex-shrink-0">
+                  <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-cyan-950/60 border border-indigo-100 dark:border-cyan-500/30 flex items-center justify-center text-indigo-600 dark:text-cyan-400 flex-shrink-0">
                     {doc.source === 'PDF' ? '📄' : doc.source === 'URL' ? '🌐' : '📝'}
                   </div>
                   <div>
-                    <p className="font-bold text-white text-sm tracking-tight">{doc.name}</p>
-                    <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-1 text-[11px] text-slate-400 font-mono">
-                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-500/30">
+                    <p className="font-semibold text-slate-900 dark:text-white text-sm tracking-tight">{doc.name}</p>
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-1 text-[11px] text-slate-500 dark:text-slate-400 font-sans">
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30 font-medium">
                         ● {doc.status}
                       </span>
                       <span>{doc.chunks} semantic chunks</span>
                       <span>·</span>
                       <span>{doc.tokens.toLocaleString()} tokens</span>
                       <span>·</span>
-                      <span className="text-slate-500">{doc.date}</span>
+                      <span className="text-slate-400 dark:text-slate-500">{doc.date}</span>
                     </div>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-3 self-end sm:self-center">
                   <Link href="/widget-playground">
-                    <Button variant="secondary" size="sm" className="text-xs">
+                    <Button variant="outline" size="sm" className="text-xs">
                       💬 Test Query
                     </Button>
                   </Link>

@@ -99,17 +99,17 @@ export function InterceptorConsole() {
   }, []);
 
   return (
-    <div className="rounded-xl border border-[#1E2230] bg-[#11131C] p-4 text-xs font-mono shadow-xl flex flex-col h-full">
-      <div className="flex items-center justify-between pb-3 border-b border-[#1E2230] mb-3">
+    <div className="rounded-xl border border-slate-200 dark:border-[#1E2230] bg-white dark:bg-[#11131C] p-4 text-xs font-sans shadow-sm dark:shadow-xl flex flex-col h-full">
+      <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-[#1E2230] mb-3">
         <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse"></span>
-          <span className="font-bold text-white uppercase tracking-wider text-[11px]">
+          <span className="w-2.5 h-2.5 rounded-full bg-indigo-600 dark:bg-cyan-400 animate-pulse"></span>
+          <span className="font-semibold text-slate-900 dark:text-white uppercase tracking-wider text-[11px]">
             Live Axios Interceptor Telemetry Console
           </span>
         </div>
         <button
           onClick={() => setLogs([])}
-          className="text-slate-500 hover:text-slate-300 transition-colors text-[10px]"
+          className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 transition-colors text-[10px] font-mono cursor-pointer"
         >
           Clear
         </button>
@@ -119,15 +119,15 @@ export function InterceptorConsole() {
         {logs.map((log) => (
           <div
             key={log.id}
-            className="p-2.5 rounded-lg bg-[#090A0F] border border-[#1E2230] space-y-1 animate-fadeIn"
+            className="p-2.5 rounded-lg bg-slate-50 dark:bg-[#090A0F] border border-slate-200 dark:border-[#1E2230] space-y-1 animate-fadeIn"
           >
             <div className="flex items-center justify-between">
-              <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${log.color}`}>
+              <span className={`px-2 py-0.5 rounded text-[10px] font-bold border font-mono ${log.color}`}>
                 {log.badge}
               </span>
-              <span className="text-[10px] text-slate-500 tabular-nums">{log.timestamp}</span>
+              <span className="text-[10px] text-slate-400 dark:text-slate-500 tabular-nums font-mono">{log.timestamp}</span>
             </div>
-            <p className="text-slate-300 font-sans text-xs leading-relaxed">{log.message}</p>
+            <p className="text-slate-700 dark:text-slate-300 font-sans text-xs leading-relaxed">{log.message}</p>
           </div>
         ))}
       </div>

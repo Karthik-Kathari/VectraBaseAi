@@ -2,7 +2,7 @@
 
 /**
  * VectraBase AI — Premium B2B SaaS Landing Page
- * Author: Karthik Kathari (github.com/Karthik-Kathari)
+ * Classic, clean, professional enterprise UI with Light and Dark mode
  */
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -71,24 +71,24 @@ export default function LandingPage() {
   ];
 
   return (
-    <div className="space-y-24 py-12 md:py-20 selection:bg-cyan-500/20 selection:text-cyan-300">
+    <div className="space-y-24 py-12 md:py-20">
       {/* ─── Hero Section ──────────────────────────────────────────────────────── */}
       <section ref={heroRef} className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-8">
-        <div className="gsap-fade-up inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#11131C] border border-cyan-500/30 text-xs font-mono text-cyan-300 shadow-lg shadow-cyan-950/40">
-          <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+        <div className="gsap-fade-up inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-medium text-slate-700 dark:text-cyan-300 shadow-sm">
+          <span className="w-2 h-2 rounded-full bg-indigo-600 dark:bg-cyan-400 animate-pulse"></span>
           <span>Next-Gen Enterprise Knowledge Engine</span>
-          <span className="text-slate-500">|</span>
-          <span className="text-slate-300">v1.0 Production Ready</span>
+          <span className="text-slate-300 dark:text-slate-600">|</span>
+          <span className="text-slate-500 dark:text-slate-400">v1.0 Production Ready</span>
         </div>
 
-        <h1 className="gsap-fade-up text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-white max-w-4xl mx-auto leading-tight">
+        <h1 className="gsap-fade-up text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-slate-900 dark:text-white max-w-4xl mx-auto leading-tight">
           Build AI Assistants from Your{' '}
-          <span className="bg-gradient-to-r from-cyan-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-indigo-600 via-indigo-500 to-cyan-500 dark:from-cyan-400 dark:via-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
             Own Data in Seconds
           </span>
         </h1>
 
-        <p className="gsap-fade-up text-base sm:text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed">
+        <p className="gsap-fade-up text-base sm:text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto leading-relaxed">
           Transform technical PDFs, API manuals, and web documentation into accurate, zero-hallucination AI chat assistants. Embeddable on any website with a single line of code.
         </p>
 
@@ -99,16 +99,16 @@ export default function LandingPage() {
             size="lg"
             onClick={handleLaunchSandbox}
             isLoading={isLoading}
-            className="shadow-xl shadow-cyan-950/80 px-7 py-3 text-sm font-semibold tracking-tight"
+            className="shadow-sm px-7 py-3 text-sm font-semibold tracking-tight"
           >
             Launch Live Sandbox →
           </Button>
 
           <Link href="/widget-playground">
             <Button
-              variant="secondary"
+              variant="outline"
               size="lg"
-              className="px-7 py-3 text-sm font-semibold border-slate-700 hover:border-cyan-500/50"
+              className="px-7 py-3 text-sm font-semibold"
             >
               💬 Try Live Chat Playground
             </Button>
@@ -117,21 +117,21 @@ export default function LandingPage() {
 
         {/* Key Metrics Strip */}
         <div className="gsap-fade-up grid grid-cols-2 md:grid-cols-4 gap-4 pt-10 max-w-4xl mx-auto">
-          <div className="p-4 rounded-xl bg-[#11131C] border border-[#1E2230] text-center">
-            <div className="text-2xl font-bold font-mono text-cyan-400">&lt; 2ms</div>
-            <div className="text-xs text-slate-400 mt-1">Redis Cache Latency</div>
+          <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-center shadow-xs">
+            <div className="text-2xl font-bold font-mono text-indigo-600 dark:text-cyan-400">&lt; 2ms</div>
+            <div className="text-xs text-slate-600 dark:text-slate-400 mt-1 font-medium">Redis Cache Latency</div>
           </div>
-          <div className="p-4 rounded-xl bg-[#11131C] border border-[#1E2230] text-center">
-            <div className="text-2xl font-bold font-mono text-indigo-400">1,000,000</div>
-            <div className="text-xs text-slate-400 mt-1">Telemetry Records Virtualized</div>
+          <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-center shadow-xs">
+            <div className="text-2xl font-bold font-mono text-indigo-600 dark:text-indigo-400">1,000,000</div>
+            <div className="text-xs text-slate-600 dark:text-slate-400 mt-1 font-medium">Telemetry Records Virtualized</div>
           </div>
-          <div className="p-4 rounded-xl bg-[#11131C] border border-[#1E2230] text-center">
-            <div className="text-2xl font-bold font-mono text-emerald-400">100%</div>
-            <div className="text-xs text-slate-400 mt-1">Grounded Source Citations</div>
+          <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-center shadow-xs">
+            <div className="text-2xl font-bold font-mono text-emerald-600 dark:text-emerald-400">100%</div>
+            <div className="text-xs text-slate-600 dark:text-slate-400 mt-1 font-medium">Grounded Source Citations</div>
           </div>
-          <div className="p-4 rounded-xl bg-[#11131C] border border-[#1E2230] text-center">
-            <div className="text-2xl font-bold font-mono text-amber-400">0 Data Loss</div>
-            <div className="text-xs text-slate-400 mt-1">Silent JWT Token Refresh</div>
+          <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-center shadow-xs">
+            <div className="text-2xl font-bold font-mono text-amber-600 dark:text-amber-400">0 Data Loss</div>
+            <div className="text-xs text-slate-600 dark:text-slate-400 mt-1 font-medium">Silent JWT Token Refresh</div>
           </div>
         </div>
       </section>
@@ -140,56 +140,56 @@ export default function LandingPage() {
       <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
         <div className="text-center space-y-3">
           <Badge variant="cyan">Seamless Workflow</Badge>
-          <h2 className="text-3xl font-bold text-white tracking-tight">How VectraBase AI Works</h2>
-          <p className="text-slate-400 text-sm max-w-xl mx-auto">
+          <h2 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">How VectraBase AI Works</h2>
+          <p className="text-slate-600 dark:text-slate-400 text-sm max-w-xl mx-auto">
             From raw documents to an active embedded assistant in three straightforward steps.
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Step 1 */}
-          <div className="p-6 rounded-2xl bg-[#11131C] border border-[#1E2230] hover:border-cyan-500/40 transition-all space-y-4">
-            <div className="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 text-xl font-mono font-bold">
+          <div className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-500/40 dark:hover:border-cyan-500/40 shadow-xs hover:shadow-md transition-all space-y-4">
+            <div className="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-cyan-500/10 border border-indigo-100 dark:border-cyan-500/30 flex items-center justify-center text-indigo-600 dark:text-cyan-400 text-xl font-bold">
               1
             </div>
-            <h3 className="text-lg font-bold text-white">Upload Your Knowledge</h3>
-            <p className="text-slate-400 text-xs leading-relaxed">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Upload Your Knowledge</h3>
+            <p className="text-slate-600 dark:text-slate-400 text-xs leading-relaxed">
               Drag-and-drop PDFs, markdown manuals, or paste live website URLs. Our ingestion engine parses and strips scripts automatically.
             </p>
             <div className="pt-2">
-              <Link href="/rag-studio" className="text-xs font-mono text-cyan-400 hover:text-cyan-300 font-medium flex items-center gap-1">
+              <Link href="/rag-studio" className="text-xs font-semibold text-indigo-600 dark:text-cyan-400 hover:underline flex items-center gap-1">
                 Open Knowledge Base →
               </Link>
             </div>
           </div>
 
           {/* Step 2 */}
-          <div className="p-6 rounded-2xl bg-[#11131C] border border-[#1E2230] hover:border-indigo-500/40 transition-all space-y-4">
-            <div className="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 text-xl font-mono font-bold">
+          <div className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-500/40 dark:hover:border-indigo-500/40 shadow-xs hover:shadow-md transition-all space-y-4">
+            <div className="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 text-xl font-bold">
               2
             </div>
-            <h3 className="text-lg font-bold text-white">Instant Semantic Indexing</h3>
-            <p className="text-slate-400 text-xs leading-relaxed">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Instant Semantic Indexing</h3>
+            <p className="text-slate-600 dark:text-slate-400 text-xs leading-relaxed">
               Documents are split into 512-token chunks and converted into 1536-dimensional vectors, indexed with pgvector HNSW on Neon Lakebase Postgres.
             </p>
             <div className="pt-2">
-              <Link href="/dashboard" className="text-xs font-mono text-indigo-400 hover:text-indigo-300 font-medium flex items-center gap-1">
+              <Link href="/dashboard" className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1">
                 View Control Plane →
               </Link>
             </div>
           </div>
 
           {/* Step 3 */}
-          <div className="p-6 rounded-2xl bg-[#11131C] border border-[#1E2230] hover:border-emerald-500/40 transition-all space-y-4">
-            <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 text-xl font-mono font-bold">
+          <div className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-emerald-500/40 dark:hover:border-emerald-500/40 shadow-xs hover:shadow-md transition-all space-y-4">
+            <div className="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 text-xl font-bold">
               3
             </div>
-            <h3 className="text-lg font-bold text-white">Deploy & Chat Everywhere</h3>
-            <p className="text-slate-400 text-xs leading-relaxed">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Deploy & Chat Everywhere</h3>
+            <p className="text-slate-600 dark:text-slate-400 text-xs leading-relaxed">
               Embed our lightweight Vue 3 chat assistant on any website with a single script tag. Users get instant answers with cited document sources.
             </p>
             <div className="pt-2">
-              <Link href="/widget-playground" className="text-xs font-mono text-emerald-400 hover:text-emerald-300 font-medium flex items-center gap-1">
+              <Link href="/widget-playground" className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1">
                 Test Embed Widget →
               </Link>
             </div>
@@ -201,69 +201,69 @@ export default function LandingPage() {
       <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
         <div className="text-center space-y-3">
           <Badge variant="cyan">Enterprise Grade</Badge>
-          <h2 className="text-3xl font-bold text-white tracking-tight">Engineered for Production Resilience</h2>
-          <p className="text-slate-400 text-sm max-w-xl mx-auto">
+          <h2 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Engineered for Production Resilience</h2>
+          <p className="text-slate-600 dark:text-slate-400 text-sm max-w-xl mx-auto">
             Everything your team needs to deploy reliable AI assistants without hallucination or security risks.
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <Card className="bg-[#11131C] border-[#1E2230] hover:border-cyan-500/30 transition-all">
+          <Card className="hover:border-indigo-400 dark:hover:border-cyan-500/30 transition-all">
             <CardHeader>
               <span className="text-2xl mb-2 block">🛡️</span>
-              <CardTitle className="text-base text-white">Zero-Hallucination Guardrails</CardTitle>
+              <CardTitle className="text-base text-slate-900 dark:text-white">Zero-Hallucination Guardrails</CardTitle>
             </CardHeader>
-            <CardContent className="text-xs text-slate-400 leading-relaxed">
+            <CardContent className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
               Strict context bounding forces the AI to reply solely with verified facts from your uploaded data. Unverified claims and prompt injections are refused.
             </CardContent>
           </Card>
 
-          <Card className="bg-[#11131C] border-[#1E2230] hover:border-cyan-500/30 transition-all">
+          <Card className="hover:border-indigo-400 dark:hover:border-cyan-500/30 transition-all">
             <CardHeader>
               <span className="text-2xl mb-2 block">⚡</span>
-              <CardTitle className="text-base text-white">Sub-2ms Semantic Caching</CardTitle>
+              <CardTitle className="text-base text-slate-900 dark:text-white">Sub-2ms Semantic Caching</CardTitle>
             </CardHeader>
-            <CardContent className="text-xs text-slate-400 leading-relaxed">
+            <CardContent className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
               Identical or semantically matching queries hit our Redis cache in &lt;2ms, avoiding expensive model inference calls and keeping user chat lightning fast.
             </CardContent>
           </Card>
 
-          <Card className="bg-[#11131C] border-[#1E2230] hover:border-cyan-500/30 transition-all">
+          <Card className="hover:border-indigo-400 dark:hover:border-cyan-500/30 transition-all">
             <CardHeader>
               <span className="text-2xl mb-2 block">💬</span>
-              <CardTitle className="text-base text-white">Standalone Vue 3 Embed Widget</CardTitle>
+              <CardTitle className="text-base text-slate-900 dark:text-white">Standalone Vue 3 Embed Widget</CardTitle>
             </CardHeader>
-            <CardContent className="text-xs text-slate-400 leading-relaxed">
+            <CardContent className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
               Pre-bundled 306KB IIFE script powered by Vue 3 Composition API, Pinia, and GSAP spring physics. Droppable on any webpage with zero framework dependencies.
             </CardContent>
           </Card>
 
-          <Card className="bg-[#11131C] border-[#1E2230] hover:border-cyan-500/30 transition-all">
+          <Card className="hover:border-indigo-400 dark:hover:border-cyan-500/30 transition-all">
             <CardHeader>
               <span className="text-2xl mb-2 block">🏢</span>
-              <CardTitle className="text-base text-white">Multi-Tenant Isolation</CardTitle>
+              <CardTitle className="text-base text-slate-900 dark:text-white">Multi-Tenant Isolation</CardTitle>
             </CardHeader>
-            <CardContent className="text-xs text-slate-400 leading-relaxed">
+            <CardContent className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
               Every document, chunk, and vector query is hard-partitioned by UUID tenant ID, backed by Neon Lakebase Postgres and Prisma ORM.
             </CardContent>
           </Card>
 
-          <Card className="bg-[#11131C] border-[#1E2230] hover:border-cyan-500/30 transition-all">
+          <Card className="hover:border-indigo-400 dark:hover:border-cyan-500/30 transition-all">
             <CardHeader>
               <span className="text-2xl mb-2 block">📜</span>
-              <CardTitle className="text-base text-white">1M Record Telemetry Explorer</CardTitle>
+              <CardTitle className="text-base text-slate-900 dark:text-white">1M Record Telemetry Explorer</CardTitle>
             </CardHeader>
-            <CardContent className="text-xs text-slate-400 leading-relaxed">
+            <CardContent className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
               Browse 1,000,000 telemetry events with 60fps virtualized scrolling, keyset pagination, and sub-15ms SQL seek benchmarks.
             </CardContent>
           </Card>
 
-          <Card className="bg-[#11131C] border-[#1E2230] hover:border-cyan-500/30 transition-all">
+          <Card className="hover:border-indigo-400 dark:hover:border-cyan-500/30 transition-all">
             <CardHeader>
               <span className="text-2xl mb-2 block">🔐</span>
-              <CardTitle className="text-base text-white">Zero-Data-Loss JWT Refresh</CardTitle>
+              <CardTitle className="text-base text-slate-900 dark:text-white">Zero-Data-Loss JWT Refresh</CardTitle>
             </CardHeader>
-            <CardContent className="text-xs text-slate-400 leading-relaxed">
+            <CardContent className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
               Thread-safe Axios 401 interceptor queues concurrent requests during token expiration, rotating refresh tokens seamlessly without losing unsubmitted data.
             </CardContent>
           </Card>
@@ -272,11 +272,11 @@ export default function LandingPage() {
 
       {/* ─── 30-Second Embed Code Demonstration ───────────────────────────────── */}
       <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="p-8 rounded-2xl bg-gradient-to-tr from-[#11131C] via-[#141724] to-[#0D101C] border border-[#1E2230] space-y-6">
+        <div className="p-8 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-6 shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <span className="text-xs font-mono text-cyan-400 font-bold uppercase tracking-wider">Fast Integration</span>
-              <h3 className="text-2xl font-bold text-white mt-1">Embed on Any Site in 30 Seconds</h3>
+              <span className="text-xs font-semibold text-indigo-600 dark:text-cyan-400 uppercase tracking-wider">Fast Integration</span>
+              <h3 className="text-2xl font-bold text-slate-900 dark:text-white mt-1">Embed on Any Site in 30 Seconds</h3>
             </div>
             <Link href="/widget-playground">
               <Button variant="primary" size="sm">
@@ -285,11 +285,11 @@ export default function LandingPage() {
             </Link>
           </div>
 
-          <p className="text-xs text-slate-300">
-            Paste this snippet into your HTML before the closing <code className="text-cyan-400 font-mono">&lt;/body&gt;</code> tag to launch your custom AI knowledge assistant:
+          <p className="text-xs text-slate-600 dark:text-slate-300">
+            Paste this snippet into your HTML before the closing <code className="text-indigo-600 dark:text-cyan-400 font-mono font-semibold">&lt;/body&gt;</code> tag to launch your custom AI knowledge assistant:
           </p>
 
-          <div className="p-4 rounded-xl bg-[#090A0F] border border-[#1E2230] font-mono text-xs text-slate-300 overflow-x-auto">
+          <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 font-mono text-xs text-slate-200 overflow-x-auto shadow-inner">
             <pre className="text-cyan-300">
 {`<link rel="stylesheet" href="https://vectrabaseai.vercel.app/widget.css">
 <div id="vectrabase-widget"></div>
@@ -298,7 +298,7 @@ export default function LandingPage() {
   VectraBaseWidget.init({
     tenantId: "00000000-0000-0000-0000-000000000001",
     apiUrl: "https://vectrabase-api.onrender.com",
-    theme: "dark",
+    theme: "light",
     position: "bottom-right"
   });
 <\/script>`}
@@ -311,8 +311,8 @@ export default function LandingPage() {
       <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         <div className="text-center space-y-3">
           <Badge variant="cyan">FAQ</Badge>
-          <h2 className="text-3xl font-bold text-white tracking-tight">Frequently Asked Questions</h2>
-          <p className="text-slate-400 text-sm">
+          <h2 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Frequently Asked Questions</h2>
+          <p className="text-slate-600 dark:text-slate-400 text-sm">
             Everything you need to know about setting up and deploying VectraBase AI.
           </p>
         </div>
@@ -323,18 +323,18 @@ export default function LandingPage() {
             return (
               <div
                 key={index}
-                className="rounded-xl border border-[#1E2230] bg-[#11131C] overflow-hidden transition-colors"
+                className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-xs transition-colors"
               >
                 <button
                   type="button"
                   onClick={() => setActiveFaq(isOpen ? null : index)}
-                  className="w-full p-5 text-left flex items-center justify-between gap-4 cursor-pointer hover:bg-white/5 transition-colors"
+                  className="w-full p-5 text-left flex items-center justify-between gap-4 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
                 >
-                  <span className="font-semibold text-white text-sm">{faq.q}</span>
-                  <span className="text-cyan-400 font-mono text-lg font-bold">{isOpen ? '−' : '+'}</span>
+                  <span className="font-semibold text-slate-900 dark:text-white text-sm">{faq.q}</span>
+                  <span className="text-indigo-600 dark:text-cyan-400 font-mono text-lg font-bold">{isOpen ? '−' : '+'}</span>
                 </button>
                 {isOpen && (
-                  <div className="p-5 pt-0 text-xs text-slate-400 leading-relaxed border-t border-[#1E2230]/50 font-sans">
+                  <div className="p-5 pt-0 text-xs text-slate-600 dark:text-slate-400 leading-relaxed border-t border-slate-100 dark:border-slate-800 font-sans">
                     {faq.a}
                   </div>
                 )}
@@ -346,11 +346,11 @@ export default function LandingPage() {
 
       {/* ─── Bottom Call to Action ────────────────────────────────────────────── */}
       <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
-        <div className="p-10 rounded-3xl bg-gradient-to-r from-cyan-950/40 via-[#11131C] to-indigo-950/40 border border-cyan-500/30 space-y-6 shadow-2xl">
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+        <div className="p-10 rounded-3xl bg-gradient-to-r from-indigo-50 via-white to-sky-50 dark:from-cyan-950/40 dark:via-[#11131C] dark:to-indigo-950/40 border border-indigo-100 dark:border-cyan-500/30 space-y-6 shadow-sm dark:shadow-2xl">
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
             Ready to Supercharge Your Company Knowledge?
           </h2>
-          <p className="text-slate-300 text-sm max-w-xl mx-auto">
+          <p className="text-slate-600 dark:text-slate-300 text-sm max-w-xl mx-auto">
             Test the live sandbox, upload your technical documents, and experience sub-2ms zero-hallucination AI chat today.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
@@ -359,22 +359,22 @@ export default function LandingPage() {
               size="lg"
               onClick={handleLaunchSandbox}
               isLoading={isLoading}
-              className="shadow-xl shadow-cyan-950 px-8 py-3.5 text-sm font-semibold"
+              className="shadow-sm px-8 py-3.5 text-sm font-semibold"
             >
               Launch Live Demo Sandbox →
             </Button>
             <Link href="/widget-playground">
               <Button
-                variant="secondary"
+                variant="outline"
                 size="lg"
-                className="px-8 py-3.5 text-sm font-semibold border-slate-700"
+                className="px-8 py-3.5 text-sm font-semibold"
               >
                 Open Chat Playground
               </Button>
             </Link>
           </div>
           <p className="text-[11px] font-mono text-slate-500">
-            Engineered and architected by Karthik Kathari · Powered by Neon Lakebase Postgres & Redis
+            Engineered and architected by Karthik Kathari · Powered by Neon Lakebase Postgres &amp; Redis
           </p>
         </div>
       </section>

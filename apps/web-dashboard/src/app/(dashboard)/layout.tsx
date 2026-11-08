@@ -23,28 +23,28 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   ];
 
   return (
-    <div className="flex-1 flex flex-col w-full bg-[#090A0F]">
+    <div className="flex-1 flex flex-col w-full bg-slate-50 dark:bg-[#0B0F19] transition-colors">
       {/* Sub-header Workspace Bar */}
-      <div className="h-12 border-b border-[#1E2230] bg-[#11131C]/60 px-4 sm:px-6 flex items-center justify-between text-xs font-mono">
+      <div className="h-12 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-[#111827]/60 px-4 sm:px-6 flex items-center justify-between text-xs font-sans">
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 px-2.5 py-1 rounded-md bg-[#090A0F] border border-[#1E2230]">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span className="text-slate-200 font-medium">Workspace: vectrabase-demo</span>
+          <div className="flex items-center gap-2 px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span className="text-slate-700 dark:text-slate-200 font-medium">Workspace: vectrabase-demo</span>
             <Badge variant="cyan" className="text-[10px] py-0 px-1.5">Enterprise</Badge>
           </div>
 
-          <span className="hidden sm:inline text-slate-600">|</span>
+          <span className="hidden sm:inline text-slate-300 dark:text-slate-700">|</span>
 
-          <div className="hidden sm:flex items-center gap-1.5 text-slate-400">
+          <div className="hidden sm:flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
             <span>Database:</span>
-            <span className="text-emerald-400 font-semibold">Neon Lakebase (pgvector active)</span>
+            <span className="text-emerald-600 dark:text-emerald-400 font-medium">Neon Lakebase (pgvector active)</span>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
           <Link
             href="/widget-playground"
-            className="flex items-center gap-1.5 text-xs text-cyan-400 hover:text-cyan-300 font-medium"
+            className="flex items-center gap-1.5 text-xs text-indigo-600 dark:text-cyan-400 hover:underline font-medium"
           >
             <span>Test Chat Assistant</span>
             <span>→</span>
@@ -56,12 +56,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <div className="flex flex-1">
         {/* Sidebar */}
         <aside
-          className={`border-r border-[#1E2230] bg-[#11131C] p-3 flex flex-col justify-between transition-all duration-200 flex-shrink-0 ${
+          className={`border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] p-3 flex flex-col justify-between transition-all duration-200 flex-shrink-0 ${
             isCollapsed ? 'w-16' : 'w-56'
           }`}
         >
           <div className="space-y-1">
-            <div className="px-3 py-1.5 text-[11px] font-mono text-slate-500 uppercase tracking-wider">
+            <div className="px-3 py-1.5 text-[11px] font-sans font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider">
               {!isCollapsed && 'Navigation'}
             </div>
             {navItems.map((item) => {
@@ -70,10 +70,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <Link
                   key={item.path}
                   href={item.path as any}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-mono transition-colors ${
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-sans transition-colors ${
                     isActive
-                      ? 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 font-semibold shadow-sm'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-[#1E2230]'
+                      ? 'bg-indigo-50 text-indigo-700 dark:bg-cyan-500/15 dark:text-cyan-300 border border-indigo-200 dark:border-cyan-500/30 font-semibold shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
                   }`}
                   title={item.label}
                 >
@@ -85,18 +85,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
 
           {/* Sidebar Footer */}
-          <div className="pt-4 border-t border-[#1E2230] space-y-2">
+          <div className="pt-4 border-t border-slate-200 dark:border-slate-800 space-y-2">
             {!isCollapsed && (
-              <div className="p-2.5 rounded-lg bg-[#090A0F] border border-[#1E2230] text-[11px] font-mono text-slate-400">
-                <span className="block text-slate-500">Architect & Engineer:</span>
-                <span className="font-bold text-white block">Karthik Kathari</span>
-                <span className="text-[10px] text-cyan-400 block mt-0.5">VectraBase AI Platform</span>
+              <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-[11px] font-sans text-slate-600 dark:text-slate-400">
+                <span className="block text-slate-400 dark:text-slate-500 text-[10px]">Architect &amp; Engineer:</span>
+                <span className="font-semibold text-slate-900 dark:text-white block">Karthik Kathari</span>
+                <span className="text-[10px] text-indigo-600 dark:text-cyan-400 block mt-0.5">VectraBase AI Platform</span>
               </div>
             )}
 
             <button
               onClick={() => setIsCollapsed(!isCollapsed)}
-              className="w-full p-2 rounded-lg bg-[#090A0F] hover:bg-[#1E2230] text-slate-400 hover:text-white transition-colors text-xs font-mono flex items-center justify-center cursor-pointer"
+              className="w-full p-2 rounded-lg bg-slate-50 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors text-xs font-sans flex items-center justify-center cursor-pointer"
             >
               {isCollapsed ? '→' : '← Collapse'}
             </button>

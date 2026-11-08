@@ -45,9 +45,9 @@ export function VirtualizedTable({
   });
 
   return (
-    <div className="rounded-xl border border-[#1E2230] bg-[#11131C] overflow-hidden flex flex-col h-[560px]">
+    <div className="rounded-xl border border-slate-200 dark:border-[#1E2230] bg-white dark:bg-[#11131C] overflow-hidden flex flex-col h-[560px] shadow-sm transition-colors">
       {/* Table Header */}
-      <div className="grid grid-cols-12 px-4 py-3 bg-[#090A0F] border-b border-[#1E2230] text-xs font-mono font-semibold text-slate-400 select-none">
+      <div className="grid grid-cols-12 px-4 py-3 bg-slate-50 dark:bg-[#090A0F] border-b border-slate-200 dark:border-[#1E2230] text-xs font-sans font-semibold text-slate-600 dark:text-slate-400 select-none">
         <div className="col-span-4">Natural Language Query</div>
         <div className="col-span-2 text-right">Latency (ms)</div>
         <div className="col-span-2 text-center">Status / Cache</div>
@@ -59,7 +59,7 @@ export function VirtualizedTable({
       {/* Virtualized Scroll Area */}
       <div
         ref={parentRef}
-        className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800"
+        className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-800"
       >
         <div
           style={{
@@ -84,10 +84,10 @@ export function VirtualizedTable({
                   height: `${virtualRow.size}px`,
                   transform: `translateY(${virtualRow.start}px)`,
                 }}
-                className="grid grid-cols-12 px-4 items-center border-b border-[#1E2230]/50 hover:bg-[#1E2230]/40 transition-colors text-xs font-mono select-text"
+                className="grid grid-cols-12 px-4 items-center border-b border-slate-100 dark:border-[#1E2230]/50 hover:bg-slate-50 dark:hover:bg-[#1E2230]/40 transition-colors text-xs font-mono select-text"
               >
                 {/* Query Text */}
-                <div className="col-span-4 truncate text-slate-200 font-sans pr-2" title={item.queryText}>
+                <div className="col-span-4 truncate text-slate-900 dark:text-slate-200 font-sans pr-2" title={item.queryText}>
                   {item.queryText}
                 </div>
 
@@ -96,10 +96,10 @@ export function VirtualizedTable({
                   <span
                     className={`font-bold ${
                       item.cacheHit
-                        ? 'text-emerald-400'
+                        ? 'text-emerald-600 dark:text-emerald-400'
                         : item.totalLatencyMs < 200
-                        ? 'text-cyan-400'
-                        : 'text-amber-400'
+                        ? 'text-indigo-600 dark:text-cyan-400'
+                        : 'text-amber-600 dark:text-amber-400'
                     }`}
                   >
                     {item.totalLatencyMs.toFixed(1)}ms
@@ -120,19 +120,19 @@ export function VirtualizedTable({
                 </div>
 
                 {/* Chunk Count */}
-                <div className="col-span-1 text-center tabular-nums text-slate-300">
+                <div className="col-span-1 text-center tabular-nums text-slate-600 dark:text-slate-300">
                   {item.chunkCount}
                 </div>
 
                 {/* Top Cosine Similarity */}
                 <div className="col-span-1 text-right tabular-nums">
-                  <span className="text-emerald-400 font-semibold">
+                  <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
                     {item.topScore ? (item.topScore * 100).toFixed(1) + '%' : '—'}
                   </span>
                 </div>
 
                 {/* Timestamp */}
-                <div className="col-span-2 text-right tabular-nums text-slate-500 text-[11px]">
+                <div className="col-span-2 text-right tabular-nums text-slate-400 dark:text-slate-500 text-[11px]">
                   {new Date(item.createdAt).toLocaleTimeString([], {
                     hour: '2-digit',
                     minute: '2-digit',
@@ -146,22 +146,22 @@ export function VirtualizedTable({
       </div>
 
       {/* Table Footer: Empirical Proof Stats */}
-      <div className="px-4 py-2.5 bg-[#090A0F] border-t border-[#1E2230] flex items-center justify-between text-xs font-mono text-slate-400">
+      <div className="px-4 py-2.5 bg-slate-50 dark:bg-[#090A0F] border-t border-slate-200 dark:border-[#1E2230] flex items-center justify-between text-xs font-sans text-slate-500 dark:text-slate-400">
         <div className="flex items-center gap-3">
           <span>
-            Indexed Total: <strong className="text-white tabular-nums">{totalEstimate.toLocaleString()}</strong> rows
+            Indexed Total: <strong className="text-slate-900 dark:text-white tabular-nums font-mono">{totalEstimate.toLocaleString()}</strong> rows
           </span>
           <span>·</span>
           <span>
             Rendered Virtual DOM Rows:{' '}
-            <strong className="text-cyan-400 tabular-nums">
+            <strong className="text-indigo-600 dark:text-cyan-400 tabular-nums font-mono">
               {rowVirtualizer.getVirtualItems().length} / 60 cap
             </strong>
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-          <span className="text-[11px] text-emerald-400 font-medium">60fps DOM Virtualization Active</span>
+          <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">60fps DOM Virtualization Active</span>
         </div>
       </div>
     </div>

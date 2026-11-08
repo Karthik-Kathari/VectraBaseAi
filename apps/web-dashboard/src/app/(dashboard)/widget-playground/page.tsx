@@ -110,6 +110,10 @@ export default function WidgetPlaygroundPage() {
 </head>
 <body>
   <div id="vectrabase-widget"></div>
+  <script>
+    window.process = window.process || { env: { NODE_ENV: 'production' } };
+    window.__VECTRABASE_API_URL__ = 'https://vectrabase-api.onrender.com';
+  </script>
   <script src="/widget.js"><\/script>
   <script>
     (function() {
@@ -143,10 +147,10 @@ export default function WidgetPlaygroundPage() {
             <Badge variant="cyan">Interactive Lab</Badge>
             <span className="text-xs text-slate-500 font-mono">Vue.js 3 + GSAP Physics</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white mt-1 tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-1 tracking-tight">
             Chat Assistant Playground &amp; Embed Generator
           </h1>
-          <p className="text-sm text-slate-400 mt-1 max-w-2xl leading-relaxed">
+          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 max-w-2xl leading-relaxed">
             Test your assistant with real queries on the left while monitoring latency, similarity scores, and grounded citations on the right.
           </p>
         </div>
@@ -154,7 +158,7 @@ export default function WidgetPlaygroundPage() {
         <Button
           variant="primary"
           onClick={copyEmbedSnippet}
-          className="shadow-lg shadow-cyan-950 flex items-center gap-2 font-semibold text-xs tracking-tight whitespace-nowrap self-start md:self-auto"
+          className="shadow-sm flex items-center gap-2 font-medium text-xs tracking-tight whitespace-nowrap self-start md:self-auto"
         >
           <span>{copied ? '✓ Copied to Clipboard!' : '</> Copy HTML Embed Code'}</span>
         </Button>
@@ -163,7 +167,7 @@ export default function WidgetPlaygroundPage() {
       {/* GSAP Pipeline Map Live Observer */}
       <div className="space-y-2">
         <div className="flex items-center justify-between px-1">
-          <span className="text-xs font-mono text-slate-400 uppercase tracking-wider font-semibold">
+          <span className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
             Query Execution Telemetry:
           </span>
           <div className="flex items-center gap-2">
@@ -185,13 +189,13 @@ export default function WidgetPlaygroundPage() {
       {/* Split-Screen 2-Column Lab Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 min-h-[640px]">
         {/* Left Column: Embeddable Vue.js 3 Widget (Customer Website Preview) */}
-        <div className="flex flex-col h-[650px] rounded-2xl border border-[#1E2230] bg-[#090A0F] overflow-hidden shadow-2xl">
-          <div className="px-4 py-3 bg-[#11131C] border-b border-[#1E2230] flex items-center justify-between font-mono text-xs">
+        <div className="flex flex-col h-[650px] rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#090A0F] overflow-hidden shadow-sm dark:shadow-2xl">
+          <div className="px-4 py-3 bg-slate-100 dark:bg-[#11131C] border-b border-slate-200 dark:border-slate-800 flex items-center justify-between font-sans text-xs">
             <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-              <span className="text-white font-bold">Embedded Customer Website Mockup</span>
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span className="text-slate-900 dark:text-white font-semibold">Embedded Customer Website Mockup</span>
             </div>
-            <span className="text-[10px] text-cyan-400 bg-cyan-950/60 px-2.5 py-0.5 rounded-full border border-cyan-800">
+            <span className="text-[10px] text-indigo-700 dark:text-cyan-400 bg-indigo-50 dark:bg-cyan-950/60 px-2.5 py-0.5 rounded-full border border-indigo-200 dark:border-cyan-800 font-mono">
               Interactive Vue 3 Assistant
             </span>
           </div>
@@ -205,23 +209,23 @@ export default function WidgetPlaygroundPage() {
 
         {/* Right Column: Query Testing & Telemetry Console */}
         <div className="flex flex-col h-[650px] space-y-6">
-          <Card className="flex-1 flex flex-col bg-[#11131C] border-[#1E2230] overflow-y-auto">
+          <Card className="flex-1 flex flex-col overflow-y-auto">
             <CardHeader className="pb-3">
-              <CardTitle className="text-base text-white">Live Query Inspector</CardTitle>
-              <p className="text-xs text-slate-400 mt-0.5">Test predefined questions or observe telemetry packets</p>
+              <CardTitle className="text-base text-slate-900 dark:text-white">Live Query Inspector</CardTitle>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Test predefined questions or observe telemetry packets</p>
             </CardHeader>
 
             <CardContent className="space-y-4 flex-1 flex flex-col justify-between">
               {/* Preset Prompts */}
               <div className="space-y-2">
-                <span className="text-[11px] font-mono text-slate-400 uppercase tracking-wider block font-semibold">
+                <span className="text-[11px] font-sans font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider block">
                   Sample Inquiries:
                 </span>
                 <div className="grid grid-cols-1 gap-2">
                   <button
                     type="button"
                     onClick={() => runLiveQuery('Explain how VectraBase AI achieves sub-2ms latency?', true)}
-                    className="text-left p-2.5 rounded-lg bg-[#090A0F] border border-[#1E2230] hover:border-cyan-500/50 text-xs font-mono text-slate-300 hover:text-cyan-300 transition-colors flex items-center justify-between"
+                    className="text-left p-2.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-cyan-500/50 text-xs font-sans text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-cyan-300 transition-colors flex items-center justify-between"
                   >
                     <span>1. "How does VectraBase achieve sub-2ms latency?"</span>
                     <Badge variant="emerald" className="text-[10px]">Instant Hit</Badge>
@@ -230,7 +234,7 @@ export default function WidgetPlaygroundPage() {
                   <button
                     type="button"
                     onClick={() => runLiveQuery('What is the HNSW vector configuration in pgvector?', false)}
-                    className="text-left p-2.5 rounded-lg bg-[#090A0F] border border-[#1E2230] hover:border-indigo-500/50 text-xs font-mono text-slate-300 hover:text-indigo-300 transition-colors flex items-center justify-between"
+                    className="text-left p-2.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-500/50 text-xs font-sans text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-300 transition-colors flex items-center justify-between"
                   >
                     <span>2. "What is the HNSW vector configuration in pgvector?"</span>
                     <Badge variant="cyan" className="text-[10px]">Vector Search</Badge>
@@ -239,7 +243,7 @@ export default function WidgetPlaygroundPage() {
                   <button
                     type="button"
                     onClick={() => runLiveQuery('How does the zero-data-loss JWT refresh work?', false)}
-                    className="text-left p-2.5 rounded-lg bg-[#090A0F] border border-[#1E2230] hover:border-amber-500/50 text-xs font-mono text-slate-300 hover:text-amber-300 transition-colors flex items-center justify-between"
+                    className="text-left p-2.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-amber-500/50 text-xs font-sans text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-amber-300 transition-colors flex items-center justify-between"
                   >
                     <span>3. "How does the zero-data-loss JWT refresh work?"</span>
                     <Badge variant="cyan" className="text-[10px]">Resilience</Badge>
@@ -249,36 +253,36 @@ export default function WidgetPlaygroundPage() {
 
               {/* Telemetry Metric Cards */}
               <div className="grid grid-cols-3 gap-2 text-xs font-mono">
-                <div className="p-3 rounded-xl bg-[#090A0F] border border-[#1E2230]">
-                  <span className="text-slate-500 block text-[10px]">CACHE STATUS</span>
-                  <span className={`font-bold mt-1 block ${cacheHitState ? 'text-emerald-400' : 'text-cyan-400'}`}>
+                <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                  <span className="text-slate-500 dark:text-slate-400 block text-[10px] font-sans">CACHE STATUS</span>
+                  <span className={`font-bold mt-1 block ${cacheHitState ? 'text-emerald-600 dark:text-emerald-400' : 'text-indigo-600 dark:text-cyan-400'}`}>
                     {cacheHitState ? 'HIT (0.9ms)' : 'MISS (310ms)'}
                   </span>
                 </div>
-                <div className="p-3 rounded-xl bg-[#090A0F] border border-[#1E2230]">
-                  <span className="text-slate-500 block text-[10px]">COSINE MATCH</span>
-                  <span className="text-white font-bold mt-1 block">0.942 HNSW</span>
+                <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                  <span className="text-slate-500 dark:text-slate-400 block text-[10px] font-sans">COSINE MATCH</span>
+                  <span className="text-slate-900 dark:text-white font-bold mt-1 block">0.942 HNSW</span>
                 </div>
-                <div className="p-3 rounded-xl bg-[#090A0F] border border-[#1E2230]">
-                  <span className="text-slate-500 block text-[10px]">CITATIONS</span>
-                  <span className="text-indigo-400 font-bold mt-1 block">3 Passages</span>
+                <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                  <span className="text-slate-500 dark:text-slate-400 block text-[10px] font-sans">CITATIONS</span>
+                  <span className="text-indigo-600 dark:text-indigo-400 font-bold mt-1 block">3 Passages</span>
                 </div>
               </div>
 
               {/* Answer & Grounded Citations Output */}
-              <div className="p-4 rounded-xl bg-[#090A0F] border border-[#1E2230] space-y-2">
+              <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-mono text-slate-400 uppercase tracking-wider font-semibold">
+                  <span className="text-[11px] font-sans font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
                     Synthesized Grounded Response:
                   </span>
-                  {isQuerying && <span className="text-xs font-mono text-cyan-400 animate-pulse">Streaming...</span>}
+                  {isQuerying && <span className="text-xs font-mono text-indigo-600 dark:text-cyan-400 animate-pulse">Streaming...</span>}
                 </div>
-                <p className="text-xs text-slate-200 leading-relaxed font-sans">
+                <p className="text-xs text-slate-800 dark:text-slate-200 leading-relaxed font-sans">
                   {answerOutput}
                 </p>
-                <div className="pt-2 border-t border-[#1E2230] flex items-center gap-2">
-                  <span className="text-[10px] font-mono text-slate-500">Cited Source:</span>
-                  <span className="text-[11px] font-mono text-cyan-400 bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-800/60">
+                <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex items-center gap-2">
+                  <span className="text-[10px] font-sans text-slate-500 dark:text-slate-400">Cited Source:</span>
+                  <span className="text-[11px] font-mono text-indigo-700 dark:text-cyan-400 bg-indigo-50 dark:bg-cyan-950/40 px-2 py-0.5 rounded border border-indigo-200 dark:border-cyan-800/60">
                     [Source 1: VectraBase_Architecture_Whitepaper.pdf · Page 1]
                   </span>
                 </div>
@@ -287,17 +291,17 @@ export default function WidgetPlaygroundPage() {
               {/* Embed Code Snippet Copy Box */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-[11px] font-mono text-slate-400 uppercase tracking-wider font-semibold">
+                  <span className="text-[11px] font-sans font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
                     Production HTML Snippet:
                   </span>
                   <button
                     onClick={copyEmbedSnippet}
-                    className="text-[11px] font-mono text-cyan-400 hover:underline cursor-pointer"
+                    className="text-[11px] font-semibold text-indigo-600 dark:text-cyan-400 hover:underline cursor-pointer"
                   >
                     {copied ? '✓ Copied' : 'Copy Code'}
                   </button>
                 </div>
-                <pre className="p-3 rounded-xl bg-[#090A0F] border border-[#1E2230] text-[11px] font-mono text-cyan-300 overflow-x-auto whitespace-pre-wrap max-h-36">
+                <pre className="p-3 rounded-xl bg-slate-950 border border-slate-800 text-[11px] font-mono text-cyan-300 overflow-x-auto whitespace-pre-wrap max-h-36">
                   {embedSnippet}
                 </pre>
               </div>

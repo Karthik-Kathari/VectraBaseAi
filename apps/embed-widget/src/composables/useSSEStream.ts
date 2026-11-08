@@ -197,14 +197,14 @@ function resolveUrl(path: string): string {
   if (path.startsWith("http://") || path.startsWith("https://")) {
     return path;
   }
+  const runtimeUrl = typeof window !== 'undefined'
+    ? ((window as unknown as Record<string, unknown>).__VECTRABASE_API_URL__ as string | undefined)
+    : undefined;
   const base =
-    (
-      (window as unknown as Record<string, unknown>)
-        .__VECTRABASE_API_URL__ as string | undefined
-    ) ??
-    import.meta.env.VITE_API_URL ??
-    "";
-  return `${base}${path}`;
+    runtimeUrl ||
+    import.meta.env.VITE_API_URL ||
+    "https://vectrabase-api.onrender.com";
+  return `${base.replace(/\/+$/, '')}${path}`;
 }
 
 function injectTenantHeader(): Record<string, string> {

@@ -25,12 +25,11 @@ function init(options: WidgetInitOptions): void {
     return;
   }
 
-  // Allow consumer to override API URL at runtime
-  if (options.apiUrl) {
-    // Inject into window so the axios client can read it
-    (window as unknown as Record<string, unknown>).__VECTRABASE_API_URL__ =
-      options.apiUrl;
-  }
+  // Allow consumer to override API URL at runtime or default to production API
+  const resolvedApiUrl = options.apiUrl || 'https://vectrabase-api.onrender.com';
+  (window as unknown as Record<string, unknown>).__VECTRABASE_API_URL__ =
+    resolvedApiUrl;
+
   if (options.tenantId) {
     (window as unknown as Record<string, unknown>).__VECTRABASE_TENANT_ID__ =
       options.tenantId;

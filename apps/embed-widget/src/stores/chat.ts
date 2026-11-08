@@ -8,6 +8,19 @@ import { ref, computed } from 'vue';
 import type { WidgetMessage, Citation, WidgetTestScenario } from '../types/widget';
 import { useTelemetryStore } from './telemetry';
 
+function getEffectiveApiUrl(): string {
+  if (typeof window !== 'undefined') {
+    const runtimeUrl = (window as unknown as Record<string, unknown>).__VECTRABASE_API_URL__;
+    if (typeof runtimeUrl === 'string' && runtimeUrl.trim().length > 0) {
+      return runtimeUrl.replace(/\/+$/, '');
+    }
+  }
+  if (import.meta.env.VITE_API_URL) {
+    return (import.meta.env.VITE_API_URL as string).replace(/\/+$/, '');
+  }
+  return 'https://vectrabase-api.onrender.com';
+}
+
 export const useChatStore = defineStore('chat', () => {
   const messages = ref<WidgetMessage[]>([
     {
@@ -55,7 +68,7 @@ export const useChatStore = defineStore('chat', () => {
     currentCitations.value = [];
     const queryStart = performance.now();
 
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+    const apiUrl = getEffectiveApiUrl();
 
     try {
       const response = await fetch(`${apiUrl}/api/query`, {
@@ -193,7 +206,7 @@ export const useChatStore = defineStore('chat', () => {
         content: '⚡ [Simulation] Firing 15 concurrent requests to test Redis sliding-window rate limit...',
         createdAt: new Date().toISOString(),
       });
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+      const apiUrl = getEffectiveApiUrl();
       const promises = Array.from({ length: 15 }, () =>
         fetch(`${apiUrl}/api/query`, {
           method: 'POST',

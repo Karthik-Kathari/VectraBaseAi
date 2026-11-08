@@ -14,18 +14,18 @@ import axios, {
 // ---------------------------------------------------------------------------
 function resolveBaseUrl(): string {
   // 1. Runtime injection from VectraBaseWidget.init({ apiUrl })
-  const runtimeUrl = (
-    window as unknown as Record<string, unknown>
-  ).__VECTRABASE_API_URL__;
-  if (typeof runtimeUrl === "string" && runtimeUrl.length > 0) {
-    return runtimeUrl;
+  const runtimeUrl = typeof window !== 'undefined'
+    ? (window as unknown as Record<string, unknown>).__VECTRABASE_API_URL__
+    : undefined;
+  if (typeof runtimeUrl === "string" && runtimeUrl.trim().length > 0) {
+    return runtimeUrl.replace(/\/+$/, '');
   }
   // 2. Vite env variable (dev / preview)
   if (import.meta.env.VITE_API_URL) {
-    return import.meta.env.VITE_API_URL as string;
+    return (import.meta.env.VITE_API_URL as string).replace(/\/+$/, '');
   }
-  // 3. Same-origin fallback
-  return "";
+  // 3. Default production fallback
+  return "https://vectrabase-api.onrender.com";
 }
 
 // ---------------------------------------------------------------------------

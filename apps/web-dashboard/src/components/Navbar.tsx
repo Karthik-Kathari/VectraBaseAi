@@ -2,16 +2,48 @@
 
 /**
  * VectraBase AI — Global SaaS Navigation Bar
- * Author: Karthik Kathari (github.com/Karthik-Kathari)
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { useTheme } from 'next-themes';
+import { Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { apiClient, setAccessToken } from '@/lib/axios';
 import { toast } from 'sonner';
+
+function ThemeToggle() {
+  const { resolvedTheme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return <div className="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-800" />;
+  }
+
+  const isDark = resolvedTheme === 'dark';
+
+  return (
+    <button
+      type="button"
+      onClick={() => setTheme(isDark ? 'light' : 'dark')}
+      className="p-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
+      aria-label="Toggle theme"
+      title={`Switch to ${isDark ? 'Light' : 'Dark'} mode`}
+    >
+      {isDark ? (
+        <Sun className="w-4 h-4 text-amber-400" />
+      ) : (
+        <Moon className="w-4 h-4 text-slate-700" />
+      )}
+    </button>
+  );
+}
 
 export function Navbar() {
   const pathname = usePathname();
@@ -45,12 +77,12 @@ export function Navbar() {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-[#1E2230] bg-[#090A0F]/85 backdrop-blur-md transition-all">
+    <header className="sticky top-0 z-50 w-full border-b border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-[#0B0F19]/90 backdrop-blur-md transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Brand / Logo */}
         <div className="flex items-center gap-3">
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center p-1.5 shadow-md shadow-cyan-500/25 group-hover:scale-105 transition-transform">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-cyan-500 flex items-center justify-center p-1.5 shadow-md shadow-indigo-500/20 group-hover:scale-105 transition-transform">
               <svg className="w-full h-full text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <polygon points="12 2 2 7 12 12 22 7 12 2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 <polyline points="2 17 12 22 22 17" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -58,19 +90,16 @@ export function Navbar() {
               </svg>
             </div>
             <div>
-              <span className="font-mono font-bold text-sm tracking-tight text-white flex items-center gap-2">
+              <span className="font-semibold text-sm tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
                 VectraBase AI
                 <Badge variant="cyan" className="hidden sm:inline-flex text-[10px] py-0 px-1.5">v1.0</Badge>
-              </span>
-              <span className="text-[10px] font-mono text-slate-400 block -mt-0.5">
-                by Karthik Kathari
               </span>
             </div>
           </Link>
         </div>
 
         {/* Center Desktop Navigation Links */}
-        <nav className="hidden md:flex items-center gap-1 bg-[#11131C] px-3 py-1.5 rounded-full border border-[#1E2230] text-xs font-medium">
+        <nav className="hidden md:flex items-center gap-1 bg-slate-100 dark:bg-slate-900/90 px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-800 text-xs font-medium">
           {navLinks.map((link) => {
             const isActive = pathname === link.href;
             return (
@@ -79,8 +108,8 @@ export function Navbar() {
                 href={link.href as any}
                 className={`px-3 py-1.5 rounded-full transition-all duration-150 ${
                   isActive
-                    ? 'bg-cyan-500/15 text-cyan-400 font-semibold shadow-sm'
-                    : 'text-slate-300 hover:text-white hover:bg-white/5'
+                    ? 'bg-white dark:bg-cyan-500/15 text-indigo-600 dark:text-cyan-400 font-semibold shadow-xs'
+                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5'
                 }`}
               >
                 {link.label}
@@ -90,17 +119,18 @@ export function Navbar() {
         </nav>
 
         {/* Right CTA Actions */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-2 sm:gap-2.5">
           {/* Search Trigger */}
           <button
+            type="button"
             onClick={() => {
               window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }));
             }}
-            className="hidden lg:flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-[#11131C] border border-[#1E2230] hover:border-slate-700 text-xs font-mono text-slate-400 transition-colors cursor-pointer"
+            className="hidden lg:flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 text-xs font-mono text-slate-600 dark:text-slate-400 transition-colors cursor-pointer"
             title="Search (Ctrl + K)"
           >
             <span>Search</span>
-            <kbd className="px-1 py-0.5 rounded bg-[#1E2230] text-[9px] text-slate-300">Ctrl K</kbd>
+            <kbd className="px-1 py-0.5 rounded bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[9px] text-slate-500 dark:text-slate-300">Ctrl K</kbd>
           </button>
 
           {/* GitHub link */}
@@ -108,11 +138,14 @@ export function Navbar() {
             href="https://github.com/Karthik-Kathari/VectraBaseAi.git"
             target="_blank"
             rel="noreferrer"
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#11131C] border border-[#1E2230] hover:border-slate-700 text-xs font-mono text-slate-300 hover:text-white transition-colors"
+            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 text-xs font-mono text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white transition-colors"
           >
             <span>GitHub</span>
-            <span className="text-slate-500 text-[10px]">↗</span>
+            <span className="text-slate-400 text-[10px]">↗</span>
           </a>
+
+          {/* Theme Toggle Button */}
+          <ThemeToggle />
 
           {/* Primary Call to Action */}
           <Button
@@ -120,15 +153,16 @@ export function Navbar() {
             size="sm"
             onClick={handleQuickLaunch}
             isLoading={isLoggingIn}
-            className="shadow-lg shadow-cyan-950/60 font-semibold text-xs tracking-tight"
+            className="shadow-sm font-medium text-xs tracking-tight"
           >
             Launch Sandbox →
           </Button>
 
           {/* Mobile Menu Hamburger Toggle */}
           <button
+            type="button"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden p-2 rounded-lg bg-[#11131C] border border-[#1E2230] text-slate-400 hover:text-white"
+            className="md:hidden p-2 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
             aria-label="Toggle menu"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -144,7 +178,7 @@ export function Navbar() {
 
       {/* Mobile Drawer Menu */}
       {isMobileMenuOpen && (
-        <div className="md:hidden border-b border-[#1E2230] bg-[#11131C] px-4 pt-2 pb-4 space-y-1 text-sm font-mono">
+        <div className="md:hidden border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 pt-2 pb-4 space-y-1 text-sm font-sans">
           {navLinks.map((link) => {
             const isActive = pathname === link.href;
             return (
@@ -154,24 +188,24 @@ export function Navbar() {
                 onClick={() => setIsMobileMenuOpen(false)}
                 className={`block px-3 py-2 rounded-lg transition-colors ${
                   isActive
-                    ? 'bg-cyan-500/15 text-cyan-400 font-bold'
-                    : 'text-slate-300 hover:bg-[#1E2230]'
+                    ? 'bg-indigo-50 dark:bg-cyan-500/15 text-indigo-600 dark:text-cyan-400 font-semibold'
+                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
                 }`}
               >
                 {link.label}
               </Link>
             );
           })}
-          <div className="pt-2 border-t border-[#1E2230] flex items-center justify-between">
+          <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
             <a
               href="https://github.com/Karthik-Kathari/VectraBaseAi.git"
               target="_blank"
               rel="noreferrer"
-              className="text-xs text-slate-400 hover:text-white"
+              className="text-xs text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
             >
               GitHub Repository ↗
             </a>
-            <span className="text-[10px] text-slate-500">v1.0 Production</span>
+            <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono">v1.0 Production</span>
           </div>
         </div>
       )}

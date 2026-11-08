@@ -77,13 +77,13 @@ function TelemetryExplorerContent() {
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold font-mono text-white flex items-center gap-2">
+          <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
             1,000,000-Record Telemetry Explorer
-            <span className="px-2 py-0.5 rounded-full text-[11px] bg-cyan-950 text-cyan-400 border border-cyan-800">
+            <span className="px-2 py-0.5 rounded-full text-[11px] bg-indigo-50 dark:bg-cyan-950 text-indigo-700 dark:text-cyan-400 border border-indigo-200 dark:border-cyan-800 font-mono">
               Composite B-Tree Keyset
             </span>
           </h1>
-          <p className="text-xs text-slate-400 font-sans mt-0.5">
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-sans mt-0.5">
             Querying 1M audit logs with zero-OFFSET cursor seeking and strict DOM virtualization (&lt;60 nodes).
           </p>
         </div>
@@ -92,7 +92,7 @@ function TelemetryExplorerContent() {
         <Button
           variant="primary"
           onClick={() => setIsExplainOpen(true)}
-          className="shadow-lg shadow-cyan-950"
+          className="shadow-sm"
         >
           Verify 1M Scale &amp; SQL Execution Plan →
         </Button>
@@ -109,13 +109,13 @@ function TelemetryExplorerContent() {
         </div>
 
         {/* Status Filters */}
-        <div className="flex items-center gap-1.5 w-full sm:w-auto font-mono text-xs">
+        <div className="flex items-center gap-1.5 w-full sm:w-auto text-xs font-sans">
           <button
             onClick={() => setStatusFilter('ALL')}
             className={`px-3 py-2 rounded-lg border transition-colors cursor-pointer ${
               statusFilter === 'ALL'
-                ? 'bg-cyan-500/20 text-cyan-300 border-cyan-400 font-bold'
-                : 'bg-[#11131C] text-slate-400 border-[#1E2230] hover:text-white'
+                ? 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-cyan-500/20 dark:text-cyan-300 dark:border-cyan-400 font-semibold shadow-xs'
+                : 'bg-white dark:bg-[#11131C] text-slate-600 dark:text-slate-400 border-slate-200 dark:border-[#1E2230] hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             All Logs
@@ -124,8 +124,8 @@ function TelemetryExplorerContent() {
             onClick={() => setStatusFilter('CACHE_HIT')}
             className={`px-3 py-2 rounded-lg border transition-colors cursor-pointer ${
               statusFilter === 'CACHE_HIT'
-                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400 font-bold'
-                : 'bg-[#11131C] text-slate-400 border-[#1E2230] hover:text-white'
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-400 font-semibold shadow-xs'
+                : 'bg-white dark:bg-[#11131C] text-slate-600 dark:text-slate-400 border-slate-200 dark:border-[#1E2230] hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             ⚡ Cache Hits (&lt;2ms)
@@ -134,8 +134,8 @@ function TelemetryExplorerContent() {
             onClick={() => setStatusFilter('VECTOR_MISS')}
             className={`px-3 py-2 rounded-lg border transition-colors cursor-pointer ${
               statusFilter === 'VECTOR_MISS'
-                ? 'bg-cyan-500/20 text-cyan-300 border-cyan-400 font-bold'
-                : 'bg-[#11131C] text-slate-400 border-[#1E2230] hover:text-white'
+                ? 'bg-sky-50 text-sky-700 border-sky-200 dark:bg-cyan-500/20 dark:text-cyan-300 dark:border-cyan-400 font-semibold shadow-xs'
+                : 'bg-white dark:bg-[#11131C] text-slate-600 dark:text-slate-400 border-slate-200 dark:border-[#1E2230] hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             📐 Vector Searches

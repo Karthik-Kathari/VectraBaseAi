@@ -21,8 +21,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
-      <body className="bg-[#090A0F] text-slate-100 min-h-screen flex flex-col antialiased font-sans selection:bg-cyan-500/20 selection:text-cyan-300">
+    <html lang="en" suppressHydrationWarning>
+      <body className="bg-slate-50 text-slate-900 dark:bg-[#0B0F19] dark:text-slate-100 min-h-screen flex flex-col antialiased font-sans selection:bg-indigo-500/20 selection:text-indigo-600 dark:selection:bg-cyan-500/25 dark:selection:text-cyan-300 transition-colors duration-200">
         <Providers>
           <Navbar />
           <main className="flex-1 w-full">{children}</main>

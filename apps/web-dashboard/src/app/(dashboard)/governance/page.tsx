@@ -165,18 +165,18 @@ export default function GovernanceWizardPage() {
   return (
     <div className="space-y-6">
       {/* Interactive Recruiter Test Banner */}
-      <div className="p-4 rounded-xl bg-gradient-to-r from-amber-950/40 via-[#161926] to-indigo-950/40 border border-amber-500/30 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xl">
+      <div className="p-4 rounded-xl bg-amber-50 dark:bg-gradient-to-r dark:from-amber-950/40 dark:via-[#161926] dark:to-indigo-950/40 border border-amber-200 dark:border-amber-500/30 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
-            <span className="text-xs font-mono font-bold text-amber-400 uppercase tracking-wider">
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
+            <span className="text-xs font-semibold text-amber-800 dark:text-amber-400 uppercase tracking-wider">
               Recruiter Interactive Resilience Test
             </span>
           </div>
-          <h2 className="text-sm font-bold font-mono text-white">
+          <h2 className="text-sm font-bold text-slate-900 dark:text-white">
             Simulate JWT Token Expiration at Field 48 (Zero-Data-Loss Verification)
           </h2>
-          <p className="text-xs text-slate-300 font-sans">
+          <p className="text-xs text-slate-600 dark:text-slate-300 font-sans">
             Auto-fills fields 1–47, forcibly expires the JWT access token, and triggers Axios silent refresh recovery.
           </p>
         </div>
@@ -185,14 +185,14 @@ export default function GovernanceWizardPage() {
           variant="secondary"
           size="sm"
           onClick={simulateExpiryAtField48}
-          className="whitespace-nowrap shadow-lg shadow-indigo-950/50"
+          className="whitespace-nowrap shadow-sm"
         >
           ⚡ Simulate Expiry at Field 48 →
         </Button>
       </div>
 
       {/* Stepper Navigation */}
-      <div className="flex items-center justify-between gap-2 overflow-x-auto pb-2 font-mono text-xs">
+      <div className="flex items-center justify-between gap-2 overflow-x-auto pb-2 font-sans text-xs">
         {steps.map((s) => (
           <button
             key={s.num}
@@ -200,25 +200,25 @@ export default function GovernanceWizardPage() {
             onClick={() => setCurrentStep(s.num)}
             className={`flex-1 py-2 px-3 rounded-lg border text-left transition-colors whitespace-nowrap cursor-pointer ${
               currentStep === s.num
-                ? 'bg-cyan-500/10 text-cyan-300 border-cyan-400 font-bold'
-                : 'bg-[#11131C] text-slate-400 border-[#1E2230] hover:text-white'
+                ? 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-cyan-500/10 dark:text-cyan-300 dark:border-cyan-400 font-semibold shadow-xs'
+                : 'bg-white dark:bg-[#11131C] text-slate-600 dark:text-slate-400 border-slate-200 dark:border-[#1E2230] hover:text-slate-900 dark:hover:text-white'
             }`}
           >
-            <span className="block text-[10px] text-slate-500">Step {s.num} of 5</span>
+            <span className="block text-[10px] text-slate-400 dark:text-slate-500 font-mono">Step {s.num} of 5</span>
             <span>{s.name}</span>
           </button>
         ))}
       </div>
 
       {/* Autosave Status Badge */}
-      <div className="flex items-center justify-between text-xs font-mono text-slate-400 px-1">
+      <div className="flex items-center justify-between text-xs font-sans text-slate-500 dark:text-slate-400 px-1">
         <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+          <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
           <span>
             {lastSaved ? `Draft auto-saved to IndexedDB ${lastSaved.toLocaleTimeString()}` : 'Auto-saving enabled'}
           </span>
         </div>
-        <span className="text-[11px] text-slate-500">200ms Debounce · Dual-Layer Persistence</span>
+        <span className="text-[11px] text-slate-400 dark:text-slate-500 font-mono">200ms Debounce · Dual-Layer Persistence</span>
       </div>
 
       {/* Form Grid & Telemetry Console */}
@@ -308,13 +308,13 @@ export default function GovernanceWizardPage() {
                   <Input label="47. Burst Multiplier" type="number" step="0.1" {...register('burstMultiplier')} />
 
                   {/* FIELD 48 — RECRUITER TARGET */}
-                  <div className="p-2 rounded-lg border border-amber-500/50 bg-amber-950/20">
+                  <div className="p-2 rounded-lg border border-amber-300 dark:border-amber-500/50 bg-amber-50/70 dark:bg-amber-950/20">
                     <Input
                       id="field-webhookRetryAttempts"
                       label="48. Webhook Retry Count (Resilience Test Target)"
                       type="number"
                       {...register('webhookRetryAttempts')}
-                      className={isTokenExpiredSimulated ? 'border-amber-400 bg-amber-950/40 text-amber-300 font-bold' : ''}
+                      className={isTokenExpiredSimulated ? 'border-amber-500 bg-amber-100/50 dark:bg-amber-950/40 text-amber-900 dark:text-amber-300 font-bold' : ''}
                       helperText="Type any number and click Save to test silent JWT recovery"
                     />
                   </div>
@@ -325,7 +325,7 @@ export default function GovernanceWizardPage() {
               )}
 
               {/* Stepper Navigation Buttons */}
-              <div className="flex items-center justify-between pt-4 border-t border-[#1E2230]">
+              <div className="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-slate-800">
                 <Button
                   type="button"
                   variant="outline"
@@ -348,7 +348,7 @@ export default function GovernanceWizardPage() {
                     type="submit"
                     variant="primary"
                     isLoading={isSaving}
-                    className="shadow-lg shadow-cyan-950"
+                    className="shadow-sm"
                   >
                     Save 50-Field Configuration (Verify Zero Data Loss)
                   </Button>

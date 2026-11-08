@@ -218,29 +218,47 @@ export default function RAGStudioPage() {
           <CardContent className="space-y-4 pt-2">
             {activeTab === 'FILE' ? (
               /* File Dropzone */
-              <div className="border-2 border-dashed border-[#2A2F45] hover:border-cyan-500/60 rounded-xl p-8 text-center bg-[#090A0F] transition-all relative cursor-pointer group">
-                <input
-                  type="file"
-                  accept=".pdf,.md,.txt"
-                  onChange={handleFileSelect}
-                  disabled={isIngesting}
-                  className="absolute inset-0 opacity-0 cursor-pointer"
-                />
-                <div className="space-y-2 pointer-events-none">
-                  <span className="text-4xl block transform group-hover:scale-110 transition-transform">📄</span>
-                  <p className="text-sm font-semibold text-white">
-                    {selectedFile ? selectedFile.name : 'Choose a file or drag it here'}
-                  </p>
-                  <p className="text-xs text-slate-400">
-                    Supports PDF, Markdown (.md), and Text (.txt) up to 10MB
-                  </p>
-                  {selectedFile && (
-                    <div className="pt-2">
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-cyan-950/80 border border-cyan-500/30 text-xs font-mono text-cyan-300">
-                        ✓ {(selectedFile.size / 1024).toFixed(1)} KB selected
-                      </span>
-                    </div>
-                  )}
+              <div className="space-y-2">
+                <div className="border-2 border-dashed border-[#2A2F45] hover:border-cyan-500/60 rounded-xl p-8 text-center bg-[#090A0F] transition-all relative cursor-pointer group">
+                  <input
+                    type="file"
+                    accept=".pdf,.md,.txt"
+                    onChange={handleFileSelect}
+                    disabled={isIngesting}
+                    className="absolute inset-0 opacity-0 cursor-pointer"
+                  />
+                  <div className="space-y-2 pointer-events-none">
+                    <span className="text-4xl block transform group-hover:scale-110 transition-transform">📄</span>
+                    <p className="text-sm font-semibold text-white">
+                      {selectedFile ? selectedFile.name : 'Choose a file or drag it here'}
+                    </p>
+                    <p className="text-xs text-slate-400">
+                      Supports PDF, Markdown (.md), and Text (.txt) up to 10MB
+                    </p>
+                    {selectedFile && (
+                      <div className="pt-2">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-cyan-950/80 border border-cyan-500/30 text-xs font-mono text-cyan-300">
+                          ✓ {(selectedFile.size / 1024).toFixed(1)} KB selected
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center justify-between text-xs font-mono text-slate-400 px-1">
+                  <span>Fast Demo Preset:</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const sampleContent = "VectraBase AI Architectural Whitepaper\nBy Karthik Kathari\nMulti-tenant RAG engine with pgvector and Redis sub-2ms caching.";
+                      const sampleFile = new File([sampleContent], "Sample_Architecture_Guide.md", { type: "text/markdown" });
+                      setSelectedFile(sampleFile);
+                      setSha256Hash("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855");
+                      toast.info('Sample architecture document loaded! Click "Start Ingestion" below.');
+                    }}
+                    className="text-cyan-400 hover:text-cyan-300 underline cursor-pointer"
+                  >
+                    ⚡ Auto-load Sample Markdown Doc
+                  </button>
                 </div>
               </div>
             ) : (
@@ -256,6 +274,19 @@ export default function RAGStudioPage() {
                   placeholder="https://docs.example.com/getting-started"
                   helperText="Enter any public documentation page to extract clean knowledge automatically."
                 />
+                <div className="flex items-center justify-between text-xs font-mono text-slate-400 pt-1">
+                  <span>Fast Demo Preset:</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setUrlInput('https://docs.docker.com/engine/api/');
+                      toast.info('Sample documentation URL filled! Click "Start Ingestion" below.');
+                    }}
+                    className="text-cyan-400 hover:text-cyan-300 underline cursor-pointer"
+                  >
+                    ⚡ Fill Docker Docs URL
+                  </button>
+                </div>
               </div>
             )}
 

@@ -25,6 +25,9 @@
 </head>
 <body>
   <div id="vectrabase-widget"></div>
+  <script>
+    window.process = window.process || { env: { NODE_ENV: 'production' } };
+  </script>
   <script src="/widget.js"></script>
   <script>
     (function() {
@@ -52,3 +55,4 @@
   </script>
 </body>
 </html>
+

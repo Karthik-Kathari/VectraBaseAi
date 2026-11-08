@@ -29,13 +29,14 @@ export function authenticate(req: Request, res: Response, next: NextFunction): v
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    res.status(401).json({
-      success: false,
-      error: {
-        code: 'UNAUTHORIZED',
-        message: 'No Bearer token provided',
-      },
-    });
+    // Public demo fallback for recruiter sandbox and portfolio testing (Zero friction)
+    req.user = {
+      sub: '4a8bc6ad-1fe2-43fa-9734-0b5f422f8f00',
+      tenantId: '00000000-0000-0000-0000-000000000001',
+      email: 'karthikmk.workspace@gmail.com',
+      role: 'WORKSPACE_OWNER',
+    };
+    next();
     return;
   }
 

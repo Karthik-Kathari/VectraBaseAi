@@ -11,23 +11,28 @@
   --foreground: #0f172a;
   --muted: #64748b;
   --card-bg: #ffffff;
+  --accent-purple: #9333ea;
+  --accent-red: #e11d48;
+  --highlight-yellow: #f59e0b;
 }
 
 .dark {
-  --background: #0b0f19;
+  --background: #090b10;
   --surface: #111827;
-  --surface-hover: #1f2937;
+  --surface-hover: #172033;
   --border: #1e293b;
   --border-strong: #334155;
   --foreground: #f8fafc;
   --muted: #94a3b8;
   --card-bg: #111827;
+  --accent-purple: #a855f7;
+  --accent-red: #fb7185;
+  --highlight-yellow: #fbbf24;
 }
 
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   overflow-x: hidden;
 }
 
@@ -72,3 +77,28 @@ body {
   animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* Neon glow utilities */
+.neon-glow-purple {
+  box-shadow: 0 0 16px rgba(168, 85, 247, 0.35);
+}
+.neon-glow-red {
+  box-shadow: 0 0 16px rgba(244, 63, 94, 0.35);
+}
+.neon-glow-amber {
+  box-shadow: 0 0 16px rgba(245, 158, 11, 0.35);
+}
+.neon-glow-cyan {
+  box-shadow: 0 0 16px rgba(6, 182, 212, 0.35);
+}
+.neon-glow-emerald {
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.35);
+}
+
+.neon-border-purple {
+  border-color: rgba(168, 85, 247, 0.5);
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.25);
+}
+.neon-border-cyan {
+  border-color: rgba(6, 182, 212, 0.5);
+  box-shadow: 0 0 12px rgba(6, 182, 212, 0.25);
+}

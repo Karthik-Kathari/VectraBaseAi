@@ -1,7 +1,6 @@
 <script setup lang="ts">
 /**
  * VectraBase AI — Chat Message Bubble with Citations and Latency Badges
- * Author: Karthik Kathari (github.com/Karthik-Kathari)
  */
 
 import type { WidgetMessage, Citation } from '../types/widget';
@@ -30,7 +29,7 @@ const emit = defineEmits<{
       :class="[
         message.role === 'user'
           ? 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-md shadow-indigo-950/40 rounded-br-none'
-          : 'bg-[#11131C] text-slate-200 border border-[#1E2230] shadow-md shadow-black/30 rounded-bl-none'
+          : 'bg-[#111827] text-slate-200 border border-[#1e293b] shadow-md shadow-black/30 rounded-bl-none'
       ]"
     >
       <StreamingText :content="message.content" />
@@ -38,7 +37,7 @@ const emit = defineEmits<{
       <!-- Latency & Cache Hit Badge for Assistant Responses -->
       <div
         v-if="message.role === 'assistant' && (message.latencyMs || message.cacheHit)"
-        class="mt-2.5 pt-2 border-t border-[#1E2230] flex items-center justify-between"
+        class="mt-2.5 pt-2 border-t border-[#1e293b] flex items-center justify-between"
       >
         <LatencyBadge :latencyMs="message.latencyMs" :cacheHit="message.cacheHit" />
         <span class="text-[10px] text-slate-500 font-mono">

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 /**
  * VectraBase AI — Latency & Cache Hit Badge
- * Author: Karthik Kathari (github.com/Karthik-Kathari)
  */
 
 defineProps<{

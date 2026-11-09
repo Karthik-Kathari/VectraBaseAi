@@ -1,6 +1,5 @@
 /**
  * VectraBase AI — Vue 3 Telemetry Store (Pinia)
- * Author: Karthik Kathari (github.com/Karthik-Kathari)
  */
 
 import { defineStore } from 'pinia';

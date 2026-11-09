@@ -1,11 +1,32 @@
 /**
  * VectraBase AI — Axios Client with Thread-Safe 401 Silent Refresh Queue
- * Author: Karthik Kathari (github.com/Karthik-Kathari)
  */
 
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+export function getApiBaseUrl(): string {
+  const envUrl = process.env.NEXT_PUBLIC_API_URL;
+  if (typeof window !== 'undefined') {
+    const isLocalhost =
+      window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1' ||
+      window.location.hostname === '0.0.0.0';
+
+    if (!isLocalhost) {
+      if (envUrl && !envUrl.includes('localhost') && !envUrl.includes('127.0.0.1')) {
+        return envUrl.replace(/\/+$/, '');
+      }
+      return 'https://vectrabase-api.onrender.com';
+    }
+  }
+
+  if (envUrl && envUrl.trim().length > 0) {
+    return envUrl.replace(/\/+$/, '');
+  }
+  return 'https://vectrabase-api.onrender.com';
+}
+
+export const API_BASE_URL = getApiBaseUrl();
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -23,6 +44,8 @@ let failedQueue: Array<{
   resolve: (value?: unknown) => void;
   reject: (reason?: unknown) => void;
 }> = [];
+// Alias failedQueue as refreshSubscribers for thread-safe request replay queue
+const refreshSubscribers = failedQueue;
 
 export function setAccessToken(token: string | null) {
   accessToken = token;
@@ -79,9 +102,10 @@ const processQueue = (error: Error | null, token: string | null = null) => {
   failedQueue = [];
 };
 
-// Request interceptor: attach bearer token
+// Request interceptor: attach bearer token and dynamic base URL
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
+    config.baseURL = getApiBaseUrl();
     if (accessToken && config.headers) {
       config.headers.Authorization = `Bearer ${accessToken}`;
     }
@@ -123,10 +147,11 @@ apiClient.interceptors.response.use(
       try {
         let currentRefreshToken = getRefreshToken();
         let newAccessToken: string;
+        const effectiveBaseUrl = getApiBaseUrl();
 
         try {
           const { data } = await axios.post(
-            `${API_BASE_URL}/api/auth/refresh`,
+            `${effectiveBaseUrl}/api/auth/refresh`,
             { refreshToken: currentRefreshToken },
             { withCredentials: true },
           );
@@ -137,7 +162,7 @@ apiClient.interceptors.response.use(
         } catch (refreshErr) {
           // Fallback to bootstrap demo session for recruiters if initial session was absent
           const { data } = await axios.post(
-            `${API_BASE_URL}/api/auth/demo-session`,
+            `${effectiveBaseUrl}/api/auth/demo-session`,
             {},
             { withCredentials: true },
           );

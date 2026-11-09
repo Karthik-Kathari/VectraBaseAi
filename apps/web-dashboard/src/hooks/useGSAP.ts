@@ -1,6 +1,5 @@
 /**
  * VectraBase AI — GSAP React Hook with Automatic Context Revert
- * Author: Karthik Kathari (github.com/Karthik-Kathari)
  */
 
 import { useRef, useLayoutEffect, useEffect } from 'react';

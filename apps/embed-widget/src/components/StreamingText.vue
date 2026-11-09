@@ -1,7 +1,6 @@
 <script setup lang="ts">
 /**
  * VectraBase AI — Streaming Markdown & Token Display
- * Author: Karthik Kathari (github.com/Karthik-Kathari)
  */
 
 import { computed } from 'vue';
@@ -38,7 +37,7 @@ const parsedMarkdown = computed(() => {
   margin-bottom: 0;
 }
 :deep(.markdown-body code) {
-  background: #1E2230;
+  background: #1e293b;
   padding: 0.15rem 0.35rem;
   border-radius: 0.25rem;
   font-family: monospace;
@@ -46,8 +45,8 @@ const parsedMarkdown = computed(() => {
   color: #38BDF8;
 }
 :deep(.markdown-body pre) {
-  background: #090A0F;
-  border: 1px solid #1E2230;
+  background: #090b10;
+  border: 1px solid #1e293b;
   padding: 0.75rem;
   border-radius: 0.5rem;
   overflow-x: auto;

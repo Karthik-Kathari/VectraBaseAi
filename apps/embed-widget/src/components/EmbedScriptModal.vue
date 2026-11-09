@@ -1,7 +1,6 @@
 <script setup lang="ts">
 /**
  * VectraBase AI — Copy-Paste Embed Script Generator Modal
- * Author: Karthik Kathari (github.com/Karthik-Kathari)
  */
 
 import { ref } from 'vue';
@@ -38,15 +37,15 @@ async function copyToClipboard() {
 
 <template>
   <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fadeIn">
-    <div class="bg-[#11131C] border border-[#2A2F45] rounded-xl max-w-lg w-full p-5 shadow-2xl text-slate-200 font-mono">
-      <div class="flex items-center justify-between pb-3 border-b border-[#1E2230] mb-4">
+    <div class="bg-[#111827] border border-[#334155] rounded-xl max-w-lg w-full p-5 shadow-2xl text-slate-200 font-mono">
+      <div class="flex items-center justify-between pb-3 border-b border-[#1e293b] mb-4">
         <div class="flex items-center gap-2">
           <span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
           <h3 class="font-bold text-sm text-white">Embed AI Widget on Any Website</h3>
         </div>
         <button
           @click="emit('close')"
-          class="text-slate-400 hover:text-white p-1 rounded hover:bg-[#1E2230]"
+          class="text-slate-400 hover:text-white p-1 rounded hover:bg-[#1e293b]"
         >
           ✕
         </button>
@@ -56,7 +55,7 @@ async function copyToClipboard() {
         Paste this lightweight 2-line snippet right before the closing <code class="text-cyan-300">&lt;/body&gt;</code> tag of any HTML document, React app, or CMS.
       </p>
 
-      <div class="relative bg-[#090A0F] border border-[#1E2230] rounded-lg p-3 text-xs mb-4 overflow-x-auto text-cyan-300">
+      <div class="relative bg-[#090b10] border border-[#1e293b] rounded-lg p-3 text-xs mb-4 overflow-x-auto text-cyan-300">
         <pre class="whitespace-pre-wrap break-all font-mono">{{ embedSnippet }}</pre>
       </div>
 
@@ -64,7 +63,7 @@ async function copyToClipboard() {
         <button
           type="button"
           @click="emit('close')"
-          class="px-3 py-1.5 rounded-md text-xs border border-[#2A2F45] hover:bg-[#1E2230] transition-colors"
+          class="px-3 py-1.5 rounded-md text-xs border border-[#334155] hover:bg-[#1e293b] transition-colors"
         >
           Close
         </button>

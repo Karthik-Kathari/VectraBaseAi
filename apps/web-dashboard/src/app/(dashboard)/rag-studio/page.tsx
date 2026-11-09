@@ -2,7 +2,6 @@
 
 /**
  * VectraBase AI — Knowledge Base Ingestion & Management Studio
- * Author: Karthik Kathari (github.com/Karthik-Kathari)
  */
 
 import React, { useState } from 'react';
@@ -38,12 +37,12 @@ export default function RAGStudioPage() {
     },
     {
       id: 'doc-profile-02',
-      name: 'Karthik_Kathari_Engineering_Profile.pdf',
+      name: 'VectraBase_Architecture_Whitepaper.pdf',
       source: 'PDF',
       status: 'Ready',
       chunks: 2,
       tokens: 950,
-      sha256: 'karthik_profile_e5f6...1234',
+      sha256: 'vectrabase_whitepaper_e5f6...1234',
       date: 'Pre-indexed',
     },
   ]);
@@ -145,7 +144,7 @@ export default function RAGStudioPage() {
       {/* Page Header */}
       <div>
         <div className="flex items-center gap-2">
-          <Badge variant="cyan">Knowledge Base</Badge>
+          <Badge variant="purple">Knowledge Base</Badge>
           <span className="text-xs text-slate-500 font-sans">Automatic Semantic Indexing</span>
         </div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-1 tracking-tight">
@@ -158,7 +157,7 @@ export default function RAGStudioPage() {
 
       {/* Success Next-Step Callout (Shown when a document is uploaded) */}
       {lastUploadedDoc && (
-        <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-50 via-white to-sky-50 dark:from-emerald-950/40 dark:via-[#11131C] dark:to-cyan-950/40 border border-emerald-200 dark:border-emerald-500/40 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
+        <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-50 via-white to-purple-50 dark:from-emerald-950/40 dark:via-[#111827] dark:to-purple-950/40 border border-emerald-200 dark:border-emerald-500/40 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
@@ -188,16 +187,16 @@ export default function RAGStudioPage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-base text-slate-900 dark:text-white flex items-center gap-2">
-                <span className="w-6 h-6 rounded-full bg-indigo-50 dark:bg-cyan-500/20 text-indigo-600 dark:text-cyan-400 text-xs font-sans flex items-center justify-center font-bold">1</span>
+                <span className="w-6 h-6 rounded-full bg-purple-50 dark:bg-purple-950/80 text-purple-600 dark:text-purple-400 text-xs font-sans flex items-center justify-center font-bold">1</span>
                 Step 1: Add Content
               </CardTitle>
               {/* Tabs */}
-              <div className="flex rounded-lg bg-slate-100 dark:bg-[#090A0F] p-0.5 border border-slate-200 dark:border-slate-800 text-xs font-sans">
+              <div className="flex rounded-lg bg-slate-100 dark:bg-[#111827] p-0.5 border border-slate-200 dark:border-slate-800 text-xs font-sans">
                 <button
                   type="button"
                   onClick={() => setActiveTab('FILE')}
                   className={`px-3 py-1 rounded-md transition-colors cursor-pointer ${
-                    activeTab === 'FILE' ? 'bg-indigo-600 dark:bg-cyan-500 text-white dark:text-black font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                    activeTab === 'FILE' ? 'bg-purple-600 text-white font-semibold shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
                   Upload File
@@ -206,7 +205,7 @@ export default function RAGStudioPage() {
                   type="button"
                   onClick={() => setActiveTab('URL')}
                   className={`px-3 py-1 rounded-md transition-colors cursor-pointer ${
-                    activeTab === 'URL' ? 'bg-indigo-600 dark:bg-cyan-500 text-white dark:text-black font-semibold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                    activeTab === 'URL' ? 'bg-purple-600 text-white font-semibold shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
                   Web URL
@@ -219,7 +218,7 @@ export default function RAGStudioPage() {
             {activeTab === 'FILE' ? (
               /* File Dropzone */
               <div className="space-y-2">
-                <div className="border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-indigo-500 dark:hover:border-cyan-500/60 rounded-xl p-8 text-center bg-slate-50 dark:bg-slate-900/50 transition-all relative cursor-pointer group">
+                <div className="border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-purple-500 dark:hover:border-purple-500/60 rounded-xl p-8 text-center bg-slate-50 dark:bg-slate-900/50 transition-all relative cursor-pointer group">
                   <input
                     type="file"
                     accept=".pdf,.md,.txt"
@@ -237,7 +236,7 @@ export default function RAGStudioPage() {
                     </p>
                     {selectedFile && (
                       <div className="pt-2">
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 dark:bg-cyan-950/80 border border-indigo-200 dark:border-cyan-500/30 text-xs font-mono text-indigo-700 dark:text-cyan-300">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-50 dark:bg-purple-950/80 border border-purple-200 dark:border-purple-500/30 text-xs font-mono text-purple-700 dark:text-purple-300">
                           ✓ {(selectedFile.size / 1024).toFixed(1)} KB selected
                         </span>
                       </div>
@@ -249,13 +248,13 @@ export default function RAGStudioPage() {
                   <button
                     type="button"
                     onClick={() => {
-                      const sampleContent = "VectraBase AI Architectural Whitepaper\nBy Karthik Kathari\nMulti-tenant RAG engine with pgvector and Redis sub-2ms caching.";
+                      const sampleContent = "VectraBase AI Architectural Whitepaper\nMulti-tenant RAG engine with pgvector and Redis sub-2ms caching.";
                       const sampleFile = new File([sampleContent], "Sample_Architecture_Guide.md", { type: "text/markdown" });
                       setSelectedFile(sampleFile);
                       setSha256Hash("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855");
                       toast.info('Sample architecture document loaded! Click "Start Ingestion" below.');
                     }}
-                    className="text-indigo-600 dark:text-cyan-400 hover:underline cursor-pointer font-medium"
+                    className="text-purple-600 dark:text-purple-400 hover:underline cursor-pointer font-medium"
                   >
                     ⚡ Auto-load Sample Markdown Doc
                   </button>
@@ -282,7 +281,7 @@ export default function RAGStudioPage() {
                       setUrlInput('https://docs.docker.com/engine/api/');
                       toast.info('Sample documentation URL filled! Click "Start Ingestion" below.');
                     }}
-                    className="text-indigo-600 dark:text-cyan-400 hover:underline cursor-pointer font-medium"
+                    className="text-purple-600 dark:text-purple-400 hover:underline cursor-pointer font-medium"
                   >
                     ⚡ Fill Docker Docs URL
                   </button>
@@ -295,7 +294,7 @@ export default function RAGStudioPage() {
               <button
                 type="button"
                 onClick={() => setShowAdvanced(!showAdvanced)}
-                className="text-xs font-sans text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-cyan-400 flex items-center gap-1.5 transition-colors cursor-pointer"
+                className="text-xs font-sans text-slate-500 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 flex items-center gap-1.5 transition-colors cursor-pointer"
               >
                 <span>{showAdvanced ? '▼' : '▶'}</span>
                 <span>Advanced Technical Details</span>
@@ -305,7 +304,7 @@ export default function RAGStudioPage() {
                 <div className="mt-2.5 p-3 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-[11px] font-mono text-slate-600 dark:text-slate-400 space-y-2">
                   <div>
                     <span className="text-slate-500 block">Content Hash &amp; Idempotency:</span>
-                    <span className="text-indigo-600 dark:text-cyan-400 font-bold break-all">
+                    <span className="text-purple-600 dark:text-purple-400 font-bold break-all">
                       {sha256Hash || 'Will be computed automatically upon file selection'}
                     </span>
                   </div>
@@ -336,7 +335,7 @@ export default function RAGStudioPage() {
           <div>
             <CardHeader>
               <CardTitle className="text-base text-slate-900 dark:text-white flex items-center gap-2">
-                <span className="w-6 h-6 rounded-full bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-xs font-sans flex items-center justify-center font-bold">2</span>
+                <span className="w-6 h-6 rounded-full bg-purple-50 dark:bg-purple-950/80 text-purple-600 dark:text-purple-400 text-xs font-sans flex items-center justify-center font-bold">2</span>
                 Step 2: Processing Status
               </CardTitle>
             </CardHeader>
@@ -344,8 +343,8 @@ export default function RAGStudioPage() {
               {isIngesting || currentStage === 'Complete' ? (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between text-xs font-sans">
-                    <span className="text-indigo-600 dark:text-cyan-400 font-semibold flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-indigo-600 dark:bg-cyan-400 animate-ping"></span>
+                    <span className="text-purple-600 dark:text-purple-400 font-semibold flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-purple-600 dark:bg-purple-400 animate-ping"></span>
                       {currentStage}
                     </span>
                     <span className="text-slate-900 dark:text-white font-bold tabular-nums font-mono">{progressPct}%</span>
@@ -353,7 +352,7 @@ export default function RAGStudioPage() {
 
                   <div className="w-full bg-slate-100 dark:bg-slate-900 h-2.5 rounded-full overflow-hidden border border-slate-200 dark:border-slate-800">
                     <div
-                      className="h-full bg-gradient-to-r from-indigo-500 via-indigo-600 to-cyan-400 transition-all duration-300 rounded-full"
+                      className="h-full bg-gradient-to-r from-purple-600 via-red-500 to-yellow-400 transition-all duration-300 rounded-full"
                       style={{ width: `${progressPct}%` }}
                     ></div>
                   </div>
@@ -380,7 +379,7 @@ export default function RAGStudioPage() {
             <span className="text-slate-600 dark:text-slate-400">Step 3: Test AI Chat</span>
             <Link
               href="/widget-playground"
-              className="text-indigo-600 dark:text-cyan-400 hover:underline font-semibold flex items-center gap-1"
+              className="text-purple-600 dark:text-purple-400 hover:underline font-semibold flex items-center gap-1"
             >
               <span>Open Chat Assistant</span>
               <span>→</span>
@@ -398,7 +397,7 @@ export default function RAGStudioPage() {
               All indexed documentation accessible to your AI assistant.
             </p>
           </div>
-          <Badge variant="cyan">{documents.length} Indexed Files</Badge>
+          <Badge variant="purple">{documents.length} Indexed Files</Badge>
         </CardHeader>
 
         <CardContent className="p-0">
@@ -409,7 +408,7 @@ export default function RAGStudioPage() {
                 className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors"
               >
                 <div className="flex items-start sm:items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-cyan-950/60 border border-indigo-100 dark:border-cyan-500/30 flex items-center justify-center text-indigo-600 dark:text-cyan-400 flex-shrink-0">
+                  <div className="w-8 h-8 rounded-lg bg-purple-50 dark:bg-purple-950/60 border border-purple-100 dark:border-purple-500/30 flex items-center justify-center text-purple-600 dark:text-purple-400 flex-shrink-0">
                     {doc.source === 'PDF' ? '📄' : doc.source === 'URL' ? '🌐' : '📝'}
                   </div>
                   <div>

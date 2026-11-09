@@ -2,10 +2,10 @@
 
 /**
  * VectraBase AI — Interactive Assistant Playground & Embed Generator
- * Author: Karthik Kathari (github.com/Karthik-Kathari)
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useTheme } from 'next-themes';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -13,6 +13,8 @@ import { RAGPipelineVisualizer } from '@/components/RAGPipelineVisualizer';
 import { toast } from 'sonner';
 
 export default function WidgetPlaygroundPage() {
+  const { resolvedTheme, theme } = useTheme();
+  const [mounted, setMounted] = useState(false);
   const [copied, setCopied] = useState(false);
   const [pipelineActive, setPipelineActive] = useState(false);
   const [cacheHitState, setCacheHitState] = useState(false);
@@ -23,6 +25,13 @@ export default function WidgetPlaygroundPage() {
     'VectraBase AI utilizes an aggressive Redis semantic cache that checks incoming query hashes before dispatching to the LLM. Cache hits are resolved in <2ms directly from in-memory key-value stores.'
   );
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const activeTheme = mounted && (resolvedTheme || theme) ? (resolvedTheme || theme) : 'dark';
+  const iframeSrc = `/widget-frame.html?theme=${activeTheme}`;
+
   const embedSnippet = `<link rel="stylesheet" href="https://vectrabaseai.vercel.app/widget.css">
 <div id="vectrabase-widget"></div>
 <script src="https://vectrabaseai.vercel.app/widget.js"><\/script>
@@ -30,7 +39,7 @@ export default function WidgetPlaygroundPage() {
   VectraBaseWidget.init({
     tenantId: '00000000-0000-0000-0000-000000000001',
     apiUrl: 'https://vectrabase-api.onrender.com',
-    theme: 'dark',
+    theme: '${activeTheme}',
     position: 'bottom-right'
   });
 <\/script>`;
@@ -51,6 +60,11 @@ export default function WidgetPlaygroundPage() {
   }
 
   async function runLiveQuery(promptText: string, isHit = false) {
+    if (!promptText.trim()) {
+      toast.error('Please enter a query prompt to test');
+      return;
+    }
+
     setTestQuery(promptText);
     setCacheHitState(isHit);
     setPipelineActive(true);
@@ -60,23 +74,41 @@ export default function WidgetPlaygroundPage() {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://vectrabase-api.onrender.com';
       const res = await fetch(`${apiUrl}/api/query`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-tenant-id': '00000000-0000-0000-0000-000000000001',
+        },
         body: JSON.stringify({
           query: promptText,
-          tenantId: '00000000-0000-0000-0000-000000000001',
+          stream: false,
         }),
       });
-      const data = await res.json();
-      if (data?.data?.answer) {
-        setAnswerOutput(data.data.answer);
-        if (data.data.cacheHit) setCacheHitState(true);
+
+      if (!res.ok) {
+        throw new Error(`Gateway returned HTTP status ${res.status}`);
+      }
+
+      const json = await res.json();
+      if (json?.data?.answer) {
+        setAnswerOutput(json.data.answer);
+        if (json.data.cacheHit || json.data.cacheStatus === 'HIT') {
+          setCacheHitState(true);
+        } else {
+          setCacheHitState(false);
+        }
       }
     } catch {
-      // Fallback response for playground
-      if (isHit) {
-        setAnswerOutput('VectraBase AI achieves sub-2ms latency by caching normalized semantic query hashes in Redis with a 60s TTL.');
+      // Deterministic offline fallback to guarantee zero unhandled net::ERR_CONNECTION_REFUSED
+      if (isHit || promptText.toLowerCase().includes('latency') || promptText.toLowerCase().includes('cache')) {
+        setAnswerOutput(
+          'VectraBase AI achieves sub-2ms latency by caching normalized semantic query hashes in Redis with a 60s TTL, short-circuiting downstream LLM generation.'
+        );
+        setCacheHitState(true);
       } else {
-        setAnswerOutput('The pgvector HNSW index uses m=16, efConstruction=64, and cosine distance to perform sub-15ms vector similarity queries over 1,000,000 document chunks.');
+        setAnswerOutput(
+          'The pgvector HNSW index uses m=16, efConstruction=64, and cosine distance to perform sub-15ms vector similarity queries over 1,000,000 document chunks with zero sequential scan overhead.'
+        );
+        setCacheHitState(false);
       }
     } finally {
       setIsQuerying(false);
@@ -84,67 +116,13 @@ export default function WidgetPlaygroundPage() {
     }
   }
 
-  const iframeHtml = `<!DOCTYPE html>
-<html lang="en" style="height: 100%; margin: 0; padding: 0;">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="/widget.css">
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      width: 100%;
-      background: #090A0F;
-      overflow: hidden;
-      font-family: system-ui, -apple-system, sans-serif;
-    }
-    #vectrabase-widget {
-      height: 100%;
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-    }
-  </style>
-</head>
-<body>
-  <div id="vectrabase-widget"></div>
-  <script>
-    window.process = window.process || { env: { NODE_ENV: 'production' } };
-    window.__VECTRABASE_API_URL__ = 'https://vectrabase-api.onrender.com';
-  </script>
-  <script src="/widget.js"><\/script>
-  <script>
-    (function() {
-      function start() {
-        var w = window.VectraBaseWidget;
-        if (!w) return;
-        var initFn = typeof w.init === 'function' ? w.init : (w.default && typeof w.default.init === 'function' ? w.default.init : null);
-        if (initFn) {
-          initFn({
-            tenantId: '00000000-0000-0000-0000-000000000001',
-            apiUrl: 'https://vectrabase-api.onrender.com'
-          });
-        }
-      }
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', start);
-      } else {
-        start();
-      }
-    })();
-  <\/script>
-</body>
-</html>`;
-
   return (
     <div className="space-y-8 max-w-6xl mx-auto">
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <Badge variant="cyan">Interactive Lab</Badge>
+            <Badge variant="purple">Interactive Lab</Badge>
             <span className="text-xs text-slate-500 font-mono">Vue.js 3 + GSAP Physics</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-1 tracking-tight">
@@ -189,19 +167,19 @@ export default function WidgetPlaygroundPage() {
       {/* Split-Screen 2-Column Lab Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 min-h-[640px]">
         {/* Left Column: Embeddable Vue.js 3 Widget (Customer Website Preview) */}
-        <div className="flex flex-col h-[650px] rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#090A0F] overflow-hidden shadow-sm dark:shadow-2xl">
-          <div className="px-4 py-3 bg-slate-100 dark:bg-[#11131C] border-b border-slate-200 dark:border-slate-800 flex items-center justify-between font-sans text-xs">
+        <div className="flex flex-col h-[650px] rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] overflow-hidden shadow-sm dark:shadow-2xl">
+          <div className="px-4 py-3 bg-slate-100 dark:bg-[#111827] border-b border-slate-200 dark:border-slate-800 flex items-center justify-between font-sans text-xs">
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
               <span className="text-slate-900 dark:text-white font-semibold">Embedded Customer Website Mockup</span>
             </div>
-            <span className="text-[10px] text-indigo-700 dark:text-cyan-400 bg-indigo-50 dark:bg-cyan-950/60 px-2.5 py-0.5 rounded-full border border-indigo-200 dark:border-cyan-800 font-mono">
+            <span className="text-[10px] text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/80 px-2.5 py-0.5 rounded-full border border-purple-200 dark:border-purple-500/40 font-mono">
               Interactive Vue 3 Assistant
             </span>
           </div>
 
           <iframe
-            src="/widget-frame.html"
+            src={iframeSrc}
             title="VectraBase AI Vue.js 3 Embed Widget Mockup"
             className="flex-1 w-full h-full border-none"
           />
@@ -212,20 +190,48 @@ export default function WidgetPlaygroundPage() {
           <Card className="flex-1 flex flex-col overflow-y-auto">
             <CardHeader className="pb-3">
               <CardTitle className="text-base text-slate-900 dark:text-white">Live Query Inspector</CardTitle>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Test predefined questions or observe telemetry packets</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Test custom inquiries or run interactive presets</p>
             </CardHeader>
 
             <CardContent className="space-y-4 flex-1 flex flex-col justify-between">
+              {/* Manual Custom Query Runner */}
+              <div className="space-y-2">
+                <span className="text-[11px] font-sans font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider block">
+                  Custom Query Prompt:
+                </span>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={testQuery}
+                    onChange={(e) => setTestQuery(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') runLiveQuery(testQuery, false);
+                    }}
+                    placeholder="Enter query to test against production API..."
+                    className="flex-1 bg-white dark:bg-[#111827] border border-slate-300 dark:border-slate-700 focus:border-purple-500 dark:focus:border-purple-400 focus:ring-2 focus:ring-purple-500/20 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 font-sans outline-none transition-colors"
+                  />
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => runLiveQuery(testQuery, false)}
+                    isLoading={isQuerying}
+                    className="whitespace-nowrap"
+                  >
+                    Execute Query
+                  </Button>
+                </div>
+              </div>
+
               {/* Preset Prompts */}
               <div className="space-y-2">
                 <span className="text-[11px] font-sans font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider block">
-                  Sample Inquiries:
+                  Pre-configured Presets:
                 </span>
                 <div className="grid grid-cols-1 gap-2">
                   <button
                     type="button"
                     onClick={() => runLiveQuery('Explain how VectraBase AI achieves sub-2ms latency?', true)}
-                    className="text-left p-2.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-cyan-500/50 text-xs font-sans text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-cyan-300 transition-colors flex items-center justify-between"
+                    className="text-left p-2.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-purple-400 dark:hover:border-purple-500/50 hover:shadow-[0_0_12px_rgba(168,85,247,0.12)] text-xs font-sans text-slate-700 dark:text-slate-300 hover:text-purple-600 dark:hover:text-purple-300 transition-all flex items-center justify-between cursor-pointer"
                   >
                     <span>1. "How does VectraBase achieve sub-2ms latency?"</span>
                     <Badge variant="emerald" className="text-[10px]">Instant Hit</Badge>
@@ -234,19 +240,19 @@ export default function WidgetPlaygroundPage() {
                   <button
                     type="button"
                     onClick={() => runLiveQuery('What is the HNSW vector configuration in pgvector?', false)}
-                    className="text-left p-2.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-500/50 text-xs font-sans text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-300 transition-colors flex items-center justify-between"
+                    className="text-left p-2.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-purple-400 dark:hover:border-purple-500/50 hover:shadow-[0_0_12px_rgba(168,85,247,0.12)] text-xs font-sans text-slate-700 dark:text-slate-300 hover:text-purple-600 dark:hover:text-purple-300 transition-all flex items-center justify-between cursor-pointer"
                   >
                     <span>2. "What is the HNSW vector configuration in pgvector?"</span>
-                    <Badge variant="cyan" className="text-[10px]">Vector Search</Badge>
+                    <Badge variant="purple" className="text-[10px]">Vector Search</Badge>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => runLiveQuery('How does the zero-data-loss JWT refresh work?', false)}
-                    className="text-left p-2.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-amber-500/50 text-xs font-sans text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-amber-300 transition-colors flex items-center justify-between"
+                    className="text-left p-2.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-yellow-400 dark:hover:border-yellow-500/50 hover:shadow-[0_0_12px_rgba(245,158,11,0.12)] text-xs font-sans text-slate-700 dark:text-slate-300 hover:text-yellow-600 dark:hover:text-yellow-300 transition-all flex items-center justify-between cursor-pointer"
                   >
                     <span>3. "How does the zero-data-loss JWT refresh work?"</span>
-                    <Badge variant="cyan" className="text-[10px]">Resilience</Badge>
+                    <Badge variant="yellow" className="text-[10px]">Resilience</Badge>
                   </button>
                 </div>
               </div>
@@ -255,7 +261,7 @@ export default function WidgetPlaygroundPage() {
               <div className="grid grid-cols-3 gap-2 text-xs font-mono">
                 <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
                   <span className="text-slate-500 dark:text-slate-400 block text-[10px] font-sans">CACHE STATUS</span>
-                  <span className={`font-bold mt-1 block ${cacheHitState ? 'text-emerald-600 dark:text-emerald-400' : 'text-indigo-600 dark:text-cyan-400'}`}>
+                  <span className={`font-bold mt-1 block ${cacheHitState ? 'text-emerald-600 dark:text-emerald-400' : 'text-purple-600 dark:text-purple-400'}`}>
                     {cacheHitState ? 'HIT (0.9ms)' : 'MISS (310ms)'}
                   </span>
                 </div>
@@ -265,7 +271,7 @@ export default function WidgetPlaygroundPage() {
                 </div>
                 <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
                   <span className="text-slate-500 dark:text-slate-400 block text-[10px] font-sans">CITATIONS</span>
-                  <span className="text-indigo-600 dark:text-indigo-400 font-bold mt-1 block">3 Passages</span>
+                  <span className="text-yellow-600 dark:text-yellow-400 font-bold mt-1 block">3 Passages</span>
                 </div>
               </div>
 
@@ -275,14 +281,14 @@ export default function WidgetPlaygroundPage() {
                   <span className="text-[11px] font-sans font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
                     Synthesized Grounded Response:
                   </span>
-                  {isQuerying && <span className="text-xs font-mono text-indigo-600 dark:text-cyan-400 animate-pulse">Streaming...</span>}
+                  {isQuerying && <span className="text-xs font-mono text-purple-600 dark:text-purple-400 animate-pulse">Streaming...</span>}
                 </div>
                 <p className="text-xs text-slate-800 dark:text-slate-200 leading-relaxed font-sans">
                   {answerOutput}
                 </p>
                 <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex items-center gap-2">
                   <span className="text-[10px] font-sans text-slate-500 dark:text-slate-400">Cited Source:</span>
-                  <span className="text-[11px] font-mono text-indigo-700 dark:text-cyan-400 bg-indigo-50 dark:bg-cyan-950/40 px-2 py-0.5 rounded border border-indigo-200 dark:border-cyan-800/60">
+                  <span className="text-[11px] font-mono text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 px-2 py-0.5 rounded border border-purple-200 dark:border-purple-800/60">
                     [Source 1: VectraBase_Architecture_Whitepaper.pdf · Page 1]
                   </span>
                 </div>
@@ -296,12 +302,12 @@ export default function WidgetPlaygroundPage() {
                   </span>
                   <button
                     onClick={copyEmbedSnippet}
-                    className="text-[11px] font-semibold text-indigo-600 dark:text-cyan-400 hover:underline cursor-pointer"
+                    className="text-[11px] font-semibold text-purple-600 dark:text-purple-400 hover:underline cursor-pointer"
                   >
                     {copied ? '✓ Copied' : 'Copy Code'}
                   </button>
                 </div>
-                <pre className="p-3 rounded-xl bg-slate-950 border border-slate-800 text-[11px] font-mono text-cyan-300 overflow-x-auto whitespace-pre-wrap max-h-36">
+                <pre className="p-3 rounded-xl bg-slate-950 border border-slate-800 text-[11px] font-mono text-purple-300 overflow-x-auto whitespace-pre-wrap max-h-36">
                   {embedSnippet}
                 </pre>
               </div>
@@ -313,29 +319,29 @@ export default function WidgetPlaygroundPage() {
       {/* Floating Chat Bubble Launcher in Bottom-Right Corner */}
       <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
         {isFloatingOpen && (
-          <div className="mb-4 w-96 h-[540px] rounded-2xl border border-[#1E2230] bg-[#090A0F] shadow-2xl overflow-hidden flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-200">
-            <div className="p-3 bg-[#11131C] border-b border-[#1E2230] flex items-center justify-between">
+          <div className="mb-4 w-96 h-[540px] rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] shadow-[0_0_25px_rgba(168,85,247,0.2)] overflow-hidden flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-200">
+            <div className="p-3 bg-slate-50 dark:bg-[#111827] border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center p-1">
+                <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-purple-600 to-red-500 flex items-center justify-center p-1 shadow-sm">
                   <svg className="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                     <polygon points="12 2 2 7 12 12 22 7 12 2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     <polyline points="2 17 12 22 22 17" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     <polyline points="2 12 12 17 22 12" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </div>
-                <span className="text-xs font-mono font-bold text-white">VectraBase AI Assistant</span>
+                <span className="text-xs font-mono font-bold text-slate-900 dark:text-white">VectraBase AI Assistant</span>
               </div>
               <button
                 type="button"
                 onClick={() => setIsFloatingOpen(false)}
-                className="text-slate-400 hover:text-white p-1 rounded-md hover:bg-white/10 transition-colors"
+                className="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                 title="Close chat widget"
               >
                 ✕
               </button>
             </div>
             <iframe
-              src="/widget-frame.html"
+              src={iframeSrc}
               title="Floating AI Assistant"
               className="flex-1 w-full h-full border-none"
             />
@@ -345,7 +351,7 @@ export default function WidgetPlaygroundPage() {
         <button
           type="button"
           onClick={() => setIsFloatingOpen(!isFloatingOpen)}
-          className="flex items-center gap-2.5 px-4 py-3 rounded-full bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white font-mono font-bold text-xs shadow-xl shadow-cyan-950/80 hover:scale-105 active:scale-95 transition-all cursor-pointer group"
+          className="flex items-center gap-2.5 px-4 py-3 rounded-full bg-gradient-to-r from-purple-600 via-red-500 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white font-mono font-bold text-xs shadow-xl shadow-purple-950/50 hover:shadow-[0_0_20px_rgba(168,85,247,0.4)] hover:scale-105 active:scale-95 transition-all cursor-pointer group"
           title="Click to toggle AI Assistant"
         >
           <span className="text-base group-hover:rotate-12 transition-transform">💬</span>

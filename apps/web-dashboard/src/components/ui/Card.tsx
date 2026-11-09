@@ -5,7 +5,7 @@ export function Card({ className, children, ...props }: React.HTMLAttributes<HTM
   return (
     <div
       className={cn(
-        'rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] text-slate-900 dark:text-slate-100 shadow-sm dark:shadow-xl overflow-hidden transition-colors',
+        'rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] text-slate-900 dark:text-slate-100 shadow-sm dark:shadow-xl overflow-hidden transition-all duration-200 hover:border-purple-300/60 dark:hover:border-purple-500/40 hover:shadow-[0_0_20px_rgba(168,85,247,0.12)]',
         className
       )}
       {...props}
@@ -38,4 +38,3 @@ export function CardContent({ className, children, ...props }: React.HTMLAttribu
     </div>
   );
 }
-

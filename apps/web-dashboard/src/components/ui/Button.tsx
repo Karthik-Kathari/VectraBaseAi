@@ -2,7 +2,7 @@ import React, { forwardRef } from 'react';
 import { cn } from '@/lib/utils';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'emerald';
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'emerald' | 'purple';
   size?: 'sm' | 'md' | 'lg';
   isLoading?: boolean;
 }
@@ -12,12 +12,13 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     const baseStyles = 'inline-flex items-center justify-center font-sans font-medium rounded-lg transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer select-none';
 
     const variants = {
-      primary: 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm focus:ring-indigo-500 dark:bg-cyan-500 dark:hover:bg-cyan-400 dark:text-slate-950 font-semibold dark:shadow-md dark:shadow-cyan-950/30',
-      secondary: 'bg-slate-900 hover:bg-slate-800 text-white shadow-sm dark:bg-indigo-600 dark:hover:bg-indigo-500 dark:text-white focus:ring-slate-900 dark:focus:ring-indigo-500',
-      emerald: 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm focus:ring-emerald-500',
-      outline: 'border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-sm focus:ring-slate-400',
-      ghost: 'bg-transparent hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white',
-      danger: 'bg-rose-600 hover:bg-rose-500 text-white shadow-sm focus:ring-rose-500',
+      primary: 'bg-purple-600 hover:bg-purple-700 text-white dark:bg-purple-600 dark:hover:bg-purple-500 font-semibold shadow-sm hover:shadow-neon-purple focus:ring-purple-500 dark:focus:ring-purple-400',
+      purple: 'bg-purple-600 hover:bg-purple-700 text-white dark:bg-purple-600 dark:hover:bg-purple-500 font-semibold shadow-sm hover:shadow-neon-purple focus:ring-purple-500 dark:focus:ring-purple-400',
+      secondary: 'bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-white shadow-sm focus:ring-slate-900 dark:focus:ring-slate-600',
+      emerald: 'bg-emerald-700 hover:bg-emerald-600 text-white shadow-sm hover:shadow-neon-emerald focus:ring-emerald-500',
+      outline: 'border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 hover:bg-slate-50 dark:hover:bg-slate-800/80 hover:border-purple-400 dark:hover:border-purple-500/50 hover:shadow-neon-purple/20 text-slate-700 dark:text-slate-200 shadow-sm focus:ring-purple-400',
+      ghost: 'bg-transparent hover:bg-slate-100 dark:hover:bg-slate-800/80 text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white focus:ring-purple-400',
+      danger: 'bg-red-600 hover:bg-red-500 text-white shadow-sm hover:shadow-neon-red focus:ring-red-500',
     };
 
     const sizes = {
@@ -46,4 +47,3 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 );
 
 Button.displayName = 'Button';
-

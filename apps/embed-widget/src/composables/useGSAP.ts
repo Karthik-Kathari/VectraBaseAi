@@ -1,6 +1,5 @@
 /**
  * VectraBase AI — GSAP Animation Composable for Vue 3
- * Author: Karthik Kathari (github.com/Karthik-Kathari)
  */
 
 import { onUnmounted, ref } from 'vue';

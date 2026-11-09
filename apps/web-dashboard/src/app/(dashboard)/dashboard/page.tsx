@@ -2,7 +2,6 @@
 
 /**
  * VectraBase AI — SaaS Control Plane Overview Page
- * Author: Karthik Kathari (github.com/Karthik-Kathari)
  */
 
 import React, { useState } from 'react';
@@ -27,10 +26,10 @@ export default function DashboardOverviewPage() {
   }
 
   const statCards = [
-    { title: 'Knowledge Chunks', value: '1,000,003', change: 'Indexed in pgvector', icon: '📚', highlight: 'text-cyan-400' },
-    { title: 'Instant Cache Hit Rate', value: '34.8%', change: '<2ms verified latency', icon: '⚡', highlight: 'text-emerald-400' },
-    { title: 'Average Response Time', value: '11.8ms', change: 'High-speed index seek', icon: '⏱️', highlight: 'text-indigo-400' },
-    { title: 'Tokens Saved', value: '412,850', change: '100% compute preserved', icon: '🪙', highlight: 'text-amber-400' },
+    { title: 'Knowledge Chunks', value: '1,000,003', change: 'Indexed in pgvector', icon: '📚', highlight: 'text-purple-600 dark:text-purple-400' },
+    { title: 'Instant Cache Hit Rate', value: '34.8%', change: '<2ms verified latency', icon: '⚡', highlight: 'text-emerald-600 dark:text-emerald-400' },
+    { title: 'Average Response Time', value: '11.8ms', change: 'High-speed index seek', icon: '⏱️', highlight: 'text-yellow-600 dark:text-yellow-400' },
+    { title: 'Tokens Saved', value: '412,850', change: '100% compute preserved', icon: '🪙', highlight: 'text-red-600 dark:text-red-400' },
   ];
 
   const recentQueries = [
@@ -43,7 +42,8 @@ export default function DashboardOverviewPage() {
   return (
     <div className="space-y-8 max-w-6xl mx-auto">
       {/* Welcome Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 p-6 sm:p-8 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-sm transition-colors">
+      <div className="relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6 p-6 sm:p-8 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 shadow-sm transition-colors">
+        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-purple-500 via-red-500 to-yellow-500 opacity-80" />
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -79,7 +79,7 @@ export default function DashboardOverviewPage() {
       {/* 4 Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {statCards.map((card) => (
-          <Card key={card.title} className="p-5 hover:border-indigo-300 dark:hover:border-slate-700 transition-colors">
+          <Card key={card.title} className="p-5 hover:border-purple-300 dark:hover:border-purple-500/40 hover:shadow-[0_0_15px_rgba(168,85,247,0.12)] transition-all">
             <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-medium mb-2">
               <span>{card.title}</span>
               <span className="text-base">{card.icon}</span>
@@ -136,7 +136,7 @@ export default function DashboardOverviewPage() {
               <CardTitle className="text-base text-slate-900 dark:text-white">Recent Assistant Inquiries</CardTitle>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Live query streaming and citation verification logs</p>
             </div>
-            <Link href="/telemetry" className="text-xs font-semibold text-indigo-600 dark:text-cyan-400 hover:underline">
+            <Link href="/telemetry" className="text-xs font-semibold text-purple-600 dark:text-purple-400 hover:underline">
               View All Logs →
             </Link>
           </CardHeader>
@@ -150,7 +150,7 @@ export default function DashboardOverviewPage() {
                       {q.cacheHit ? (
                         <Badge variant="emerald">Instant Cache Hit (0.9ms)</Badge>
                       ) : (
-                        <Badge variant="cyan">Vector Retrieval ({q.latency}ms)</Badge>
+                        <Badge variant="purple">Vector Retrieval ({q.latency}ms)</Badge>
                       )}
                       <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400">
                         Match Score: {(q.score * 100).toFixed(0)}%
@@ -175,9 +175,9 @@ export default function DashboardOverviewPage() {
           <CardContent className="space-y-3">
             <Link
               href="/widget-playground"
-              className="block p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-cyan-500/50 transition-colors group cursor-pointer"
+              className="block p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-purple-400 dark:hover:border-purple-500/50 hover:shadow-[0_0_12px_rgba(168,85,247,0.15)] transition-all group cursor-pointer"
             >
-              <span className="text-xs font-semibold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-cyan-400 transition-colors block">
+              <span className="text-xs font-semibold text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors block">
                 💬 Vue.js 3 Chat Playground
               </span>
               <span className="text-xs text-slate-500 dark:text-slate-400 font-sans block mt-1 leading-relaxed">
@@ -187,9 +187,9 @@ export default function DashboardOverviewPage() {
 
             <Link
               href="/governance"
-              className="block p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-500/50 transition-colors group cursor-pointer"
+              className="block p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-red-400 dark:hover:border-red-500/50 hover:shadow-[0_0_12px_rgba(244,63,94,0.15)] transition-all group cursor-pointer"
             >
-              <span className="text-xs font-semibold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors block">
+              <span className="text-xs font-semibold text-slate-900 dark:text-white group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors block">
                 🛡️ AI Governance &amp; Security
               </span>
               <span className="text-xs text-slate-500 dark:text-slate-400 font-sans block mt-1 leading-relaxed">
@@ -199,9 +199,9 @@ export default function DashboardOverviewPage() {
 
             <button
               onClick={() => setIsExplainOpen(true)}
-              className="w-full text-left p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-emerald-400 dark:hover:border-emerald-500/50 transition-colors group cursor-pointer"
+              className="w-full text-left p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-yellow-400 dark:hover:border-yellow-500/50 hover:shadow-[0_0_12px_rgba(245,158,11,0.15)] transition-all group cursor-pointer"
             >
-              <span className="text-xs font-semibold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors block">
+              <span className="text-xs font-semibold text-slate-900 dark:text-white group-hover:text-yellow-600 dark:group-hover:text-yellow-400 transition-colors block">
                 📐 SQL EXPLAIN Benchmark
               </span>
               <span className="text-xs text-slate-500 dark:text-slate-400 font-sans block mt-1 leading-relaxed">

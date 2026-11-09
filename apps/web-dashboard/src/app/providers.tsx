@@ -13,7 +13,7 @@ function ThemedToaster() {
       theme={(resolvedTheme as 'light' | 'dark') || 'light'}
       position="bottom-right"
       toastOptions={{
-        className: 'text-xs font-mono border border-slate-200 dark:border-slate-800 shadow-lg',
+        className: 'text-xs font-mono border border-slate-200 dark:border-slate-800 shadow-lg dark:shadow-[0_0_15px_rgba(168,85,247,0.1)]',
       }}
     />
   );
@@ -29,4 +29,3 @@ export function Providers({ children }: { children: React.ReactNode }) {
     </ThemeProvider>
   );
 }
-

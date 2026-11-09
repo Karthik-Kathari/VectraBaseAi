@@ -2,7 +2,6 @@
 
 /**
  * VectraBase AI — Interceptor Telemetry Console (Field-48 JWT Resilience)
- * Author: Karthik Kathari (github.com/Karthik-Kathari)
  */
 
 import React, { useState, useEffect } from 'react';
@@ -26,7 +25,7 @@ export function InterceptorConsole() {
       message: 'Active JWT Access Token verified (TTL: 900s). Ready for 50-field governance mutations.',
       status: 200,
       badge: 'AUTH READY',
-      color: 'text-cyan-400 border-cyan-500/30 bg-cyan-950/40',
+      color: 'text-purple-700 border-purple-200 bg-purple-50 dark:text-purple-300 dark:border-purple-500/40 dark:bg-purple-950/40',
       timestamp: new Date().toLocaleTimeString(),
     },
   ]);
@@ -44,7 +43,7 @@ export function InterceptorConsole() {
             message: 'POST /api/governance [401 Token Expired] — Token TTL elapsed at Field 48.',
             status: 401,
             badge: '401 EXPIRED',
-            color: 'text-rose-400 border-rose-500/30 bg-rose-950/40',
+            color: 'text-red-700 border-red-200 bg-red-50 dark:text-red-400 dark:border-red-500/30 dark:bg-red-950/40',
             timestamp: time,
           };
           break;
@@ -54,7 +53,7 @@ export function InterceptorConsole() {
             type: 'REFRESH_START',
             message: 'Interceptor queued in-flight 50-field payload. Requesting POST /api/auth/refresh...',
             badge: 'QUEUED',
-            color: 'text-amber-400 border-amber-500/30 bg-amber-950/40',
+            color: 'text-yellow-800 border-yellow-200 bg-yellow-50 dark:text-yellow-300 dark:border-yellow-500/30 dark:bg-yellow-950/40',
             timestamp: time,
           };
           break;
@@ -65,7 +64,7 @@ export function InterceptorConsole() {
             message: `POST /api/auth/refresh [200 OK] — New short-lived JWT issued: ${event.payload?.newAccessToken}`,
             status: 200,
             badge: 'JWT ROTATED',
-            color: 'text-indigo-400 border-indigo-500/30 bg-indigo-950/40',
+            color: 'text-purple-700 border-purple-200 bg-purple-50 dark:text-purple-300 dark:border-purple-500/30 dark:bg-purple-950/40',
             timestamp: time,
           };
           break;
@@ -76,7 +75,7 @@ export function InterceptorConsole() {
             message: 'Automatic Retry: POST /api/governance [200 Saved] — Zero Data Loss Empirically Verified!',
             status: 200,
             badge: 'ZERO DATA LOSS',
-            color: 'text-emerald-400 border-emerald-500/30 bg-emerald-950/40',
+            color: 'text-emerald-700 border-emerald-200 bg-emerald-50 dark:text-emerald-400 dark:border-emerald-500/30 dark:bg-emerald-950/40',
             timestamp: time,
           };
           break;
@@ -87,7 +86,7 @@ export function InterceptorConsole() {
             message: 'Silent refresh failed.',
             status: 500,
             badge: 'ERROR',
-            color: 'text-rose-400 border-rose-500/30 bg-rose-950/40',
+            color: 'text-red-700 border-red-200 bg-red-50 dark:text-red-400 dark:border-red-500/30 dark:bg-red-950/40',
             timestamp: time,
           };
       }
@@ -99,10 +98,10 @@ export function InterceptorConsole() {
   }, []);
 
   return (
-    <div className="rounded-xl border border-slate-200 dark:border-[#1E2230] bg-white dark:bg-[#11131C] p-4 text-xs font-sans shadow-sm dark:shadow-xl flex flex-col h-full">
-      <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-[#1E2230] mb-3">
+    <div className="rounded-2xl border border-purple-200/80 dark:border-purple-500/30 bg-white/95 dark:bg-[#111827]/95 p-4 text-xs font-sans shadow-[0_0_25px_rgba(168,85,247,0.15)] flex flex-col h-full backdrop-blur-sm transition-all">
+      <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800 mb-3">
         <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-indigo-600 dark:bg-cyan-400 animate-pulse"></span>
+          <span className="w-2.5 h-2.5 rounded-full bg-purple-600 dark:bg-purple-400 animate-pulse"></span>
           <span className="font-semibold text-slate-900 dark:text-white uppercase tracking-wider text-[11px]">
             Live Axios Interceptor Telemetry Console
           </span>
@@ -119,7 +118,7 @@ export function InterceptorConsole() {
         {logs.map((log) => (
           <div
             key={log.id}
-            className="p-2.5 rounded-lg bg-slate-50 dark:bg-[#090A0F] border border-slate-200 dark:border-[#1E2230] space-y-1 animate-fadeIn"
+            className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-1 animate-fadeIn"
           >
             <div className="flex items-center justify-between">
               <span className={`px-2 py-0.5 rounded text-[10px] font-bold border font-mono ${log.color}`}>
@@ -134,4 +133,3 @@ export function InterceptorConsole() {
     </div>
   );
 }
-

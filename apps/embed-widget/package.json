@@ -2,14 +2,11 @@
   "name": "embed-widget",
   "version": "1.0.0",
   "private": true,
-  "author": {
-    "name": "Karthik Kathari",
-    "email": "karthikmk.workspace@gmail.com",
-    "url": "https://github.com/Karthik-Kathari"
-  },
   "scripts": {
     "dev": "vite --port 5173",
-    "build": "vue-tsc --noEmit && vite build",
+    "build": "vue-tsc --noEmit && vite build && node -e \"process.env.BUILD_MODE='lib'; require('child_process').execSync('vite build', { stdio: 'inherit', env: { ...process.env, BUILD_MODE: 'lib' } });\" && node -e \"const fs = require('fs'); fs.copyFileSync('dist/widget.iife.js', '../web-dashboard/public/widget.js'); fs.copyFileSync('dist/widget.css', '../web-dashboard/public/widget.css'); console.log('Synced widget bundle to web-dashboard/public!');\"",
+    "build:lib": "vue-tsc --noEmit && node -e \"process.env.BUILD_MODE='lib'; require('child_process').execSync('vite build', { stdio: 'inherit', env: { ...process.env, BUILD_MODE: 'lib' } });\"",
+    "sync:dashboard": "node -e \"const fs = require('fs'); fs.copyFileSync('dist/widget.iife.js', '../web-dashboard/public/widget.js'); fs.copyFileSync('dist/widget.css', '../web-dashboard/public/widget.css'); console.log('Synced widget bundle to web-dashboard/public!');\"",
     "preview": "vite preview",
     "typecheck": "vue-tsc --noEmit",
     "lint": "vue-tsc --noEmit",

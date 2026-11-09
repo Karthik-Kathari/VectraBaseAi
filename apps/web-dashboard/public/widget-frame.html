@@ -11,9 +11,14 @@
       padding: 0;
       height: 100%;
       width: 100%;
-      background: #090A0F;
       overflow: hidden;
       font-family: system-ui, -apple-system, sans-serif;
+      background: #ffffff;
+      color: #0f172a;
+    }
+    html.dark, body.dark {
+      background: #090b10;
+      color: #f8fafc;
     }
     #vectrabase-widget {
       height: 100%;
@@ -32,6 +37,44 @@
   <script src="/widget.js"></script>
   <script>
     (function() {
+      var params = new URLSearchParams(window.location.search);
+      var queryTheme = params.get('theme');
+      var currentTheme = (queryTheme === 'light' || queryTheme === 'dark') ? queryTheme : 'dark';
+
+      function applyTheme(theme) {
+        currentTheme = theme;
+        if (theme === 'dark') {
+          document.documentElement.classList.add('dark');
+          document.body.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+          document.body.classList.remove('dark');
+        }
+        var target = document.getElementById('vectrabase-widget');
+        if (target) {
+          if (theme === 'dark') {
+            target.classList.add('dark');
+            target.classList.remove('light');
+          } else {
+            target.classList.remove('dark');
+            target.classList.add('light');
+          }
+          target.setAttribute('data-theme', theme);
+        }
+        if (window.VectraBaseWidget && typeof window.VectraBaseWidget.setTheme === 'function') {
+          window.VectraBaseWidget.setTheme(theme);
+        }
+      }
+
+      applyTheme(currentTheme);
+
+      window.addEventListener('message', function(event) {
+        if (event.data && (event.data.type === 'SET_THEME' || event.data.type === 'THEME_CHANGE')) {
+          var requestedTheme = event.data.theme === 'light' ? 'light' : 'dark';
+          applyTheme(requestedTheme);
+        }
+      });
+
       function start() {
         var w = window.VectraBaseWidget;
         if (!w) {
@@ -43,10 +86,12 @@
         if (initFn) {
           initFn({
             tenantId: '00000000-0000-0000-0000-000000000001',
-            apiUrl: 'https://vectrabase-api.onrender.com'
+            apiUrl: 'https://vectrabase-api.onrender.com',
+            theme: currentTheme
           });
         }
       }
+
       if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', start);
       } else {
@@ -56,4 +101,3 @@
   </script>
 </body>
 </html>
-

@@ -64,3 +64,5 @@ apps/rag-engine/venv/
 
 .vercel
 .env*
+
+.agents/

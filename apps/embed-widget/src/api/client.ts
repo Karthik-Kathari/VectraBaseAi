@@ -1,6 +1,5 @@
 // ============================================================================
 // embed-widget — Axios API Client
-// Author: Karthik Kathari
 // ============================================================================
 
 import axios, {
@@ -13,19 +12,34 @@ import axios, {
 // Resolve base URL — supports runtime injection for IIFE embed mode
 // ---------------------------------------------------------------------------
 function resolveBaseUrl(): string {
-  // 1. Runtime injection from VectraBaseWidget.init({ apiUrl })
-  const runtimeUrl = typeof window !== 'undefined'
-    ? (window as unknown as Record<string, unknown>).__VECTRABASE_API_URL__
-    : undefined;
-  if (typeof runtimeUrl === "string" && runtimeUrl.trim().length > 0) {
-    return runtimeUrl.replace(/\/+$/, '');
+  if (typeof window !== 'undefined') {
+    const isLocalhost =
+      window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1' ||
+      window.location.hostname === '0.0.0.0';
+
+    const runtimeUrl = (window as unknown as Record<string, unknown>).__VECTRABASE_API_URL__;
+    if (typeof runtimeUrl === 'string' && runtimeUrl.trim().length > 0) {
+      if (!isLocalhost && (runtimeUrl.includes('localhost') || runtimeUrl.includes('127.0.0.1'))) {
+        return 'https://vectrabase-api.onrender.com';
+      }
+      return runtimeUrl.replace(/\/+$/, '');
+    }
+
+    if (!isLocalhost) {
+      const buildUrl = import.meta.env.VITE_API_URL as string | undefined;
+      if (buildUrl && !buildUrl.includes('localhost') && !buildUrl.includes('127.0.0.1')) {
+        return buildUrl.replace(/\/+$/, '');
+      }
+      return 'https://vectrabase-api.onrender.com';
+    }
   }
-  // 2. Vite env variable (dev / preview)
-  if (import.meta.env.VITE_API_URL) {
-    return (import.meta.env.VITE_API_URL as string).replace(/\/+$/, '');
+
+  const buildUrl = import.meta.env.VITE_API_URL as string | undefined;
+  if (buildUrl && buildUrl.trim().length > 0) {
+    return buildUrl.replace(/\/+$/, '');
   }
-  // 3. Default production fallback
-  return "https://vectrabase-api.onrender.com";
+  return 'https://vectrabase-api.onrender.com';
 }
 
 // ---------------------------------------------------------------------------
@@ -42,10 +56,11 @@ const apiClient: AxiosInstance = axios.create({
 });
 
 // ---------------------------------------------------------------------------
-// Request interceptor — attach tenant ID if set
+// Request interceptor — attach dynamic baseURL and tenant ID if set
 // ---------------------------------------------------------------------------
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
+    config.baseURL = resolveBaseUrl();
     const tenantId = (window as unknown as Record<string, unknown>)
       .__VECTRABASE_TENANT_ID__;
     if (typeof tenantId === "string" && tenantId.length > 0) {

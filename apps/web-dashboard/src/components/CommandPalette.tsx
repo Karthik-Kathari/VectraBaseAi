@@ -2,7 +2,6 @@
 
 /**
  * VectraBase AI — Cmd+K / Ctrl+K Command Palette
- * Author: Karthik Kathari (github.com/Karthik-Kathari)
  */
 
 import React, { useState, useEffect } from 'react';
@@ -51,17 +50,20 @@ export function CommandPalette() {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-24 p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-      <div className="bg-white dark:bg-[#11131C] border border-slate-200 dark:border-[#2A2F45] rounded-xl max-w-lg w-full p-3 shadow-2xl text-slate-900 dark:text-slate-100 font-sans">
-        <div className="relative mb-2">
+    <div className="fixed inset-0 z-50 flex items-start justify-center pt-24 p-4 bg-black/60 backdrop-blur-md animate-fadeIn">
+      <div className="bg-white/95 dark:bg-[#111827]/95 border border-purple-200 dark:border-purple-500/40 rounded-2xl max-w-lg w-full p-4 shadow-[0_0_25px_rgba(168,85,247,0.15)] text-slate-900 dark:text-slate-100 font-sans backdrop-blur-sm transition-all">
+        <div className="relative mb-3 flex items-center gap-2">
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Type a command or jump to page..."
             autoFocus
-            className="w-full bg-slate-50 dark:bg-[#090A0F] border border-slate-200 dark:border-[#1E2230] rounded-lg px-3 py-2.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 outline-none focus:border-indigo-500 dark:focus:border-cyan-400 font-sans"
+            className="w-full bg-slate-50 dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 outline-none focus:border-purple-500 dark:focus:border-purple-400 focus:ring-2 focus:ring-purple-500/20 font-sans transition-colors"
           />
+          <span className="px-2 py-1 rounded bg-yellow-100 dark:bg-yellow-950/80 text-yellow-800 dark:text-yellow-300 border border-yellow-200 dark:border-yellow-500/40 font-mono text-[10px] font-bold shadow-xs whitespace-nowrap">
+            Cmd+K
+          </span>
         </div>
 
         <div className="space-y-1 max-h-72 overflow-y-auto">
@@ -69,13 +71,13 @@ export function CommandPalette() {
             <button
               key={cmd.label}
               onClick={() => execute(cmd.path)}
-              className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-[#1E2230] text-left transition-colors text-xs text-slate-700 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-cyan-400 group cursor-pointer"
+              className="w-full flex items-center justify-between p-2.5 rounded-xl hover:bg-purple-50 dark:hover:bg-purple-950/40 text-left transition-colors text-xs text-slate-700 dark:text-slate-200 hover:text-purple-700 dark:hover:text-purple-300 group cursor-pointer"
             >
               <div className="flex items-center gap-2.5">
                 <span className="text-sm">{cmd.icon}</span>
-                <span>{cmd.label}</span>
+                <span className="font-medium">{cmd.label}</span>
               </div>
-              <span className="text-[10px] text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-400 font-mono">
+              <span className="text-[10px] text-slate-400 dark:text-slate-500 group-hover:text-purple-600 dark:group-hover:text-purple-400 font-mono">
                 {cmd.group}
               </span>
             </button>
@@ -85,12 +87,13 @@ export function CommandPalette() {
           )}
         </div>
 
-        <div className="pt-2.5 mt-2 border-t border-slate-200 dark:border-[#1E2230] flex items-center justify-between text-[10px] text-slate-400 dark:text-slate-500">
-          <span>Navigate with arrow keys · Press ESC to close</span>
-          <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-[#1E2230] text-slate-600 dark:text-slate-400 font-mono">ESC</span>
+        <div className="pt-3 mt-2 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400">
+          <span>Navigate with arrow keys · Press ESC to dismiss</span>
+          <span className="px-1.5 py-0.5 rounded bg-yellow-100 dark:bg-yellow-950/80 text-yellow-800 dark:text-yellow-300 border border-yellow-200 dark:border-yellow-500/40 font-mono font-bold">
+            ESC
+          </span>
         </div>
       </div>
     </div>
   );
 }
-

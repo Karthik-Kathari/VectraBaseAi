@@ -1,10 +1,9 @@
 <!-- ============================================================================
   embed-widget — Root App Component
-  Author: Karthik Kathari
   ============================================================================ -->
 
 <template>
-  <div class="vectrabase-root h-full flex flex-col bg-obsidian-900">
+  <div class="vectrabase-root h-full flex flex-col bg-white dark:bg-obsidian-900 text-slate-900 dark:text-slate-100">
     <WidgetContainer />
   </div>
 </template>

@@ -1,6 +1,5 @@
 // ============================================================================
 // embed-widget — Vue Router
-// Author: Karthik Kathari
 // ============================================================================
 
 import { createRouter, createMemoryHistory } from "vue-router";

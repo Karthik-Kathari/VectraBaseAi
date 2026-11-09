@@ -2,7 +2,6 @@
 
 /**
  * VectraBase AI — 1M-Row Virtualized Keyset Data Grid
- * Author: Karthik Kathari (github.com/Karthik-Kathari)
  *
  * Utilizes @tanstack/react-virtual to ensure the active DOM count strictly
  * remains below 60 rows at all times while browsing 1,000,000 records at 60fps.
@@ -45,22 +44,25 @@ export function VirtualizedTable({
   });
 
   return (
-    <div className="rounded-xl border border-slate-200 dark:border-[#1E2230] bg-white dark:bg-[#11131C] overflow-hidden flex flex-col h-[560px] shadow-sm transition-colors">
-      {/* Table Header */}
-      <div className="grid grid-cols-12 px-4 py-3 bg-slate-50 dark:bg-[#090A0F] border-b border-slate-200 dark:border-[#1E2230] text-xs font-sans font-semibold text-slate-600 dark:text-slate-400 select-none">
-        <div className="col-span-4">Natural Language Query</div>
-        <div className="col-span-2 text-right">Latency (ms)</div>
-        <div className="col-span-2 text-center">Status / Cache</div>
-        <div className="col-span-1 text-center">Chunks</div>
-        <div className="col-span-1 text-right">Top Score</div>
-        <div className="col-span-2 text-right">Timestamp</div>
-      </div>
+    <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] overflow-hidden flex flex-col h-[560px] shadow-sm transition-colors">
+      {/* Horizontally scrollable container for 12-column keyset grid on mobile viewports */}
+      <div className="overflow-x-auto w-full flex-1 flex flex-col">
+        <div className="min-w-[700px] flex-1 flex flex-col">
+          {/* Table Header */}
+          <div className="grid grid-cols-12 px-4 py-3 bg-slate-50 dark:bg-[#111827] border-b border-slate-200 dark:border-slate-800 text-xs font-sans font-semibold text-slate-600 dark:text-slate-400 select-none">
+            <div className="col-span-4">Natural Language Query</div>
+            <div className="col-span-2 text-right">Latency (ms)</div>
+            <div className="col-span-2 text-center">Status / Cache</div>
+            <div className="col-span-1 text-center">Chunks</div>
+            <div className="col-span-1 text-right">Top Score</div>
+            <div className="col-span-2 text-right">Timestamp</div>
+          </div>
 
-      {/* Virtualized Scroll Area */}
-      <div
-        ref={parentRef}
-        className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-800"
-      >
+          {/* Virtualized Scroll Area */}
+          <div
+            ref={parentRef}
+            className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-800"
+          >
         <div
           style={{
             height: `${rowVirtualizer.getTotalSize()}px`,
@@ -84,7 +86,7 @@ export function VirtualizedTable({
                   height: `${virtualRow.size}px`,
                   transform: `translateY(${virtualRow.start}px)`,
                 }}
-                className="grid grid-cols-12 px-4 items-center border-b border-slate-100 dark:border-[#1E2230]/50 hover:bg-slate-50 dark:hover:bg-[#1E2230]/40 transition-colors text-xs font-mono select-text"
+                className="grid grid-cols-12 px-4 items-center border-b border-slate-100 dark:border-slate-800/80 bg-white dark:bg-[#111827] hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors text-xs font-mono select-text"
               >
                 {/* Query Text */}
                 <div className="col-span-4 truncate text-slate-900 dark:text-slate-200 font-sans pr-2" title={item.queryText}>
@@ -98,24 +100,24 @@ export function VirtualizedTable({
                       item.cacheHit
                         ? 'text-emerald-600 dark:text-emerald-400'
                         : item.totalLatencyMs < 200
-                        ? 'text-indigo-600 dark:text-cyan-400'
-                        : 'text-amber-600 dark:text-amber-400'
+                        ? 'text-purple-600 dark:text-purple-400'
+                        : 'text-yellow-600 dark:text-yellow-400'
                     }`}
                   >
                     {item.totalLatencyMs.toFixed(1)}ms
                   </span>
                 </div>
 
-                {/* Status Badges */}
+                {/* Status Badges: Yellow for RATE_LIMIT / 429, Red for BLOCKED / 500, Purple for CACHE_MISS, Emerald for CACHE_HIT */}
                 <div className="col-span-2 flex justify-center">
                   {item.cacheHit ? (
-                    <Badge variant="emerald">REDIS HIT (0.9ms)</Badge>
+                    <Badge variant="emerald">CACHE_HIT (0.9ms)</Badge>
                   ) : item.guardrailBlocked ? (
-                    <Badge variant="rose">GUARD BLOCKED</Badge>
+                    <Badge variant="red">BLOCKED (500)</Badge>
                   ) : item.rateLimited ? (
-                    <Badge variant="amber">RATE 429</Badge>
+                    <Badge variant="yellow">RATE_LIMIT (429)</Badge>
                   ) : (
-                    <Badge variant="cyan">VECTOR MISS</Badge>
+                    <Badge variant="purple">CACHE_MISS</Badge>
                   )}
                 </div>
 
@@ -144,9 +146,11 @@ export function VirtualizedTable({
           })}
         </div>
       </div>
+        </div>
+      </div>
 
       {/* Table Footer: Empirical Proof Stats */}
-      <div className="px-4 py-2.5 bg-slate-50 dark:bg-[#090A0F] border-t border-slate-200 dark:border-[#1E2230] flex items-center justify-between text-xs font-sans text-slate-500 dark:text-slate-400">
+      <div className="px-4 py-2.5 bg-slate-50 dark:bg-[#111827] border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs font-sans text-slate-500 dark:text-slate-400">
         <div className="flex items-center gap-3">
           <span>
             Indexed Total: <strong className="text-slate-900 dark:text-white tabular-nums font-mono">{totalEstimate.toLocaleString()}</strong> rows
@@ -154,7 +158,7 @@ export function VirtualizedTable({
           <span>·</span>
           <span>
             Rendered Virtual DOM Rows:{' '}
-            <strong className="text-indigo-600 dark:text-cyan-400 tabular-nums font-mono">
+            <strong className="text-purple-600 dark:text-purple-400 tabular-nums font-mono">
               {rowVirtualizer.getVirtualItems().length} / 60 cap
             </strong>
           </span>
@@ -167,4 +171,3 @@ export function VirtualizedTable({
     </div>
   );
 }
-

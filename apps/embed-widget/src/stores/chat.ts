@@ -1,6 +1,5 @@
 /**
  * VectraBase AI — Vue 3 Chat Store (Pinia)
- * Author: Karthik Kathari (github.com/Karthik-Kathari)
  */
 
 import { defineStore } from 'pinia';
@@ -10,13 +9,31 @@ import { useTelemetryStore } from './telemetry';
 
 function getEffectiveApiUrl(): string {
   if (typeof window !== 'undefined') {
+    const isLocalhost =
+      window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1' ||
+      window.location.hostname === '0.0.0.0';
+
     const runtimeUrl = (window as unknown as Record<string, unknown>).__VECTRABASE_API_URL__;
     if (typeof runtimeUrl === 'string' && runtimeUrl.trim().length > 0) {
+      if (!isLocalhost && (runtimeUrl.includes('localhost') || runtimeUrl.includes('127.0.0.1'))) {
+        return 'https://vectrabase-api.onrender.com';
+      }
       return runtimeUrl.replace(/\/+$/, '');
     }
+
+    if (!isLocalhost) {
+      const buildUrl = import.meta.env.VITE_API_URL as string | undefined;
+      if (buildUrl && !buildUrl.includes('localhost') && !buildUrl.includes('127.0.0.1')) {
+        return buildUrl.replace(/\/+$/, '');
+      }
+      return 'https://vectrabase-api.onrender.com';
+    }
   }
-  if (import.meta.env.VITE_API_URL) {
-    return (import.meta.env.VITE_API_URL as string).replace(/\/+$/, '');
+
+  const buildUrl = import.meta.env.VITE_API_URL as string | undefined;
+  if (buildUrl && buildUrl.trim().length > 0) {
+    return buildUrl.replace(/\/+$/, '');
   }
   return 'https://vectrabase-api.onrender.com';
 }
@@ -26,7 +43,7 @@ export const useChatStore = defineStore('chat', () => {
     {
       id: 'welcome-1',
       role: 'assistant',
-      content: '👋 Welcome to **VectraBase AI**! I am your grounded RAG assistant architected by Karthik Kathari. Ask anything about your indexed documents or try the one-click test scenarios below.',
+      content: '👋 Welcome to **VectraBase AI**! I am your grounded RAG assistant. Ask anything about your indexed documents or try the one-click test scenarios below.',
       createdAt: new Date().toISOString(),
     },
   ]);
@@ -83,6 +100,7 @@ export const useChatStore = defineStore('chat', () => {
       // Handle direct JSON (e.g. Redis Cache Hit or 429)
       const contentType = response.headers.get('content-type') || '';
 
+      // 1. Rate Limit Handling (HTTP 429)
       if (response.status === 429) {
         telemetryStore.recordRateLimit();
         const errData = await response.json().catch(() => ({}));
@@ -96,6 +114,30 @@ export const useChatStore = defineStore('chat', () => {
         return;
       }
 
+      // 2. HTTP Non-OK Errors (4xx, 5xx non-429)
+      if (!response.ok) {
+        let errorMsg = `Server error (${response.status}: ${response.statusText || 'Error'})`;
+        if (contentType.includes('application/json')) {
+          const errJson = await response.json().catch(() => ({}));
+          errorMsg = errJson.error?.message || errJson.message || errorMsg;
+        } else {
+          // HTML or plain text proxy error (e.g. Render/Cloudflare 502 Bad Gateway or 503 Service Unavailable)
+          if (response.status === 502) errorMsg = 'Bad Gateway (API Gateway waking up or unavailable). Please retry in 30 seconds.';
+          else if (response.status === 503) errorMsg = 'Service Unavailable. Please try again shortly.';
+          else if (response.status === 504) errorMsg = 'Gateway Timeout. Query took too long to complete.';
+        }
+
+        messages.value.push({
+          id: `bot-${Date.now()}`,
+          role: 'assistant',
+          content: `❌ Error: ${errorMsg}`,
+          createdAt: new Date().toISOString(),
+        });
+        isStreaming.value = false;
+        return;
+      }
+
+      // 3. HTTP 200 OK — JSON Response (Redis Semantic Cache Hit)
       if (contentType.includes('application/json')) {
         const json = await response.json();
         const latency = Math.round(performance.now() - queryStart);
@@ -121,17 +163,39 @@ export const useChatStore = defineStore('chat', () => {
             citations,
             createdAt: new Date().toISOString(),
           });
+        } else {
+          // 200 OK with success: false (edge case)
+          const errorMsg = json.error?.message || json.message || 'Failed to process query';
+          messages.value.push({
+            id: `bot-${Date.now()}`,
+            role: 'assistant',
+            content: `❌ Error: ${errorMsg}`,
+            createdAt: new Date().toISOString(),
+          });
         }
         isStreaming.value = false;
         return;
       }
 
-      // Handle SSE Stream
+      // 4. Validate SSE Content-Type before streaming
+      if (!contentType.includes('text/event-stream') && !contentType.includes('text/plain')) {
+        messages.value.push({
+          id: `bot-${Date.now()}`,
+          role: 'assistant',
+          content: `❌ Error: Unexpected response format from server (${contentType || 'unknown'}).`,
+          createdAt: new Date().toISOString(),
+        });
+        isStreaming.value = false;
+        return;
+      }
+
+      // 5. Handle SSE Stream (Cache Miss)
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
       let streamBuffer = '';
       let isCacheHit = false;
       let finalLatency = 0;
+      let streamError: string | null = null;
 
       if (reader) {
         while (true) {
@@ -162,6 +226,8 @@ export const useChatStore = defineStore('chat', () => {
                   } else if (event.type === 'done') {
                     finalLatency = event.totalLatencyMs || Math.round(performance.now() - queryStart);
                     isCacheHit = event.cacheHit ?? false;
+                  } else if (event.type === 'error') {
+                    streamError = event.error || 'Stream processing error';
                   }
                 } catch {
                   // Partial chunk
@@ -173,22 +239,29 @@ export const useChatStore = defineStore('chat', () => {
       }
 
       const totalLatency = finalLatency || Math.round(performance.now() - queryStart);
-      telemetryStore.recordQuery(totalLatency, isCacheHit);
+      if (!streamError && currentStreamContent.value) {
+        telemetryStore.recordQuery(totalLatency, isCacheHit);
+      }
+
+      const finalContent = streamError
+        ? `❌ Error: ${streamError}`
+        : currentStreamContent.value || 'No response generated.';
 
       messages.value.push({
         id: `bot-${Date.now()}`,
         role: 'assistant',
-        content: currentStreamContent.value || 'Response complete.',
+        content: finalContent,
         latencyMs: totalLatency,
         cacheHit: isCacheHit,
         citations: [...currentCitations.value],
         createdAt: new Date().toISOString(),
       });
-    } catch (err: any) {
+    } catch (error) {
+      const err = error as any;
       messages.value.push({
         id: `bot-${Date.now()}`,
         role: 'assistant',
-        content: `❌ **Connection Error:** Could not connect to API Gateway (${err.message}).`,
+        content: `❌ **Connection Error:** Could not connect to API Gateway (${err?.message || 'Network error'}).`,
         createdAt: new Date().toISOString(),
       });
     } finally {

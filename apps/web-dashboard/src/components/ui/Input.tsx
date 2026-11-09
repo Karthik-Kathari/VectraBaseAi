@@ -22,18 +22,17 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           id={inputId}
           ref={ref}
           className={cn(
-            'w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 focus:border-indigo-500 dark:focus:border-cyan-400 focus:ring-1 focus:ring-indigo-500 dark:focus:ring-cyan-400 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 font-sans outline-none transition-colors disabled:opacity-50',
-            error && 'border-rose-500 focus:border-rose-500 focus:ring-rose-500',
+            'w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 focus:border-purple-500 dark:focus:border-purple-400 focus:ring-2 focus:ring-purple-500/25 dark:focus:ring-purple-400/25 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 font-sans outline-none transition-all duration-150 disabled:opacity-50',
+            error && 'border-red-500 focus:border-red-500 focus:ring-red-500 text-red-600 dark:text-red-400',
             className
           )}
           {...props}
         />
         {helperText && !error && <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400 font-sans">{helperText}</p>}
-        {error && <p className="mt-1 text-[11px] text-rose-600 dark:text-rose-400 font-sans">{error}</p>}
+        {error && <p className="mt-1 text-[11px] text-red-600 dark:text-red-400 font-sans">{error}</p>}
       </div>
     );
   }
 );
 
 Input.displayName = 'Input';
-

@@ -1,6 +1,5 @@
 /**
  * VectraBase AI — 200ms IndexedDB Autosave Draft Hook
- * Author: Karthik Kathari (github.com/Karthik-Kathari)
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';

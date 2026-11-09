@@ -1,7 +1,6 @@
 <script setup lang="ts">
 /**
  * VectraBase AI — Clickable Citation Pill
- * Author: Karthik Kathari (github.com/Karthik-Kathari)
  */
 
 import type { Citation } from '../types/widget';
@@ -24,7 +23,7 @@ const emit = defineEmits<{
     :class="[
       isActive
         ? 'bg-cyan-500/20 text-cyan-300 border-cyan-400 shadow-sm shadow-cyan-500/30'
-        : 'bg-[#1E2230] text-slate-300 border-[#2A2F45] hover:border-cyan-500/50 hover:text-cyan-300 hover:bg-[#232838]'
+        : 'bg-[#1e293b] text-slate-300 border-[#334155] hover:border-cyan-500/50 hover:text-cyan-300 hover:bg-slate-800'
     ]"
   >
     <svg class="w-3 h-3 text-cyan-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">

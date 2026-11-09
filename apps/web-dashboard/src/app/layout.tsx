@@ -1,15 +1,28 @@
 import type { Metadata } from 'next';
+import { Inter, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { Providers } from './providers';
 import { CommandPalette } from '@/components/CommandPalette';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap',
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  variable: '--font-mono',
+  display: 'swap',
+});
+
 export const metadata: Metadata = {
-  title: 'VectraBase AI — Build AI Assistants from Your Data in Seconds | Karthik Kathari',
+  title: 'VectraBase AI — Build AI Assistants from Your Data in Seconds',
   description:
     'Turn your PDFs, docs, and websites into grounded AI assistants in seconds. Enterprise multi-tenant RAG engine with sub-2ms caching, pgvector search, and a 1-line embeddable widget.',
-  authors: [{ name: 'Karthik Kathari', url: 'https://github.com/Karthik-Kathari' }],
+  authors: [{ name: 'VectraBase AI' }],
   icons: {
     icon: '/favicon.ico',
   },
@@ -21,8 +34,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className="bg-slate-50 text-slate-900 dark:bg-[#0B0F19] dark:text-slate-100 min-h-screen flex flex-col antialiased font-sans selection:bg-indigo-500/20 selection:text-indigo-600 dark:selection:bg-cyan-500/25 dark:selection:text-cyan-300 transition-colors duration-200">
+    <html lang="en" suppressHydrationWarning className={`${inter.variable} ${jetbrainsMono.variable} font-sans`}>
+      <body className="text-slate-900 dark:text-slate-100 min-h-screen flex flex-col antialiased font-sans selection:bg-purple-500/20 selection:text-purple-600 dark:selection:bg-purple-500/25 dark:selection:text-purple-300 transition-colors duration-200">
+        {/* ThemeProvider configured with attribute="class" in Providers */}
         <Providers>
           <Navbar />
           <main className="flex-1 w-full">{children}</main>

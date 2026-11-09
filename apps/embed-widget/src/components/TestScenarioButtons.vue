@@ -1,7 +1,6 @@
 <script setup lang="ts">
 /**
  * VectraBase AI — 4 One-Click Recruiter Test Preset Buttons
- * Author: Karthik Kathari (github.com/Karthik-Kathari)
  */
 
 import { WIDGET_TEST_SCENARIOS, type WidgetTestScenario } from '../types/widget';
@@ -31,7 +30,7 @@ function getColorClasses(color: string) {
 </script>
 
 <template>
-  <div class="p-3 border-t border-[#1E2230] bg-[#090A0F]/80">
+  <div class="p-3 border-t border-[#1e293b] bg-[#090b10]/80">
     <div class="flex items-center justify-between mb-2">
       <span class="text-[11px] font-mono text-slate-400 uppercase tracking-wider font-semibold">
         Recruiter Interactive Test Presets:

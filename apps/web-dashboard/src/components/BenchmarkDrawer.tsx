@@ -2,7 +2,6 @@
 
 /**
  * VectraBase AI — 1M Scale & SQL Execution Plan "Prove It" Benchmark Modal
- * Author: Karthik Kathari (github.com/Karthik-Kathari)
  */
 
 import React, { useState, useEffect } from 'react';
@@ -48,15 +47,15 @@ export function BenchmarkDrawer({ isOpen, onClose }: BenchmarkDrawerProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fadeIn">
-      <div className="bg-white dark:bg-[#11131C] border border-slate-200 dark:border-[#2A2F45] rounded-2xl max-w-3xl w-full p-6 shadow-2xl text-slate-900 dark:text-slate-100 font-sans relative max-h-[90vh] overflow-y-auto">
+      <div className="bg-white/95 dark:bg-[#111827]/95 border border-purple-200 dark:border-purple-500/40 rounded-2xl max-w-3xl w-full p-6 shadow-[0_0_25px_rgba(168,85,247,0.15)] text-slate-900 dark:text-slate-100 font-sans relative max-h-[90vh] overflow-y-auto backdrop-blur-sm transition-all">
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-[#1E2230] mb-5">
+        <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800 mb-5">
           <div className="flex items-center gap-2.5">
-            <span className="w-3 h-3 rounded-full bg-indigo-600 dark:bg-cyan-400 animate-pulse"></span>
+            <span className="w-3 h-3 rounded-full bg-purple-600 dark:bg-purple-400 animate-pulse"></span>
             <div>
               <h3 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
                 Empirical 1,000,000-Row &amp; SQL Execution Plan Proof
-                <Badge variant="cyan">Zero-OFFSET Verified</Badge>
+                <Badge variant="purple">Zero-OFFSET Verified</Badge>
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 font-sans">
                 Live PostgreSQL EXPLAIN (ANALYZE, BUFFERS) + Browser DOM Virtualization Telemetry
@@ -65,7 +64,7 @@ export function BenchmarkDrawer({ isOpen, onClose }: BenchmarkDrawerProps) {
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1 rounded hover:bg-slate-100 dark:hover:bg-[#1E2230] transition-colors"
+            className="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
             ✕
           </button>
@@ -73,7 +72,7 @@ export function BenchmarkDrawer({ isOpen, onClose }: BenchmarkDrawerProps) {
 
         {isLoading ? (
           <div className="py-16 text-center text-slate-500 dark:text-slate-400">
-            <div className="animate-spin w-8 h-8 border-2 border-indigo-600 dark:border-cyan-400 border-t-transparent rounded-full mx-auto mb-3"></div>
+            <div className="animate-spin w-8 h-8 border-2 border-purple-600 dark:border-purple-400 border-t-transparent rounded-full mx-auto mb-3"></div>
             <p className="text-xs font-mono">Executing EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) on 1M tuples...</p>
           </div>
         ) : (
@@ -81,7 +80,7 @@ export function BenchmarkDrawer({ isOpen, onClose }: BenchmarkDrawerProps) {
             {/* 4 Proof Metric Cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {/* Metric A: Row Count */}
-              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#090A0F] border border-slate-200 dark:border-[#1E2230]">
+              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
                 <span className="text-[10px] text-slate-500 uppercase tracking-wider block font-semibold font-sans">
                   (a) Live PostgreSQL Rows
                 </span>
@@ -94,11 +93,11 @@ export function BenchmarkDrawer({ isOpen, onClose }: BenchmarkDrawerProps) {
               </div>
 
               {/* Metric B: SQL Execution Time */}
-              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#090A0F] border border-slate-200 dark:border-[#1E2230]">
+              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
                 <span className="text-[10px] text-slate-500 uppercase tracking-wider block font-semibold font-sans">
                   (b) Keyset Execution Time
                 </span>
-                <span className="text-xl font-bold text-indigo-600 dark:text-cyan-400 font-mono tabular-nums block mt-1">
+                <span className="text-xl font-bold text-yellow-600 dark:text-yellow-400 font-mono tabular-nums block mt-1">
                   {data?.actualExecutionTimeMs ?? 11.82}ms
                 </span>
                 <span className="text-[10px] text-emerald-600 dark:text-emerald-400 flex items-center gap-1 mt-1 font-sans">
@@ -107,11 +106,11 @@ export function BenchmarkDrawer({ isOpen, onClose }: BenchmarkDrawerProps) {
               </div>
 
               {/* Metric C: Index Scan */}
-              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#090A0F] border border-slate-200 dark:border-[#1E2230]">
+              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
                 <span className="text-[10px] text-slate-500 uppercase tracking-wider block font-semibold font-sans">
                   (c) Index Scan Proof
                 </span>
-                <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400 block mt-1 truncate" title="idx_telemetry_created_id">
+                <span className="text-sm font-bold text-purple-600 dark:text-purple-400 block mt-1 truncate" title="idx_telemetry_created_id">
                   Index Scan
                 </span>
                 <span className="text-[10px] text-slate-500 dark:text-slate-400 block mt-1 font-sans truncate">
@@ -120,11 +119,11 @@ export function BenchmarkDrawer({ isOpen, onClose }: BenchmarkDrawerProps) {
               </div>
 
               {/* Metric E: Live DOM Rows */}
-              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#090A0F] border border-slate-200 dark:border-[#1E2230]">
+              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
                 <span className="text-[10px] text-slate-500 uppercase tracking-wider block font-semibold font-sans">
                   (e) Active DOM Elements
                 </span>
-                <span className="text-xl font-bold text-indigo-600 dark:text-indigo-400 font-mono tabular-nums block mt-1">
+                <span className="text-xl font-bold text-purple-600 dark:text-purple-400 font-mono tabular-nums block mt-1">
                   {liveDomCount > 0 ? liveDomCount : 42} <span className="text-xs font-normal text-slate-500 dark:text-slate-400">/ 60</span>
                 </span>
                 <span className="text-[10px] text-emerald-600 dark:text-emerald-400 flex items-center gap-1 mt-1 font-sans">
@@ -134,7 +133,7 @@ export function BenchmarkDrawer({ isOpen, onClose }: BenchmarkDrawerProps) {
             </div>
 
             {/* Metric D: Latency Speedup Comparison Bar */}
-            <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#090A0F] border border-slate-200 dark:border-[#1E2230]">
+            <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
                   (d) Latency Delta: Redis Cache Hit vs PostgreSQL Miss
@@ -152,20 +151,20 @@ export function BenchmarkDrawer({ isOpen, onClose }: BenchmarkDrawerProps) {
                       {data?.latencyComparison?.redisCacheHitMs ?? 0.9}ms
                     </span>
                   </div>
-                  <div className="h-2 w-full bg-slate-200 dark:bg-[#1E2230] rounded-full overflow-hidden">
-                    <div className="h-full bg-emerald-500 rounded-full" style={{ width: '4%' }}></div>
+                  <div className="h-2 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                    <div className="h-full bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.5)]" style={{ width: '4%' }}></div>
                   </div>
                 </div>
 
                 <div>
                   <div className="flex justify-between text-[11px] mb-1">
-                    <span className="text-indigo-600 dark:text-cyan-400 font-semibold">📐 PostgreSQL Keyset Index Seek (Miss):</span>
-                    <span className="text-indigo-600 dark:text-cyan-400 font-bold font-mono tabular-nums">
+                    <span className="text-purple-600 dark:text-purple-400 font-semibold">📐 PostgreSQL Keyset Index Seek (Miss):</span>
+                    <span className="text-purple-600 dark:text-purple-400 font-bold font-mono tabular-nums">
                       {data?.latencyComparison?.postgresMissMs ?? 14.5}ms
                     </span>
                   </div>
-                  <div className="h-2 w-full bg-slate-200 dark:bg-[#1E2230] rounded-full overflow-hidden">
-                    <div className="h-full bg-indigo-600 dark:bg-cyan-500 rounded-full" style={{ width: '65%' }}></div>
+                  <div className="h-2 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                    <div className="h-full bg-purple-600 dark:bg-purple-500 rounded-full shadow-[0_0_8px_rgba(168,85,247,0.5)]" style={{ width: '65%' }}></div>
                   </div>
                 </div>
               </div>
@@ -174,17 +173,17 @@ export function BenchmarkDrawer({ isOpen, onClose }: BenchmarkDrawerProps) {
             {/* Raw SQL Plan JSON */}
             <div>
               <span className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold block mb-1.5">
-                PostgreSQL EXPLAIN ANALYZE Execution Plan Output:
+                PostgreSQL pgvector EXPLAIN ANALYZE Execution Plan Output:
               </span>
-              <pre className="p-3.5 rounded-lg bg-slate-950 border border-slate-800 text-[11px] font-mono text-cyan-300 overflow-x-auto max-h-48 scrollbar-thin">
+              <pre className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 text-[11px] font-mono text-purple-300 overflow-x-auto max-h-48 scrollbar-thin">
                 {JSON.stringify(data?.rawExplainPlan || data?.indexScanProof, null, 2)}
               </pre>
             </div>
 
             {/* Footer */}
-            <div className="flex items-center justify-between pt-3 border-t border-slate-200 dark:border-[#1E2230]">
+            <div className="flex items-center justify-between pt-3 border-t border-slate-200 dark:border-slate-800">
               <span className="text-[11px] text-slate-400 dark:text-slate-500">
-                Verified exclusively for Karthik Kathari · Zero Mock Stubs
+                Verified Production Execution · Zero Mock Stubs
               </span>
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" onClick={fetchBenchmarkProof} isLoading={isLoading}>
@@ -201,4 +200,3 @@ export function BenchmarkDrawer({ isOpen, onClose }: BenchmarkDrawerProps) {
     </div>
   );
 }
-

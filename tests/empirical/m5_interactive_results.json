@@ -1,0 +1,70 @@
+{
+  "total": 33,
+  "passed": 33,
+  "failed": 0,
+  "suites": {
+    "1. RAGPipelineVisualizer Interactive Flow & Animation Oracle": {
+      "total": 5,
+      "passed": 5,
+      "failed": 0
+    },
+    "2. CommandPalette Keyboard Shortcuts & Search Filtering": {
+      "total": 5,
+      "passed": 5,
+      "failed": 0
+    },
+    "3. BenchmarkDrawer Modal, Metric Graphs & Accessibility": {
+      "total": 4,
+      "passed": 4,
+      "failed": 0
+    },
+    "4. InterceptorConsole Telemetry Architecture & Event Flow": {
+      "total": 4,
+      "passed": 4,
+      "failed": 0
+    },
+    "5. VirtualizedTable DOM Ceiling & Keyset Scrolling Performance": {
+      "total": 3,
+      "passed": 3,
+      "failed": 0
+    },
+    "6. Governance Wizard 50-Field Navigation & Field 48 Resilience": {
+      "total": 4,
+      "passed": 4,
+      "failed": 0
+    },
+    "7. Widget Playground Dynamic Theme & Query Runner": {
+      "total": 4,
+      "passed": 4,
+      "failed": 0
+    },
+    "8. Typography & WCAG AA Color Contrast Oracle": {
+      "total": 4,
+      "passed": 4,
+      "failed": 0
+    }
+  },
+  "failures": [],
+  "discrepancies": [
+    {
+      "component": "CommandPalette",
+      "type": "UX_INCONSISTENCY",
+      "description": "CommandPalette UI footer advertises \"Navigate with arrow keys\", but no ArrowDown/ArrowUp listener is wired in handleKeyDown."
+    },
+    {
+      "component": "BenchmarkDrawer",
+      "type": "ACCESSIBILITY_DEFECT",
+      "description": "BenchmarkDrawer modal cannot be dismissed via the Escape key (missing window keydown Escape listener; only dismissible via close buttons)."
+    },
+    {
+      "component": "InterceptorConsole",
+      "type": "SCOPE_CLARIFICATION",
+      "description": "Component serves as an Axios interceptor telemetry console displaying live 401 refresh/replay events; header overrides and simulated rule creation are not present in the UI."
+    },
+    {
+      "component": "VirtualizedTable / RAGPipelineVisualizer",
+      "type": "WCAG_CONTRAST_DEFECT",
+      "description": "Light mode latency text uses text-yellow-600 (contrast ratio 2.94:1) and text-emerald-600 (contrast ratio 3.77:1) against white backgrounds, failing the WCAG AA 4.5:1 minimum contrast threshold for normal text. (Remediation: use text-yellow-800 and text-emerald-700 in light mode)."
+    }
+  ]
+}

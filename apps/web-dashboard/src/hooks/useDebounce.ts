@@ -1,6 +1,5 @@
 /**
  * VectraBase AI — 300ms Debounce Hook
- * Author: Karthik Kathari (github.com/Karthik-Kathari)
  */
 
 import { useState, useEffect } from 'react';

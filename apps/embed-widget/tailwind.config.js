@@ -1,19 +1,19 @@
 // ============================================================================
 // embed-widget — Tailwind CSS Configuration
-// Author: Karthik Kathari
 // ============================================================================
 
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: ["./index.html", "./src/**/*.{vue,js,ts,jsx,tsx}"],
   theme: {
     extend: {
       colors: {
         obsidian: {
-          900: "#090A0F",
-          800: "#11131C",
-          700: "#1E2230",
-          600: "#2A2F45",
+          900: "#090b10",
+          800: "#111827",
+          700: "#1e293b",
+          600: "#334155",
         },
         indigo: {
           DEFAULT: "#6366F1",

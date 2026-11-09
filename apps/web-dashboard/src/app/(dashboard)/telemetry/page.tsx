@@ -2,10 +2,9 @@
 
 /**
  * VectraBase AI — 1,000,000-Record Vector & Telemetry Explorer
- * Author: Karthik Kathari (github.com/Karthik-Kathari)
  */
 
-import React, { useState, useEffect, useMemo, Suspense } from 'react';
+import React, { useState, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { VirtualizedTable, type TelemetryRow } from '@/components/VirtualizedTable';
 import { BenchmarkDrawer } from '@/components/BenchmarkDrawer';
@@ -32,7 +31,7 @@ function TelemetryExplorerContent() {
       'What is the pgvector cosine distance calculation formula?',
       'How does the 50-field AI governance wizard persist drafts in IndexedDB?',
       'Explain the hybrid search weighting between vectors and tsvector',
-      'Who architected VectraBase AI? (Answer: Karthik Kathari)',
+      'What is the core architecture of VectraBase AI enterprise RAG?',
       'What is the maximum token overlap for semantic chunking?',
       'How does DOM virtualization maintain fewer than 60 table rows?',
     ];
@@ -79,7 +78,7 @@ function TelemetryExplorerContent() {
         <div>
           <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
             1,000,000-Record Telemetry Explorer
-            <span className="px-2 py-0.5 rounded-full text-[11px] bg-indigo-50 dark:bg-cyan-950 text-indigo-700 dark:text-cyan-400 border border-indigo-200 dark:border-cyan-800 font-mono">
+            <span className="px-2 py-0.5 rounded-full text-[11px] bg-purple-50 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 font-mono">
               Composite B-Tree Keyset
             </span>
           </h1>
@@ -92,7 +91,7 @@ function TelemetryExplorerContent() {
         <Button
           variant="primary"
           onClick={() => setIsExplainOpen(true)}
-          className="shadow-sm"
+          className="shadow-sm bg-purple-600 hover:bg-purple-700"
         >
           Verify 1M Scale &amp; SQL Execution Plan →
         </Button>
@@ -109,13 +108,13 @@ function TelemetryExplorerContent() {
         </div>
 
         {/* Status Filters */}
-        <div className="flex items-center gap-1.5 w-full sm:w-auto text-xs font-sans">
+        <div className="flex flex-wrap items-center gap-1.5 w-full sm:w-auto text-xs font-sans">
           <button
             onClick={() => setStatusFilter('ALL')}
             className={`px-3 py-2 rounded-lg border transition-colors cursor-pointer ${
               statusFilter === 'ALL'
-                ? 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-cyan-500/20 dark:text-cyan-300 dark:border-cyan-400 font-semibold shadow-xs'
-                : 'bg-white dark:bg-[#11131C] text-slate-600 dark:text-slate-400 border-slate-200 dark:border-[#1E2230] hover:text-slate-900 dark:hover:text-white'
+                ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/60 dark:text-purple-300 dark:border-purple-500/50 font-semibold shadow-xs'
+                : 'bg-white dark:bg-[#111827] text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             All Logs
@@ -124,8 +123,8 @@ function TelemetryExplorerContent() {
             onClick={() => setStatusFilter('CACHE_HIT')}
             className={`px-3 py-2 rounded-lg border transition-colors cursor-pointer ${
               statusFilter === 'CACHE_HIT'
-                ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-400 font-semibold shadow-xs'
-                : 'bg-white dark:bg-[#11131C] text-slate-600 dark:text-slate-400 border-slate-200 dark:border-[#1E2230] hover:text-slate-900 dark:hover:text-white'
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-500/50 font-semibold shadow-xs'
+                : 'bg-white dark:bg-[#111827] text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             ⚡ Cache Hits (&lt;2ms)
@@ -134,20 +133,32 @@ function TelemetryExplorerContent() {
             onClick={() => setStatusFilter('VECTOR_MISS')}
             className={`px-3 py-2 rounded-lg border transition-colors cursor-pointer ${
               statusFilter === 'VECTOR_MISS'
-                ? 'bg-sky-50 text-sky-700 border-sky-200 dark:bg-cyan-500/20 dark:text-cyan-300 dark:border-cyan-400 font-semibold shadow-xs'
-                : 'bg-white dark:bg-[#11131C] text-slate-600 dark:text-slate-400 border-slate-200 dark:border-[#1E2230] hover:text-slate-900 dark:hover:text-white'
+                ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/60 dark:text-purple-300 dark:border-purple-500/50 font-semibold shadow-xs'
+                : 'bg-white dark:bg-[#111827] text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             📐 Vector Searches
+          </button>
+          <button
+            onClick={() => setStatusFilter('GUARDRAIL')}
+            className={`px-3 py-2 rounded-lg border transition-colors cursor-pointer ${
+              statusFilter === 'GUARDRAIL'
+                ? 'bg-red-50 text-red-700 border-red-200 dark:bg-red-950/60 dark:text-red-300 dark:border-red-500/50 font-semibold shadow-xs'
+                : 'bg-white dark:bg-[#111827] text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:text-slate-900 dark:hover:text-white'
+            }`}
+          >
+            🛡️ Guardrail Blocked
           </button>
         </div>
       </div>
 
       {/* Virtualized Keyset Data Grid (<60 DOM Rows) */}
-      <VirtualizedTable
-        rows={filteredRows}
-        totalEstimate={1000000}
-      />
+      <div className="w-full overflow-x-auto">
+        <VirtualizedTable
+          rows={filteredRows}
+          totalEstimate={1000000}
+        />
+      </div>
 
       {/* Benchmark Drawer Modal */}
       <BenchmarkDrawer
@@ -165,4 +176,3 @@ export default function TelemetryExplorerPage() {
     </Suspense>
   );
 }
-

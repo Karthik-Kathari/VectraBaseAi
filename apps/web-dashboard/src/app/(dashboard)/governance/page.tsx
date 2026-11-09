@@ -2,7 +2,6 @@
 
 /**
  * VectraBase AI — 50-Field Enterprise AI Governance Wizard & Field-48 Resilience Simulator
- * Author: Karthik Kathari (github.com/Karthik-Kathari)
  */
 
 import React, { useState, useEffect } from 'react';
@@ -30,13 +29,13 @@ export default function GovernanceWizardPage() {
       workspaceName: 'VectraBase Enterprise Production',
       workspaceSlug: 'vectrabase-enterprise',
       displayName: 'VectraBase AI Assistant',
-      adminEmail: 'karthikmk.workspace@gmail.com',
+      adminEmail: 'admin@vectrabase.ai',
       timezone: 'UTC',
       defaultLanguage: 'en-US',
       logoUrl: 'https://vectrabase-ai.vercel.app/logo.png',
-      description: 'Production B2B RAG Assistant architected by Karthik Kathari',
+      description: 'Production B2B RAG Assistant with Lakebase Postgres',
       contactWebhookUrl: 'https://vectrabase-api.onrender.com/webhook',
-      billingEmail: 'karthikmk.workspace@gmail.com',
+      billingEmail: 'billing@vectrabase.ai',
 
       // Step 2: Vector & Chunking Hyperparameters (10 fields)
       chunkSize: 512,
@@ -63,7 +62,7 @@ export default function GovernanceWizardPage() {
       auditLogsEnabled: true,
 
       // Step 4: Widget Branding & CORS Security (10 fields)
-      widgetPrimaryColor: '#06B6D4',
+      widgetPrimaryColor: '#A855F7',
       widgetFontFamily: 'Inter',
       widgetWelcomeMessage: '👋 Hi! How can I help you with your documentation today?',
       widgetPlaceholder: 'Ask anything about your indexed documents...',
@@ -154,6 +153,17 @@ export default function GovernanceWizardPage() {
     }
   }
 
+  function handleExportJson() {
+    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(formValues, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute('href', dataStr);
+    downloadAnchor.setAttribute('download', 'vectrabase-governance-policy.json');
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+    toast.success('Governance policy exported as JSON!');
+  }
+
   const steps = [
     { num: 1, name: 'Workspace Identity (10)' },
     { num: 2, name: 'Vector & Chunks (10)' },
@@ -164,12 +174,12 @@ export default function GovernanceWizardPage() {
 
   return (
     <div className="space-y-6">
-      {/* Interactive Recruiter Test Banner */}
-      <div className="p-4 rounded-xl bg-amber-50 dark:bg-gradient-to-r dark:from-amber-950/40 dark:via-[#161926] dark:to-indigo-950/40 border border-amber-200 dark:border-amber-500/30 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
+      {/* Interactive Recruiter Test Banner: Yellow highlight warning */}
+      <div className="p-4 sm:p-5 rounded-2xl bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-500/40 shadow-sm dark:shadow-[0_0_20px_rgba(245,158,11,0.12)] flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
-            <span className="text-xs font-semibold text-amber-800 dark:text-amber-400 uppercase tracking-wider">
+            <span className="w-2.5 h-2.5 rounded-full bg-yellow-500 animate-pulse"></span>
+            <span className="text-xs font-semibold text-yellow-800 dark:text-yellow-400 uppercase tracking-wider">
               Recruiter Interactive Resilience Test
             </span>
           </div>
@@ -182,26 +192,26 @@ export default function GovernanceWizardPage() {
         </div>
 
         <Button
-          variant="secondary"
+          variant="outline"
           size="sm"
           onClick={simulateExpiryAtField48}
-          className="whitespace-nowrap shadow-sm"
+          className="whitespace-nowrap shadow-sm border-yellow-300 dark:border-yellow-500/50 hover:bg-yellow-100 dark:hover:bg-yellow-950/50 text-yellow-800 dark:text-yellow-300"
         >
           ⚡ Simulate Expiry at Field 48 →
         </Button>
       </div>
 
-      {/* Stepper Navigation */}
+      {/* Stepper Navigation: Gray/White Step Container */}
       <div className="flex items-center justify-between gap-2 overflow-x-auto pb-2 font-sans text-xs">
         {steps.map((s) => (
           <button
             key={s.num}
             type="button"
             onClick={() => setCurrentStep(s.num)}
-            className={`flex-1 py-2 px-3 rounded-lg border text-left transition-colors whitespace-nowrap cursor-pointer ${
+            className={`flex-1 py-2.5 px-3.5 rounded-xl border text-left transition-colors whitespace-nowrap cursor-pointer ${
               currentStep === s.num
-                ? 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-cyan-500/10 dark:text-cyan-300 dark:border-cyan-400 font-semibold shadow-xs'
-                : 'bg-white dark:bg-[#11131C] text-slate-600 dark:text-slate-400 border-slate-200 dark:border-[#1E2230] hover:text-slate-900 dark:hover:text-white'
+                ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/60 dark:text-purple-300 dark:border-purple-500/50 font-semibold shadow-xs'
+                : 'bg-white dark:bg-[#111827] text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             <span className="block text-[10px] text-slate-400 dark:text-slate-500 font-mono">Step {s.num} of 5</span>
@@ -210,25 +220,38 @@ export default function GovernanceWizardPage() {
         ))}
       </div>
 
-      {/* Autosave Status Badge */}
+      {/* Autosave Status Badge with Glowing Green / Purple Indicator Dot */}
       <div className="flex items-center justify-between text-xs font-sans text-slate-500 dark:text-slate-400 px-1">
         <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span className="relative flex h-2.5 w-2.5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.7)]"></span>
+          </span>
           <span>
             {lastSaved ? `Draft auto-saved to IndexedDB ${lastSaved.toLocaleTimeString()}` : 'Auto-saving enabled'}
           </span>
         </div>
-        <span className="text-[11px] text-slate-400 dark:text-slate-500 font-mono">200ms Debounce · Dual-Layer Persistence</span>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={handleExportJson}
+            className="text-purple-600 dark:text-purple-400 hover:underline font-semibold flex items-center gap-1 cursor-pointer"
+          >
+            📥 Export JSON
+          </button>
+          <span className="text-[11px] text-slate-400 dark:text-slate-500 font-mono">200ms Debounce · Dual-Layer Persistence</span>
+        </div>
       </div>
 
       {/* Form Grid & Telemetry Console */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Form Fields Card (2 Columns) */}
         <Card className="lg:col-span-2">
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>
               Step {currentStep}: {steps[currentStep - 1]?.name}
             </CardTitle>
+            <Badge variant="purple">Step {currentStep} / 5</Badge>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -307,14 +330,14 @@ export default function GovernanceWizardPage() {
                   <Input label="46. Max Concurrent Requests" type="number" {...register('maxConcurrentRequests')} />
                   <Input label="47. Burst Multiplier" type="number" step="0.1" {...register('burstMultiplier')} />
 
-                  {/* FIELD 48 — RECRUITER TARGET */}
-                  <div className="p-2 rounded-lg border border-amber-300 dark:border-amber-500/50 bg-amber-50/70 dark:bg-amber-950/20">
+                  {/* FIELD 48 — RECRUITER TARGET (YELLOW HIGHLIGHT WARNING) */}
+                  <div className="p-2.5 rounded-xl border border-yellow-300 dark:border-yellow-500/50 bg-yellow-50/70 dark:bg-yellow-950/20 shadow-xs">
                     <Input
                       id="field-webhookRetryAttempts"
                       label="48. Webhook Retry Count (Resilience Test Target)"
                       type="number"
                       {...register('webhookRetryAttempts')}
-                      className={isTokenExpiredSimulated ? 'border-amber-500 bg-amber-100/50 dark:bg-amber-950/40 text-amber-900 dark:text-amber-300 font-bold' : ''}
+                      className={isTokenExpiredSimulated ? 'border-yellow-500 bg-yellow-100/50 dark:bg-yellow-950/40 text-yellow-900 dark:text-yellow-300 font-bold' : ''}
                       helperText="Type any number and click Save to test silent JWT recovery"
                     />
                   </div>
@@ -348,7 +371,7 @@ export default function GovernanceWizardPage() {
                     type="submit"
                     variant="primary"
                     isLoading={isSaving}
-                    className="shadow-sm"
+                    className="shadow-sm bg-purple-600 hover:bg-purple-700"
                   >
                     Save 50-Field Configuration (Verify Zero Data Loss)
                   </Button>
@@ -366,4 +389,3 @@ export default function GovernanceWizardPage() {
     </div>
   );
 }
-

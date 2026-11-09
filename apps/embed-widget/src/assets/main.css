@@ -1,6 +1,5 @@
 /* ============================================================================
    embed-widget — Global CSS
-   Author: Karthik Kathari
    ============================================================================ */
 
 @tailwind base;
@@ -24,10 +23,10 @@
     height: 4px;
   }
   ::-webkit-scrollbar-track {
-    background: #11131c;
+    background: #111827;
   }
   ::-webkit-scrollbar-thumb {
-    background: #2a2f45;
+    background: #334155;
     border-radius: 2px;
   }
   ::-webkit-scrollbar-thumb:hover {
@@ -36,7 +35,7 @@
 
   * {
     scrollbar-width: thin;
-    scrollbar-color: #2a2f45 #11131c;
+    scrollbar-color: #334155 #111827;
   }
 }
 

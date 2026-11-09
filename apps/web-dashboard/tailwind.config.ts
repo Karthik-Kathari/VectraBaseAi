@@ -1,5 +1,5 @@
-import type { Config } from 'tailwindcss'
-import forms from '@tailwindcss/forms'
+import type { Config } from 'tailwindcss';
+import forms from '@tailwindcss/forms';
 
 const config: Config = {
   darkMode: 'class',
@@ -12,10 +12,10 @@ const config: Config = {
     extend: {
       colors: {
         obsidian: {
-          bg:      '#090A0F',
-          surface: '#11131C',
-          border:  '#1E2230',
-          hover:   '#1A1E2E',
+          bg:      '#090b10',
+          surface: '#111827',
+          border:  '#1e293b',
+          hover:   '#172033',
         },
         text: {
           primary: '#F8FAFC',
@@ -37,10 +37,25 @@ const config: Config = {
         rose: {
           guard: '#F43F5E',
         },
+        purple: {
+          accent:  '#9333ea',
+          glow:    '#a855f7',
+          DEFAULT: '#9333ea',
+        },
+        red: {
+          accent:  '#e11d48',
+          danger:  '#dc2626',
+          DEFAULT: '#dc2626',
+        },
+        yellow: {
+          highlight: '#f59e0b',
+          warning:   '#eab308',
+          DEFAULT:   '#eab308',
+        },
       },
       fontFamily: {
-        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
-        mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
+        sans: ['var(--font-inter)', 'Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        mono: ['var(--font-mono)', 'JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
       },
       animation: {
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
@@ -62,14 +77,19 @@ const config: Config = {
         xs: '2px',
       },
       boxShadow: {
-        'cyan-glow':   '0 0 20px rgba(6, 182, 212, 0.3)',
-        'indigo-glow': '0 0 20px rgba(99, 102, 241, 0.3)',
-        'emerald-glow':'0 0 20px rgba(16, 185, 129, 0.3)',
-        'inner-dark':  'inset 0 1px 0 rgba(255,255,255,0.05)',
+        'cyan-glow':    '0 0 20px rgba(6, 182, 212, 0.3)',
+        'indigo-glow':  '0 0 20px rgba(99, 102, 241, 0.3)',
+        'emerald-glow': '0 0 20px rgba(16, 185, 129, 0.3)',
+        'inner-dark':   'inset 0 1px 0 rgba(255,255,255,0.05)',
+        'neon-purple':  '0 0 16px rgba(168, 85, 247, 0.35)',
+        'neon-red':     '0 0 16px rgba(244, 63, 94, 0.35)',
+        'neon-amber':   '0 0 16px rgba(245, 158, 11, 0.35)',
+        'neon-cyan':    '0 0 16px rgba(6, 182, 212, 0.35)',
+        'neon-emerald': '0 0 16px rgba(16, 185, 129, 0.35)',
       },
     },
   },
   plugins: [forms],
-}
+};
 
-export default config
+export default config;

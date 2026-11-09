@@ -1,6 +1,5 @@
 // ============================================================================
 // embed-widget — Local Widget Types
-// Author: Karthik Kathari
 // ============================================================================
 // These types mirror what @vectrabase/shared-types will export once
 // packages/shared-types/src/widget.ts is authored in Phase 1.

@@ -1,6 +1,5 @@
 // ============================================================================
 // embed-widget — useSSEStream Composable
-// Author: Karthik Kathari
 // ============================================================================
 // Wraps the browser's native EventSource / fetch-based SSE reader.
 // Returns reactive state and imperative connect / disconnect methods.
@@ -194,17 +193,44 @@ export function useSSEStream(): UseSSEStreamReturn {
 // ---------------------------------------------------------------------------
 
 function resolveUrl(path: string): string {
+  const isBrowser = typeof window !== 'undefined';
+  const isLocalhost =
+    isBrowser &&
+    (window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1' ||
+      window.location.hostname === '0.0.0.0');
+
+  // If path is absolute URL
   if (path.startsWith("http://") || path.startsWith("https://")) {
+    if (isBrowser && !isLocalhost && (path.includes("localhost") || path.includes("127.0.0.1"))) {
+      return path.replace(/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/, 'https://vectrabase-api.onrender.com');
+    }
     return path;
   }
-  const runtimeUrl = typeof window !== 'undefined'
+
+  const runtimeUrl = isBrowser
     ? ((window as unknown as Record<string, unknown>).__VECTRABASE_API_URL__ as string | undefined)
     : undefined;
-  const base =
-    runtimeUrl ||
-    import.meta.env.VITE_API_URL ||
-    "https://vectrabase-api.onrender.com";
-  return `${base.replace(/\/+$/, '')}${path}`;
+
+  let base = 'https://vectrabase-api.onrender.com';
+  if (runtimeUrl && runtimeUrl.trim().length > 0) {
+    if (!isLocalhost && (runtimeUrl.includes('localhost') || runtimeUrl.includes('127.0.0.1'))) {
+      base = 'https://vectrabase-api.onrender.com';
+    } else {
+      base = runtimeUrl;
+    }
+  } else if (isBrowser && !isLocalhost) {
+    const buildUrl = import.meta.env.VITE_API_URL as string | undefined;
+    if (buildUrl && !buildUrl.includes('localhost') && !buildUrl.includes('127.0.0.1')) {
+      base = buildUrl;
+    } else {
+      base = 'https://vectrabase-api.onrender.com';
+    }
+  } else if (import.meta.env.VITE_API_URL) {
+    base = import.meta.env.VITE_API_URL as string;
+  }
+
+  return `${base.replace(/\/+$/, '')}${path.startsWith('/') ? path : `/${path}`}`;
 }
 
 function injectTenantHeader(): Record<string, string> {

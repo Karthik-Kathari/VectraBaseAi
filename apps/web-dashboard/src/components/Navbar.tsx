@@ -96,9 +96,9 @@ export function Navbar() {
         setAccessToken(res.data.data.accessToken);
         toast.success('Authenticated as Demo Administrator!');
       }
-      router.push('/dashboard' as any);
+      router.push('/dashboard');
     } catch {
-      router.push('/dashboard' as any);
+      router.push('/dashboard');
     } finally {
       setIsLaunchingDemo(false);
       setIsMobileMenuOpen(false);
@@ -142,7 +142,7 @@ export function Navbar() {
             return (
               <Link
                 key={link.href}
-                href={link.href as any}
+                href={link.href}
                 className={`px-3 py-1.5 rounded-full transition-all whitespace-nowrap flex-shrink-0 ${
                   isActive
                     ? 'bg-white dark:bg-slate-800 text-purple-700 dark:text-purple-300 font-semibold shadow-xs border border-slate-200/50 dark:border-slate-700/50'
@@ -161,7 +161,7 @@ export function Navbar() {
               return (
                 <Link
                   key={link.href}
-                  href={link.href as any}
+                  href={link.href}
                   className={`px-3 py-1.5 rounded-full transition-all whitespace-nowrap flex-shrink-0 ${
                     isActive
                       ? 'bg-white dark:bg-slate-800 text-purple-700 dark:text-purple-300 font-semibold shadow-xs border border-slate-200/50 dark:border-slate-700/50'
@@ -212,7 +212,7 @@ export function Navbar() {
 
           {/* Sign In Link (Visible on xl+ 1280px+) */}
           <Link
-            href={"/login" as any}
+            href="/login"
             className="hidden xl:inline-flex items-center px-2 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors whitespace-nowrap flex-shrink-0"
           >
             Sign In
@@ -220,7 +220,7 @@ export function Navbar() {
 
           {/* Primary CTA: Start Free Trial (Visible on sm+ 640px+, styled cleanly without nested button) */}
           <Link
-            href={"/login" as any}
+            href="/login"
             className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-semibold shadow-sm shadow-purple-500/25 hover:shadow-[0_0_12px_rgba(168,85,247,0.35)] transition-all cursor-pointer whitespace-nowrap flex-shrink-0"
           >
             <Sparkles className="w-3.5 h-3.5 hidden md:inline" />
@@ -278,7 +278,7 @@ export function Navbar() {
                 return (
                   <Link
                     key={link.href}
-                    href={link.href as any}
+                    href={link.href}
                     onClick={() => setIsMobileMenuOpen(false)}
                     className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition-colors ${
                       isActive
@@ -298,14 +298,14 @@ export function Navbar() {
           <div className="pt-3 border-t border-slate-200 dark:border-slate-800 space-y-2.5">
             <div className="grid grid-cols-2 gap-2">
               <Link
-                href={"/login" as any}
+                href="/login"
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="w-full py-2.5 px-3 text-center text-xs font-medium rounded-xl border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               >
                 Sign In
               </Link>
               <Link
-                href={"/login" as any}
+                href="/login"
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="w-full py-2.5 px-3 text-center text-xs font-semibold rounded-xl bg-purple-600 hover:bg-purple-500 text-white shadow-sm transition-colors flex items-center justify-center gap-1.5"
               >

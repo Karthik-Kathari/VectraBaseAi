@@ -3,14 +3,14 @@
 /**
  * VectraBase AI — Global SaaS Navigation Bar
  * Ultra-Responsive, Zero-Overflow, High-End B2B SaaS Layout
- * Precision-tested for 320px, 393px (iPhone 14 Pro), 768px (iPad), 1024px, 1280px, and 1440px+
+ * Precision-engineered for 320px, 393px (iPhone 14 Pro), 768px (iPad), 1024px, 1280px, and 1440px+
  */
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
-import { Sun, Moon, Search, Github, Menu, X, Sparkles, ArrowRight, Zap, ExternalLink } from 'lucide-react';
+import { Sun, Moon, Search, Github, Menu, X, Sparkles, ArrowRight, Zap } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { apiClient, setAccessToken } from '@/lib/axios';
 import { toast } from 'sonner';
@@ -71,7 +71,7 @@ export function Navbar() {
     };
   }, [isMobileMenuOpen]);
 
-  // Full navigation catalog
+  // Core navigation links (compact and guaranteed to fit across 1024px - 1440px)
   const primaryLinks = [
     { label: 'Home', href: '/' },
     { label: 'Pricing', href: '/pricing' },
@@ -79,6 +79,7 @@ export function Navbar() {
     { label: 'Playground', href: '/widget-playground' },
   ];
 
+  // Secondary links revealed on ultra-wide screens (>= 1400px) and always available in mobile drawer
   const secondaryLinks = [
     { label: 'Knowledge Base', href: '/rag-studio' },
     { label: 'Telemetry', href: '/telemetry' },
@@ -109,11 +110,11 @@ export function Navbar() {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-slate-200/80 dark:border-slate-800/80 bg-white/90 dark:bg-[#090b10]/90 backdrop-blur-md transition-colors">
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2 sm:gap-4">
+    <header className="sticky top-0 z-50 w-full border-b border-slate-200/80 dark:border-slate-800/80 bg-white/95 dark:bg-[#090b10]/95 backdrop-blur-md transition-colors">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2 sm:gap-4 box-border">
         
         {/* ─── 1. Brand Logo & Product Badge ─────────────────────────────── */}
-        <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0 min-w-0">
+        <div className="flex items-center gap-2 sm:gap-2.5 flex-shrink-0 min-w-0">
           <Link href="/" className="flex items-center gap-2 sm:gap-2.5 group whitespace-nowrap">
             <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-purple-600 via-purple-500 to-indigo-500 flex items-center justify-center p-1.5 shadow-sm shadow-purple-500/30 group-hover:scale-105 group-hover:shadow-[0_0_12px_rgba(168,85,247,0.4)] transition-all flex-shrink-0">
               <svg className="w-full h-full text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -122,7 +123,7 @@ export function Navbar() {
                 <polyline points="2 12 12 17 22 12" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
-            <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="flex items-center gap-1.5">
               <span className="font-bold text-sm sm:text-base tracking-tight text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
                 VectraBase AI
               </span>
@@ -134,15 +135,15 @@ export function Navbar() {
         </div>
 
         {/* ─── 2. Desktop Navigation Links ────────────────────────────────── */}
-        {/* Visible on lg+ (core links on lg, all links on xl+) */}
-        <nav className="hidden lg:flex items-center gap-0.5 xl:gap-1 text-xs font-medium">
+        {/* Visible on lg+ (1024px+). Uses concise labels that guaranteed never wrap or overflow */}
+        <nav className="hidden lg:flex items-center gap-1 text-xs font-medium min-w-0 flex-shrink">
           {primaryLinks.map((link) => {
             const isActive = pathname === link.href;
             return (
               <Link
                 key={link.href}
                 href={link.href as any}
-                className={`px-2.5 xl:px-3 py-1.5 rounded-lg transition-all whitespace-nowrap ${
+                className={`px-2.5 py-1.5 rounded-lg transition-all whitespace-nowrap flex-shrink-0 ${
                   isActive
                     ? 'bg-purple-50 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300 font-semibold shadow-xs'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/80 dark:hover:bg-slate-800/60'
@@ -153,15 +154,15 @@ export function Navbar() {
             );
           })}
 
-          {/* Secondary links displayed on xl+ screens (1280px+) */}
-          <div className="hidden xl:flex items-center gap-1">
+          {/* Secondary links displayed strictly on >= 1400px (2xl screens) */}
+          <div className="hidden 2xl:flex items-center gap-1">
             {secondaryLinks.map((link) => {
               const isActive = pathname === link.href;
               return (
                 <Link
                   key={link.href}
                   href={link.href as any}
-                  className={`px-3 py-1.5 rounded-lg transition-all whitespace-nowrap ${
+                  className={`px-2.5 py-1.5 rounded-lg transition-all whitespace-nowrap flex-shrink-0 ${
                     isActive
                       ? 'bg-purple-50 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300 font-semibold shadow-xs'
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/80 dark:hover:bg-slate-800/60'
@@ -175,18 +176,18 @@ export function Navbar() {
         </nav>
 
         {/* ─── 3. Right Action Controls ──────────────────────────────────── */}
-        <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0 pr-0.5 sm:pr-1">
           
-          {/* Quick Search Trigger (Hidden on mobile < md, compact icon on md-lg, full on xl+) */}
+          {/* Quick Search Trigger (Hidden on mobile < md, icon on md-xl, expanded on 2xl+) */}
           <button
             type="button"
             onClick={openSearch}
-            className="hidden md:flex items-center gap-1.5 xl:gap-2 px-2 xl:px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-[#111827] hover:bg-slate-100 dark:hover:bg-slate-800 hover:border-purple-300 dark:hover:border-purple-500/40 text-xs text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer flex-shrink-0"
+            className="hidden md:flex items-center gap-1.5 px-2 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-[#111827] hover:bg-slate-100 dark:hover:bg-slate-800 hover:border-purple-300 dark:hover:border-purple-500/40 text-xs text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer flex-shrink-0"
             title="Search documents & commands (Ctrl + K)"
           >
             <Search className="w-3.5 h-3.5 text-slate-400" />
-            <span className="hidden xl:inline text-slate-400 text-[11px]">Search</span>
-            <kbd className="hidden xl:inline-flex items-center px-1.5 py-0.5 text-[9px] font-mono rounded bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400">
+            <span className="hidden 2xl:inline text-slate-400 text-[11px]">Search</span>
+            <kbd className="hidden 2xl:inline-flex items-center px-1.5 py-0.5 text-[9px] font-mono rounded bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400">
               Ctrl K
             </kbd>
           </button>
@@ -206,34 +207,32 @@ export function Navbar() {
           {/* Light / Dark Mode Toggle (Always accessible) */}
           <ThemeToggle />
 
-          {/* Subtle Vertical Separator (Hidden on mobile) */}
-          <div className="hidden md:block h-4 w-px bg-slate-200 dark:border-slate-800 mx-0.5" />
+          {/* Subtle Vertical Separator (Hidden on mobile and tablets) */}
+          <div className="hidden xl:block h-4 w-px bg-slate-200 dark:bg-slate-800 mx-0.5" />
 
-          {/* Sign In Link (Hidden on mobile and tablets < lg) */}
+          {/* Sign In Link (Visible on xl+ 1280px+) */}
           <Link
             href={"/login" as any}
-            className="hidden lg:inline-flex items-center px-2 xl:px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors whitespace-nowrap flex-shrink-0"
+            className="hidden xl:inline-flex items-center px-2 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors whitespace-nowrap flex-shrink-0"
           >
             Sign In
           </Link>
 
-          {/* Primary CTA: Start Free Trial (Hidden on mobile < sm to guarantee 0 overflow) */}
-          <Link href={"/login" as any} className="hidden sm:inline-flex whitespace-nowrap flex-shrink-0">
-            <button
-              type="button"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-semibold shadow-sm shadow-purple-500/25 hover:shadow-[0_0_12px_rgba(168,85,247,0.35)] transition-all cursor-pointer whitespace-nowrap"
-            >
-              <Sparkles className="w-3.5 h-3.5 hidden md:inline" />
-              <span>Start Free Trial</span>
-              <ArrowRight className="w-3 h-3 text-purple-200 hidden md:inline" />
-            </button>
+          {/* Primary CTA: Start Free Trial (Visible on sm+ 640px+, styled cleanly without nested button) */}
+          <Link
+            href={"/login" as any}
+            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-semibold shadow-sm shadow-purple-500/25 hover:shadow-[0_0_12px_rgba(168,85,247,0.35)] transition-all cursor-pointer whitespace-nowrap flex-shrink-0"
+          >
+            <Sparkles className="w-3.5 h-3.5 hidden md:inline" />
+            <span>Start Free Trial</span>
+            <ArrowRight className="w-3 h-3 text-purple-200" />
           </Link>
 
-          {/* Mobile Hamburger Menu Toggle (Visible on < lg, exactly placed on the far right) */}
+          {/* Mobile & Tablet Hamburger Menu Toggle (Visible on < lg, exactly placed on the far right) */}
           <button
             type="button"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="lg:hidden w-8 h-8 rounded-lg bg-slate-100 dark:bg-[#111827] border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center transition-colors flex-shrink-0 cursor-pointer"
+            className="lg:hidden w-8 h-8 rounded-lg bg-slate-100 dark:bg-[#111827] border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center transition-colors flex-shrink-0 cursor-pointer ml-1"
             aria-label="Toggle Navigation Menu"
             title="Open Menu"
           >
@@ -288,7 +287,7 @@ export function Navbar() {
                     }`}
                   >
                     <span>{link.label}</span>
-                    {isActive && <span className="w-1.5 h-1.5 rounded-full bg-purple-600 dark:bg-purple-400" />}
+                    {isActive && <span className="w-1.5 h-1.5 rounded-full bg-purple-600 dark:purple-400" />}
                   </Link>
                 );
               })}

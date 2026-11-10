@@ -2,14 +2,14 @@
 
 /**
  * VectraBase AI — Global SaaS Navigation Bar
+ * Ultra-Clean, High-End Modern B2B SaaS Design
  */
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
-import { Sun, Moon } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
+import { Sun, Moon, Search, Github, Menu, X, Sparkles, ArrowRight, Zap } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { apiClient, setAccessToken } from '@/lib/axios';
 import { toast } from 'sonner';
@@ -23,7 +23,7 @@ function ThemeToggle({ className }: { className?: string }) {
   }, []);
 
   if (!mounted) {
-    return <div className="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-800" />;
+    return <div className="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50" />;
   }
 
   const isDark = resolvedTheme === 'dark';
@@ -32,16 +32,16 @@ function ThemeToggle({ className }: { className?: string }) {
     <button
       type="button"
       onClick={() => setTheme(isDark ? 'light' : 'dark')}
-      className={`p-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-all cursor-pointer ${
-        isDark ? 'shadow-[0_0_8px_rgba(245,158,11,0.5)]' : ''
+      className={`w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-all flex items-center justify-center cursor-pointer ${
+        isDark ? 'hover:text-amber-300 hover:border-amber-400/40 hover:shadow-[0_0_10px_rgba(245,158,11,0.25)]' : 'hover:text-purple-600 hover:border-purple-300'
       } ${className || ''}`}
       aria-label="Toggle theme"
       title={`Switch to ${isDark ? 'Light' : 'Dark'} mode`}
     >
       {isDark ? (
-        <Sun className="w-4 h-4 text-amber-400 hover:text-amber-300 dark:text-amber-300 shadow-[0_0_8px_rgba(245,158,11,0.5)]" />
+        <Sun className="w-4 h-4 text-amber-400" />
       ) : (
-        <Moon className="w-4 h-4 text-purple-600 hover:text-purple-700" />
+        <Moon className="w-4 h-4 text-purple-600" />
       )}
     </button>
   );
@@ -51,41 +51,51 @@ export function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [isLaunchingDemo, setIsLaunchingDemo] = useState(false);
 
-  const navLinks = [
-    { label: 'Home', href: '/' },
-    { label: 'Pricing', href: '/pricing' },
-    { label: 'Dashboard', href: '/dashboard' },
-    { label: 'Knowledge Base', href: '/rag-studio' },
-    { label: 'Chat Playground', href: '/widget-playground' },
-    { label: '1M Telemetry', href: '/telemetry' },
-    { label: 'Governance', href: '/governance' },
-  ];
+  // Close mobile drawer on route navigation
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
 
   async function handleQuickLaunch() {
-    setIsLoggingIn(true);
+    setIsLaunchingDemo(true);
     try {
       const res = await apiClient.post('/api/auth/demo-session');
       if (res.data?.success) {
         setAccessToken(res.data.data.accessToken);
         toast.success('Authenticated as Demo Administrator!');
       }
-      router.push('/dashboard');
+      router.push('/dashboard' as any);
     } catch {
-      router.push('/dashboard');
+      router.push('/dashboard' as any);
     } finally {
-      setIsLoggingIn(false);
+      setIsLaunchingDemo(false);
     }
   }
 
+  const navLinks = [
+    { label: 'Home', href: '/' },
+    { label: 'Pricing', href: '/pricing' },
+    { label: 'Dashboard', href: '/dashboard' },
+    { label: 'Knowledge Base', href: '/rag-studio' },
+    { label: 'Playground', href: '/widget-playground' },
+    { label: 'Telemetry', href: '/telemetry' },
+    { label: 'Governance', href: '/governance' },
+  ];
+
+  function openSearch() {
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }));
+  }
+
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-[#090b10]/80 backdrop-blur-md transition-colors">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        {/* Brand / Logo */}
-        <div className="flex items-center gap-3">
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-purple-600 via-purple-500 to-indigo-500 flex items-center justify-center p-1.5 shadow-md shadow-purple-500/25 group-hover:scale-105 transition-transform">
+    <header className="sticky top-0 z-50 w-full border-b border-slate-200/80 dark:border-slate-800/80 bg-white/85 dark:bg-[#090b10]/85 backdrop-blur-md transition-colors">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+        
+        {/* ─── 1. Brand Logo & Product Badge ─────────────────────────────── */}
+        <div className="flex items-center gap-3 flex-shrink-0">
+          <Link href="/" className="flex items-center gap-2.5 group whitespace-nowrap">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-purple-600 via-purple-500 to-indigo-500 flex items-center justify-center p-1.5 shadow-sm shadow-purple-500/30 group-hover:scale-105 group-hover:shadow-[0_0_12px_rgba(168,85,247,0.4)] transition-all">
               <svg className="w-full h-full text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <polygon points="12 2 2 7 12 12 22 7 12 2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 <polyline points="2 17 12 22 22 17" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -93,26 +103,28 @@ export function Navbar() {
               </svg>
             </div>
             <div className="flex items-center gap-2">
-              <span className="font-semibold text-sm tracking-tight text-slate-900 dark:text-white">
+              <span className="font-bold text-sm sm:text-base tracking-tight text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
                 VectraBase AI
               </span>
-              <Badge variant="purple" className="hidden sm:inline-flex text-[10px] py-0 px-1.5">v1.0</Badge>
+              <Badge variant="purple" className="hidden sm:inline-flex text-[10px] py-0 px-1.5 font-mono">
+                v1.0
+              </Badge>
             </div>
           </Link>
         </div>
 
-        {/* Center Desktop Navigation Links */}
-        <nav className="hidden md:flex items-center gap-1 bg-slate-100 dark:bg-[#111827]/80 px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-800 text-xs font-medium">
+        {/* ─── 2. Center Desktop Navigation Links ─────────────────────────── */}
+        <nav className="hidden lg:flex items-center gap-1 text-xs font-medium">
           {navLinks.map((link) => {
             const isActive = pathname === link.href;
             return (
               <Link
                 key={link.href}
                 href={link.href as any}
-                className={`px-3 py-1.5 rounded-full transition-all duration-150 ${
+                className={`px-3 py-1.5 rounded-lg transition-all whitespace-nowrap ${
                   isActive
-                    ? 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 font-semibold shadow-xs'
-                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5'
+                    ? 'bg-purple-50 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300 font-semibold shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/80 dark:hover:bg-slate-800/60'
                 }`}
               >
                 {link.label}
@@ -121,104 +133,144 @@ export function Navbar() {
           })}
         </nav>
 
-        {/* Right CTA Actions */}
-        <div className="flex items-center gap-2 sm:gap-2.5">
-          {/* Search Trigger */}
+        {/* ─── 3. Right Action Controls ──────────────────────────────────── */}
+        <div className="flex items-center gap-2 sm:gap-2.5 flex-shrink-0">
+          
+          {/* Quick Search Trigger */}
           <button
             type="button"
-            onClick={() => {
-              window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }));
-            }}
-            className="hidden lg:flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-[#111827] border border-slate-200 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-500/40 text-xs font-mono text-slate-600 dark:text-slate-400 transition-colors cursor-pointer"
-            title="Search (Ctrl + K)"
+            onClick={openSearch}
+            className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-[#111827] hover:bg-slate-100 dark:hover:bg-slate-800 hover:border-purple-300 dark:hover:border-purple-500/40 text-xs text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer"
+            title="Search documents & commands (Ctrl + K)"
           >
-            <span>Search</span>
-            <kbd className="px-1 py-0.5 rounded bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[9px] text-slate-500 dark:text-slate-300">Ctrl K</kbd>
+            <Search className="w-3.5 h-3.5 text-slate-400" />
+            <span className="hidden xl:inline text-slate-400 text-[11px]">Search</span>
+            <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 text-[9px] font-mono rounded bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400">
+              Ctrl K
+            </kbd>
           </button>
 
-          {/* GitHub link */}
+          {/* GitHub Repository Icon Link */}
           <a
             href="https://github.com/Karthik-Kathari/VectraBaseAi.git"
             target="_blank"
             rel="noreferrer"
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-[#111827] border border-slate-200 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-500/40 text-xs font-mono text-slate-700 dark:text-slate-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+            aria-label="GitHub Repository"
+            className="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all flex items-center justify-center cursor-pointer"
+            title="View Source on GitHub"
           >
-            <span>GitHub</span>
-            <span className="text-slate-400 text-[10px]">↗</span>
+            <Github className="w-4 h-4" />
           </a>
 
-          {/* Desktop Theme Toggle Button */}
+          {/* Light / Dark Mode Toggle */}
           <ThemeToggle />
+
+          {/* Subtle Vertical Separator */}
+          <div className="hidden sm:block h-5 w-px bg-slate-200 dark:border-slate-800 mx-0.5" />
 
           {/* Sign In Link */}
           <Link
             href={"/login" as any}
-            className="hidden sm:inline-flex items-center px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="hidden sm:inline-flex items-center px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors whitespace-nowrap"
           >
             Sign In
           </Link>
 
-          {/* Primary Call to Action: Start Free Trial */}
-          <Link href={"/login" as any}>
-            <Button
-              variant="primary"
-              size="sm"
-              className="shadow-sm font-medium text-xs tracking-tight shadow-[0_0_10px_rgba(168,85,247,0.25)]"
+          {/* Primary CTA: Start Free Trial */}
+          <Link href={"/login" as any} className="whitespace-nowrap">
+            <button
+              type="button"
+              className="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-semibold shadow-sm shadow-purple-500/25 hover:shadow-[0_0_14px_rgba(168,85,247,0.4)] transition-all cursor-pointer"
             >
-              Start Free Trial →
-            </Button>
+              <Sparkles className="w-3.5 h-3.5 hidden sm:inline" />
+              <span>Start Free Trial</span>
+              <ArrowRight className="w-3 h-3 text-purple-200" />
+            </button>
           </Link>
 
-          {/* Mobile Menu Hamburger Toggle */}
+          {/* Mobile Hamburger Menu Toggle (< lg) */}
           <button
             type="button"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden p-2 rounded-lg bg-slate-100 dark:bg-[#111827] border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
-            aria-label="Toggle menu"
+            className="lg:hidden p-1.5 rounded-lg bg-slate-100 dark:bg-[#111827] border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
+            aria-label="Toggle Navigation Menu"
           >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              {isMobileMenuOpen ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              )}
-            </svg>
+            {isMobileMenuOpen ? (
+              <X className="w-5 h-5 text-slate-800 dark:text-slate-200" />
+            ) : (
+              <Menu className="w-5 h-5 text-slate-800 dark:text-slate-200" />
+            )}
           </button>
         </div>
       </div>
 
-      {/* Mobile Drawer Menu */}
+      {/* ─── 4. Mobile & Tablet Slide Drawer Menu ─────────────────────────── */}
       {isMobileMenuOpen && (
-        <div className="md:hidden border-b border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-[#090b10]/95 backdrop-blur-md px-4 pt-2 pb-4 space-y-2 text-sm font-sans">
-          {navLinks.map((link) => {
-            const isActive = pathname === link.href;
-            return (
-              <Link
-                key={link.href}
-                href={link.href as any}
-                onClick={() => setIsMobileMenuOpen(false)}
-                className={`block px-3 py-2 rounded-lg transition-colors ${
-                  isActive
-                    ? 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 font-semibold'
-                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-                }`}
-              >
-                {link.label}
-              </Link>
-            );
-          })}
-          <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-600 dark:text-slate-400 font-medium">Theme:</span>
+        <div className="lg:hidden border-b border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-[#090b10]/95 backdrop-blur-xl px-4 pt-3 pb-5 space-y-3 animate-in fade-in slide-in-from-top-2 duration-150">
+          {/* Navigation Links Grid */}
+          <div className="space-y-1">
+            <div className="px-3 py-1 text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+              Navigation
+            </div>
+            {navLinks.map((link) => {
+              const isActive = pathname === link.href;
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href as any}
+                  className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                    isActive
+                      ? 'bg-purple-50 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300 font-semibold'
+                      : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  }`}
+                >
+                  <span>{link.label}</span>
+                  {isActive && <span className="w-1.5 h-1.5 rounded-full bg-purple-600 dark:bg-purple-400" />}
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* Quick Actions & Auth */}
+          <div className="pt-3 border-t border-slate-200 dark:border-slate-800 space-y-2.5">
+            <div className="flex items-center justify-between px-1">
+              <span className="text-xs text-slate-500 dark:text-slate-400">Appearance Theme</span>
               <ThemeToggle />
             </div>
+
+            <div className="grid grid-cols-2 gap-2 pt-1">
+              <Link
+                href={"/login" as any}
+                className="w-full py-2 px-3 text-center text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                Sign In
+              </Link>
+              <Link
+                href={"/login" as any}
+                className="w-full py-2 px-3 text-center text-xs font-semibold rounded-lg bg-purple-600 hover:bg-purple-500 text-white shadow-sm transition-colors"
+              >
+                Start Trial →
+              </Link>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleQuickLaunch}
+              disabled={isLaunchingDemo}
+              className="w-full py-2 px-3 flex items-center justify-center gap-1.5 text-xs font-medium rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:text-purple-600 dark:hover:text-purple-400 transition-colors cursor-pointer"
+            >
+              <Zap className="w-3.5 h-3.5 text-amber-500" />
+              <span>{isLaunchingDemo ? 'Launching Demo...' : 'Instant Demo Sandbox'}</span>
+            </button>
+
             <a
               href="https://github.com/Karthik-Kathari/VectraBaseAi.git"
               target="_blank"
               rel="noreferrer"
-              className="text-xs text-slate-600 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+              className="flex items-center justify-center gap-1.5 py-2 text-xs text-slate-500 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
             >
-              GitHub Repository ↗
+              <Github className="w-3.5 h-3.5" />
+              <span>View GitHub Repository ↗</span>
             </a>
           </div>
         </div>

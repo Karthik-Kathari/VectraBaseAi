@@ -55,6 +55,7 @@ export function Navbar() {
 
   const navLinks = [
     { label: 'Home', href: '/' },
+    { label: 'Pricing', href: '/pricing' },
     { label: 'Dashboard', href: '/dashboard' },
     { label: 'Knowledge Base', href: '/rag-studio' },
     { label: 'Chat Playground', href: '/widget-playground' },
@@ -149,16 +150,24 @@ export function Navbar() {
           {/* Desktop Theme Toggle Button */}
           <ThemeToggle />
 
-          {/* Primary Call to Action */}
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={handleQuickLaunch}
-            isLoading={isLoggingIn}
-            className="shadow-sm font-medium text-xs tracking-tight"
+          {/* Sign In Link */}
+          <Link
+            href={"/login" as any}
+            className="hidden sm:inline-flex items-center px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
-            Launch Sandbox →
-          </Button>
+            Sign In
+          </Link>
+
+          {/* Primary Call to Action: Start Free Trial */}
+          <Link href={"/login" as any}>
+            <Button
+              variant="primary"
+              size="sm"
+              className="shadow-sm font-medium text-xs tracking-tight shadow-[0_0_10px_rgba(168,85,247,0.25)]"
+            >
+              Start Free Trial →
+            </Button>
+          </Link>
 
           {/* Mobile Menu Hamburger Toggle */}
           <button

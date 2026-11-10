@@ -177,24 +177,34 @@ export default function LandingPage() {
         </p>
 
         {/* Action Buttons */}
-        <div className="gsap-fade-up flex flex-wrap items-center justify-center gap-4 pt-2">
+        <div className="gsap-fade-up flex flex-wrap items-center justify-center gap-3 pt-2">
+          <Link href={"/login" as any}>
+            <Button
+              variant="primary"
+              size="lg"
+              className="px-7 py-3 text-sm font-semibold tracking-tight bg-purple-600 hover:bg-purple-700 text-white shadow-sm hover:shadow-neon-purple transition-all"
+            >
+              Start 14-Day Free Trial →
+            </Button>
+          </Link>
+
           <Button
-            variant="primary"
+            variant="outline"
             size="lg"
             onClick={handleLaunchSandbox}
             isLoading={isLoading}
-            className="px-7 py-3 text-sm font-semibold tracking-tight bg-purple-600 hover:bg-purple-700 text-white shadow-sm hover:shadow-neon-purple transition-all"
+            className="px-6 py-3 text-sm font-semibold hover:border-purple-500/50 hover:shadow-neon-purple/20 transition-all"
           >
-            Launch Live Sandbox →
+            ⚡ Instant Demo
           </Button>
 
-          <Link href="/widget-playground">
+          <Link href={"/pricing" as any}>
             <Button
               variant="outline"
               size="lg"
-              className="px-7 py-3 text-sm font-semibold hover:border-purple-500/50 hover:shadow-neon-purple/20 transition-all"
+              className="px-6 py-3 text-sm font-semibold hover:border-purple-500/50 transition-all"
             >
-              💬 Try Live Chat Playground
+              View Pricing
             </Button>
           </Link>
         </div>

@@ -103,10 +103,16 @@ export default function RAGStudioPage() {
       setStatusMessage('Saving semantic vectors to PostgreSQL pgvector with HNSW indexing...');
 
       try {
-        await fetch(`${apiUrl}/api/documents/ingest`, {
+        const res = await fetch(`${apiUrl}/api/documents/ingest`, {
           method: 'POST',
           body: formData,
         });
+        if (res.status === 402) {
+          window.dispatchEvent(new CustomEvent('vectrabase:trial-blocked'));
+          toast.error('Free trial upload limit reached (3 documents). Upgrade to Pro to upload more.');
+          setIsIngesting(false);
+          return;
+        }
       } catch {
         // Fallback simulation for live demonstration resilience
       }

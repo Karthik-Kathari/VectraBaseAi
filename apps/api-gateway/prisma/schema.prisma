@@ -21,6 +21,14 @@ enum Plan {
   ENTERPRISE
 }
 
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  EXPIRED
+}
+
 enum UserRole {
   WORKSPACE_OWNER
   AI_ENGINEER
@@ -44,13 +52,21 @@ enum DocumentSource {
 // ─── Models ───────────────────────────────────────────────────────────────────
 
 model Tenant {
-  id         String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  name       String
-  slug       String   @unique
-  plan       Plan     @default(FREE)
-  apiKey     String   @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id                   String             @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name                 String
+  slug                 String             @unique
+  plan                 Plan               @default(FREE)
+  apiKey               String             @unique @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  subscriptionStatus   SubscriptionStatus @default(TRIALING)
+  trialEndsAt          DateTime?
+  trialQueriesUsed     Int                @default(0)
+  trialQueriesLimit    Int                @default(50)
+  trialDocsUsed        Int                @default(0)
+  trialDocsLimit       Int                @default(3)
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
 
   users      User[]
   documents  Document[]

@@ -85,8 +85,15 @@ export default function WidgetPlaygroundPage() {
       });
 
       if (!res.ok) {
+        if (res.status === 402) {
+          window.dispatchEvent(new CustomEvent('vectrabase:trial-blocked'));
+          setAnswerOutput('⚠️ Free trial quota reached. Please upgrade to Pro to unlock unlimited queries.');
+          return;
+        }
         throw new Error(`Gateway returned HTTP status ${res.status}`);
       }
+
+      window.dispatchEvent(new CustomEvent('vectrabase:query-completed'));
 
       const json = await res.json();
       if (json?.data?.answer) {

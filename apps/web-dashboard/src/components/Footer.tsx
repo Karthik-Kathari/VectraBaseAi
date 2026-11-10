@@ -41,6 +41,16 @@ export function Footer() {
             <h4 className="text-xs font-semibold text-slate-900 dark:text-white uppercase tracking-wider">Product</h4>
             <ul className="space-y-2">
               <li>
+                <Link href={"/pricing" as any} className="hover:text-purple-600 dark:text-purple-400 font-medium transition-colors">
+                  Plans &amp; Pricing
+                </Link>
+              </li>
+              <li>
+                <Link href={"/login" as any} className="hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
+                  14-Day Free Trial
+                </Link>
+              </li>
+              <li>
                 <Link href="/rag-studio" className="hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
                   Knowledge Base &amp; Ingestion
                 </Link>

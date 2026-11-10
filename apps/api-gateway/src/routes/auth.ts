@@ -102,8 +102,18 @@ authRouter.post('/register', authRateLimiter, async (req: Request, res: Response
 
   // Create tenant and user in a transaction
   const { tenant, user } = await prisma.$transaction(async (tx: any) => {
+    const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000); // 14-day free trial
     const tenant = await tx.tenant.create({
-      data: { name: tenantName, slug },
+      data: {
+        name: tenantName,
+        slug,
+        subscriptionStatus: 'TRIALING',
+        trialEndsAt,
+        trialQueriesUsed: 0,
+        trialQueriesLimit: 50,
+        trialDocsUsed: 0,
+        trialDocsLimit: 3,
+      },
     });
 
     const user = await tx.user.create({
@@ -406,7 +416,19 @@ authRouter.get('/me', authenticate, async (req: Request, res: Response) => {
       tenantId: true,
       createdAt: true,
       tenant: {
-        select: { id: true, name: true, slug: true, plan: true, apiKey: true },
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          plan: true,
+          apiKey: true,
+          subscriptionStatus: true,
+          trialEndsAt: true,
+          trialQueriesUsed: true,
+          trialQueriesLimit: true,
+          trialDocsUsed: true,
+          trialDocsLimit: true,
+        },
       },
     },
   });

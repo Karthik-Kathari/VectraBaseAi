@@ -8,6 +8,7 @@ import axios from 'axios';
 import { redis } from '../lib/redis';
 import { prisma } from '../lib/prisma';
 import { rateLimiter } from '../middleware/rateLimiter';
+import { trialGuard } from '../middleware/trialGuard';
 import crypto from 'crypto';
 
 export const queryRouter = Router();
@@ -27,6 +28,7 @@ function normalizeQuery(text: string): string {
 queryRouter.post(
   '/',
   rateLimiter,
+  trialGuard({ action: 'query' }),
   async (req: Request, res: Response) => {
     const startTime = Date.now();
     const { query, tenantId, sessionId, topK = 5, similarityThreshold = 0.72 } = req.body;

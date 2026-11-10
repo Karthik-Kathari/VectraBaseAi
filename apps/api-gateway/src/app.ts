@@ -17,6 +17,7 @@ import { governanceRouter } from './routes/governance';
 import { queryRouter } from './routes/query';
 import { benchmarkRouter } from './routes/benchmark';
 import { healthRouter } from './routes/health';
+import { billingRouter } from './routes/billing';
 
 export const app: Application = express();
 
@@ -99,6 +100,7 @@ app.use('/api/telemetry', telemetryRouter);
 app.use('/api/governance', governanceRouter);
 app.use('/api/query', queryRouter);
 app.use('/api/benchmark', benchmarkRouter);
+app.use('/api/billing', billingRouter);
 
 // ─── 404 Handler ──────────────────────────────────────────────────────────────
 app.use((_req: Request, res: Response) => {

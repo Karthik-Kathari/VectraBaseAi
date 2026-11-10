@@ -3,7 +3,7 @@
   "passed": 130,
   "failed": 0,
   "passRate": "100.0%",
-  "totalDurationMs": 357,
+  "totalDurationMs": 497,
   "byTier": {
     "Tier 1 - Feature Coverage": {
       "total": 55,
@@ -33,56 +33,56 @@
       "feature": "Feature 1: Embed Widget API Routing Fix",
       "name": "Widget client defaults to production URL",
       "passed": true,
-      "durationMs": 1
+      "durationMs": 2
     },
     {
       "tier": "Tier 1 - Feature Coverage",
       "feature": "Feature 1: Embed Widget API Routing Fix",
       "name": "Widget client checks window.__VECTRABASE_API_URL__ for runtime injection",
       "passed": true,
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "tier": "Tier 1 - Feature Coverage",
       "feature": "Feature 1: Embed Widget API Routing Fix",
       "name": "Iframe harness sets production API URL",
       "passed": true,
-      "durationMs": 1
+      "durationMs": 2
     },
     {
       "tier": "Tier 1 - Feature Coverage",
       "feature": "Feature 1: Embed Widget API Routing Fix",
       "name": "Dashboard axios client resolves production URL fallback without connection refused",
       "passed": true,
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "tier": "Tier 1 - Feature Coverage",
       "feature": "Feature 1: Embed Widget API Routing Fix",
       "name": "Query request conforms to Interface Contract headers and payload schema",
       "passed": true,
-      "durationMs": 136
+      "durationMs": 203
     },
     {
       "tier": "Tier 1 - Feature Coverage",
       "feature": "Feature 2: Navbar Author Attribution Removal",
       "name": "Navbar logo branding excludes author attribution (\"by Karthik Kathari\")",
       "passed": true,
-      "durationMs": 1
+      "durationMs": 2
     },
     {
       "tier": "Tier 1 - Feature Coverage",
       "feature": "Feature 2: Navbar Author Attribution Removal",
       "name": "WidgetContainer header excludes \"By Karthik Kathari\" below logo",
       "passed": true,
-      "durationMs": 0
+      "durationMs": 2
     },
     {
       "tier": "Tier 1 - Feature Coverage",
       "feature": "Feature 2: Navbar Author Attribution Removal",
       "name": "Navbar brand icon preserves geometric SVG prism structure",
       "passed": true,
-      "durationMs": 1
+      "durationMs": 0
     },
     {
       "tier": "Tier 1 - Feature Coverage",
@@ -96,14 +96,14 @@
       "feature": "Feature 2: Navbar Author Attribution Removal",
       "name": "Navbar left brand layout maintains flex alignment and spacing",
       "passed": true,
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "tier": "Tier 1 - Feature Coverage",
       "feature": "Feature 3: Widget Dual-Theme & Library Sync",
       "name": "Static bundle public/widget.js exists and exposes VectraBaseWidget",
       "passed": true,
-      "durationMs": 2
+      "durationMs": 4
     },
     {
       "tier": "Tier 1 - Feature Coverage",
@@ -117,7 +117,7 @@
       "feature": "Feature 3: Widget Dual-Theme & Library Sync",
       "name": "widget-entry.ts supports light and dark theme option in init contract",
       "passed": true,
-      "durationMs": 0
+      "durationMs": 3
     },
     {
       "tier": "Tier 1 - Feature Coverage",
@@ -131,14 +131,14 @@
       "feature": "Feature 3: Widget Dual-Theme & Library Sync",
       "name": "widget-frame.html includes valid script and stylesheet tags",
       "passed": true,
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "tier": "Tier 1 - Feature Coverage",
       "feature": "Feature 4: Typography Standardization",
       "name": "Root layout configures Inter font family",
       "passed": true,
-      "durationMs": 1
+      "durationMs": 4
     },
     {
       "tier": "Tier 1 - Feature Coverage",
@@ -152,14 +152,14 @@
       "feature": "Feature 4: Typography Standardization",
       "name": "tailwind.config.ts includes JetBrains Mono as primary monospace font",
       "passed": true,
-      "durationMs": 1
+      "durationMs": 0
     },
     {
       "tier": "Tier 1 - Feature Coverage",
       "feature": "Feature 4: Typography Standardization",
       "name": "Root body element applies font-sans utility class",
       "passed": true,
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "tier": "Tier 1 - Feature Coverage",
@@ -180,21 +180,21 @@
       "feature": "Feature 5: Design Tokens & UI Primitives",
       "name": "CSS variables define border and foreground tokens for both modes",
       "passed": true,
-      "durationMs": 1
+      "durationMs": 2
     },
     {
       "tier": "Tier 1 - Feature Coverage",
       "feature": "Feature 5: Design Tokens & UI Primitives",
       "name": "Purple and red accent tokens defined in Tailwind or globals.css",
       "passed": true,
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "tier": "Tier 1 - Feature Coverage",
       "feature": "Feature 5: Design Tokens & UI Primitives",
       "name": "Yellow / amber highlight token defined for prominent UI elements",
       "passed": true,
-      "durationMs": 7
+      "durationMs": 1
     },
     {
       "tier": "Tier 1 - Feature Coverage",
@@ -222,14 +222,14 @@
       "feature": "Feature 6: Working Light/Dark Mode Navbar Toggle",
       "name": "providers.tsx wraps tree with ThemeProvider attribute=\"class\"",
       "passed": true,
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "tier": "Tier 1 - Feature Coverage",
       "feature": "Feature 6: Working Light/Dark Mode Navbar Toggle",
       "name": "Toggling theme applies and removes \"dark\" class on html element",
       "passed": true,
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "tier": "Tier 1 - Feature Coverage",
@@ -243,14 +243,14 @@
       "feature": "Feature 7: Shell & Marketing Redesign",
       "name": "Landing page (page.tsx) renders hero section and interactive CTA",
       "passed": true,
-      "durationMs": 1
+      "durationMs": 2
     },
     {
       "tier": "Tier 1 - Feature Coverage",
       "feature": "Feature 7: Shell & Marketing Redesign",
       "name": "Footer product links route to valid dashboard pages without empty anchors",
       "passed": true,
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "tier": "Tier 1 - Feature Coverage",
@@ -278,14 +278,14 @@
       "feature": "Feature 8: Dashboard Pages Redesign",
       "name": "/dashboard renders KPI cards for Knowledge Chunks, Cache Hit Rate, Latency, and Tokens",
       "passed": true,
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "tier": "Tier 1 - Feature Coverage",
       "feature": "Feature 8: Dashboard Pages Redesign",
       "name": "/dashboard renders recent vector query stream with latency figures",
       "passed": true,
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "tier": "Tier 1 - Feature Coverage",
@@ -299,21 +299,21 @@
       "feature": "Feature 8: Dashboard Pages Redesign",
       "name": "/rag-studio renders document library table with chunks and sha256",
       "passed": true,
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "tier": "Tier 1 - Feature Coverage",
       "feature": "Feature 8: Dashboard Pages Redesign",
       "name": "Dashboard pages apply dual-theme surface classes",
       "passed": true,
-      "durationMs": 1
+      "durationMs": 0
     },
     {
       "tier": "Tier 1 - Feature Coverage",
       "feature": "Feature 9: Widget Playground & Lab Redesign",
       "name": "/widget-playground targets https://vectrabase-api.onrender.com for queries",
       "passed": true,
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "tier": "Tier 1 - Feature Coverage",
@@ -327,42 +327,42 @@
       "feature": "Feature 9: Widget Playground & Lab Redesign",
       "name": "Embed snippet contains zero localhost:4000 references",
       "passed": true,
-      "durationMs": 1
+      "durationMs": 0
     },
     {
       "tier": "Tier 1 - Feature Coverage",
       "feature": "Feature 9: Widget Playground & Lab Redesign",
       "name": "Playground provides interactive query execution with answer state",
       "passed": true,
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "tier": "Tier 1 - Feature Coverage",
       "feature": "Feature 9: Widget Playground & Lab Redesign",
       "name": "Playground renders preview iframe container with widget-frame.html",
       "passed": true,
-      "durationMs": 1
+      "durationMs": 0
     },
     {
       "tier": "Tier 1 - Feature Coverage",
       "feature": "Feature 10: Telemetry & Governance Redesign",
       "name": "/telemetry imports and renders VirtualizedTable component",
       "passed": true,
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "tier": "Tier 1 - Feature Coverage",
       "feature": "Feature 10: Telemetry & Governance Redesign",
       "name": "VirtualizedTable utilizes DOM virtualization to limit element count",
       "passed": true,
-      "durationMs": 1
+      "durationMs": 0
     },
     {
       "tier": "Tier 1 - Feature Coverage",
       "feature": "Feature 10: Telemetry & Governance Redesign",
       "name": "/telemetry provides status filters for CACHE_HIT, VECTOR_MISS, GUARDRAIL",
       "passed": true,
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "tier": "Tier 1 - Feature Coverage",
@@ -383,7 +383,7 @@
       "feature": "Feature 11: Interactive Components & Glow Accents",
       "name": "RAGPipelineVisualizer renders Ingestion, Redis, pgvector, and LLM stages",
       "passed": true,
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "tier": "Tier 1 - Feature Coverage",
@@ -404,63 +404,63 @@
       "feature": "Feature 11: Interactive Components & Glow Accents",
       "name": "BenchmarkDrawer renders sub-2ms cache vs database query latency metrics",
       "passed": true,
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "tier": "Tier 1 - Feature Coverage",
       "feature": "Feature 11: Interactive Components & Glow Accents",
       "name": "InterceptorConsole registers listener for 401 silent refresh telemetry",
       "passed": true,
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "tier": "Tier 2 - Boundary & Corner Cases",
       "feature": "Feature 1: Embed Widget API Routing Fix",
       "name": "Trailing slashes in runtime API URL are sanitized to avoid double slashes",
       "passed": true,
-      "durationMs": 2
+      "durationMs": 1
     },
     {
       "tier": "Tier 2 - Boundary & Corner Cases",
       "feature": "Feature 1: Embed Widget API Routing Fix",
       "name": "Whitespace or empty runtime API URL falls back to production gateway",
       "passed": true,
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "tier": "Tier 2 - Boundary & Corner Cases",
       "feature": "Feature 1: Embed Widget API Routing Fix",
       "name": "HTTP 429 response normalizes to RATE_LIMITED error code with retryAfterMs",
       "passed": true,
-      "durationMs": 0
+      "durationMs": 3
     },
     {
       "tier": "Tier 2 - Boundary & Corner Cases",
       "feature": "Feature 1: Embed Widget API Routing Fix",
       "name": "Content guardrail block (HTTP 400) maps to GUARDRAIL_BLOCK error code",
       "passed": true,
-      "durationMs": 1
+      "durationMs": 2
     },
     {
       "tier": "Tier 2 - Boundary & Corner Cases",
       "feature": "Feature 1: Embed Widget API Routing Fix",
       "name": "Network connection failure resolves with structured error object",
       "passed": true,
-      "durationMs": 9
+      "durationMs": 11
     },
     {
       "tier": "Tier 2 - Boundary & Corner Cases",
       "feature": "Feature 2: Navbar Author Attribution Removal",
       "name": "Navbar brand logo markup contains zero case-insensitive variants of author name",
       "passed": true,
-      "durationMs": 1
+      "durationMs": 0
     },
     {
       "tier": "Tier 2 - Boundary & Corner Cases",
       "feature": "Feature 2: Navbar Author Attribution Removal",
       "name": "Widget header markup contains zero case-insensitive variants of author name",
       "passed": true,
-      "durationMs": 0
+      "durationMs": 2
     },
     {
       "tier": "Tier 2 - Boundary & Corner Cases",
@@ -481,14 +481,14 @@
       "feature": "Feature 2: Navbar Author Attribution Removal",
       "name": "widget-frame.html body contains only widget mount point without attribution banner",
       "passed": true,
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "tier": "Tier 2 - Boundary & Corner Cases",
       "feature": "Feature 3: Widget Dual-Theme & Library Sync",
       "name": "Widget initialization without explicit theme parameter defaults gracefully",
       "passed": true,
-      "durationMs": 0
+      "durationMs": 2
     },
     {
       "tier": "Tier 2 - Boundary & Corner Cases",
@@ -516,14 +516,14 @@
       "feature": "Feature 3: Widget Dual-Theme & Library Sync",
       "name": "widget-frame.html includes proper HTML5 DOCTYPE and viewport meta tags",
       "passed": true,
-      "durationMs": 0
+      "durationMs": 2
     },
     {
       "tier": "Tier 2 - Boundary & Corner Cases",
       "feature": "Feature 4: Typography Standardization",
       "name": "fontFamily.sans includes robust system sans-serif fallback fonts",
       "passed": true,
-      "durationMs": 1
+      "durationMs": 0
     },
     {
       "tier": "Tier 2 - Boundary & Corner Cases",
@@ -537,7 +537,7 @@
       "feature": "Feature 4: Typography Standardization",
       "name": "globals.css defines .tabular-nums utility to prevent numeric jitter in tables",
       "passed": true,
-      "durationMs": 0
+      "durationMs": 2
     },
     {
       "tier": "Tier 2 - Boundary & Corner Cases",
@@ -551,14 +551,14 @@
       "feature": "Feature 4: Typography Standardization",
       "name": "globals.css applies overflow-x: hidden on body to prevent horizontal scroll bleed",
       "passed": true,
-      "durationMs": 1
+      "durationMs": 2
     },
     {
       "tier": "Tier 2 - Boundary & Corner Cases",
       "feature": "Feature 5: Design Tokens & UI Primitives",
       "name": "Light mode text contrast ratio meets WCAG AA (>= 4.5:1)",
       "passed": true,
-      "durationMs": 0
+      "durationMs": 3
     },
     {
       "tier": "Tier 2 - Boundary & Corner Cases",
@@ -572,14 +572,14 @@
       "feature": "Feature 5: Design Tokens & UI Primitives",
       "name": "Button component handles disabled / loading states with disabled:opacity-50",
       "passed": true,
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "tier": "Tier 2 - Boundary & Corner Cases",
       "feature": "Feature 5: Design Tokens & UI Primitives",
       "name": "Badge component covers all 6 semantic variants",
       "passed": true,
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "tier": "Tier 2 - Boundary & Corner Cases",
@@ -600,21 +600,21 @@
       "feature": "Feature 6: Working Light/Dark Mode Navbar Toggle",
       "name": "ThemeToggle implements mounted check to prevent SSR hydration flash",
       "passed": true,
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "tier": "Tier 2 - Boundary & Corner Cases",
       "feature": "Feature 6: Working Light/Dark Mode Navbar Toggle",
       "name": "ThemeToggle renders Sun icon in dark mode and Moon icon in light mode",
       "passed": true,
-      "durationMs": 1
+      "durationMs": 0
     },
     {
       "tier": "Tier 2 - Boundary & Corner Cases",
       "feature": "Feature 6: Working Light/Dark Mode Navbar Toggle",
       "name": "ThemeToggle button includes cursor-pointer styling for interactive affordance",
       "passed": true,
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "tier": "Tier 2 - Boundary & Corner Cases",
@@ -656,7 +656,7 @@
       "feature": "Feature 7: Shell & Marketing Redesign",
       "name": "Navbar header applies backdrop-blur-md for translucent sticky overlay",
       "passed": true,
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "tier": "Tier 2 - Boundary & Corner Cases",
@@ -684,7 +684,7 @@
       "feature": "Feature 8: Dashboard Pages Redesign",
       "name": "Dashboard layout content area applies overflow-y-auto for scrollability",
       "passed": true,
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "tier": "Tier 2 - Boundary & Corner Cases",
@@ -705,14 +705,14 @@
       "feature": "Feature 9: Widget Playground & Lab Redesign",
       "name": "Iframe HTML template escapes script closing tags to prevent HTML parsing errors",
       "passed": true,
-      "durationMs": 1
+      "durationMs": 0
     },
     {
       "tier": "Tier 2 - Boundary & Corner Cases",
       "feature": "Feature 9: Widget Playground & Lab Redesign",
       "name": "Copy embed snippet button triggers toast notification on copy success",
       "passed": true,
-      "durationMs": 2
+      "durationMs": 1
     },
     {
       "tier": "Tier 2 - Boundary & Corner Cases",
@@ -726,14 +726,14 @@
       "feature": "Feature 9: Widget Playground & Lab Redesign",
       "name": "Playground tracks testQuery input string and querying loading state",
       "passed": true,
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "tier": "Tier 2 - Boundary & Corner Cases",
       "feature": "Feature 10: Telemetry & Governance Redesign",
       "name": "VirtualizedTable specifies fixed estimateSize for stable virtual scrolling math",
       "passed": true,
-      "durationMs": 1
+      "durationMs": 0
     },
     {
       "tier": "Tier 2 - Boundary & Corner Cases",
@@ -747,7 +747,7 @@
       "feature": "Feature 10: Telemetry & Governance Redesign",
       "name": "Telemetry table handles empty search filter results without throwing",
       "passed": true,
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "tier": "Tier 2 - Boundary & Corner Cases",
@@ -768,14 +768,14 @@
       "feature": "Feature 11: Interactive Components & Glow Accents",
       "name": "CommandPalette closes modal on Escape key press",
       "passed": true,
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "tier": "Tier 2 - Boundary & Corner Cases",
       "feature": "Feature 11: Interactive Components & Glow Accents",
       "name": "CommandPalette removes window keydown listener on component unmount",
       "passed": true,
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "tier": "Tier 2 - Boundary & Corner Cases",
@@ -789,21 +789,21 @@
       "feature": "Feature 11: Interactive Components & Glow Accents",
       "name": "BenchmarkDrawer provides explicit close button and backdrop click dismiss",
       "passed": true,
-      "durationMs": 1
+      "durationMs": 0
     },
     {
       "tier": "Tier 2 - Boundary & Corner Cases",
       "feature": "Feature 11: Interactive Components & Glow Accents",
       "name": "InterceptorConsole calls unregister on unmount to prevent listener leak",
       "passed": true,
-      "durationMs": 0
+      "durationMs": 1
     },
     {
       "tier": "Tier 3 - Cross-Feature Interactions",
       "feature": "Pairwise [F6 x F1]",
       "name": "Toggling light/dark theme while query is in-flight does not abort HTTP request",
       "passed": true,
-      "durationMs": 63
+      "durationMs": 68
     },
     {
       "tier": "Tier 3 - Cross-Feature Interactions",
@@ -817,14 +817,14 @@
       "feature": "Pairwise [F6 x F5]",
       "name": "Switching theme updates background, surface, and border CSS variables",
       "passed": true,
-      "durationMs": 0
+      "durationMs": 2
     },
     {
       "tier": "Tier 3 - Cross-Feature Interactions",
       "feature": "Pairwise [F6 x F7]",
       "name": "Theme toggle remains accessible and functional inside mobile navigation drawer",
       "passed": true,
-      "durationMs": 1
+      "durationMs": 0
     },
     {
       "tier": "Tier 3 - Cross-Feature Interactions",
@@ -880,14 +880,14 @@
       "feature": "Pairwise [F11 x F7]",
       "name": "Command Palette provides direct keyboard shortcuts to all primary routes",
       "passed": true,
-      "durationMs": 1
+      "durationMs": 0
     },
     {
       "tier": "Tier 3 - Cross-Feature Interactions",
       "feature": "Pairwise [F3 x F1]",
       "name": "Widget error bubbles are legible in both light and dark themes",
       "passed": true,
-      "durationMs": 0
+      "durationMs": 2
     },
     {
       "tier": "Tier 3 - Cross-Feature Interactions",
@@ -901,14 +901,14 @@
       "feature": "Pairwise [F2 x F3]",
       "name": "WidgetContainer header maintains clean title and version badge without author name",
       "passed": true,
-      "durationMs": 1
+      "durationMs": 2
     },
     {
       "tier": "Tier 4 - Real-World Workloads & Scenarios",
       "feature": "Scenario 1 [Evaluator Journey]",
       "name": "Complete user workflow from Landing -> Sandbox -> Knowledge Base -> Playground -> Telemetry -> Governance",
       "passed": true,
-      "durationMs": 2
+      "durationMs": 4
     },
     {
       "tier": "Tier 4 - Real-World Workloads & Scenarios",
@@ -922,21 +922,21 @@
       "feature": "Scenario 3 [Widget Deployment]",
       "name": "Simulated third-party webpage initializes embed widget and queries production API",
       "passed": true,
-      "durationMs": 35
+      "durationMs": 36
     },
     {
       "tier": "Tier 4 - Real-World Workloads & Scenarios",
       "feature": "Scenario 4 [UI Stress & Chaos]",
       "name": "Simulate high-frequency theme toggling and viewport resizes without exceptions",
       "passed": true,
-      "durationMs": 1
+      "durationMs": 0
     },
     {
       "tier": "Tier 4 - Real-World Workloads & Scenarios",
       "feature": "Scenario 5 [Field-48 Resilience]",
       "name": "Simulate 401 access token expiration during form mutation and silent refresh replay",
       "passed": true,
-      "durationMs": 47
+      "durationMs": 66
     }
   ]
 }

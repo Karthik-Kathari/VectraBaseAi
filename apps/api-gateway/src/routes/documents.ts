@@ -22,6 +22,7 @@ import { redis } from '../lib/redis';
 import { authenticate } from '../middleware/auth';
 import { requireRole } from '../middleware/rbac';
 import { defaultRateLimiter } from '../middleware/rateLimiter';
+import { trialGuard } from '../middleware/trialGuard';
 
 export const documentsRouter = Router();
 documentsRouter.use(authenticate);
@@ -71,6 +72,7 @@ documentsRouter.post(
   '/upload',
   requireRole('WORKSPACE_OWNER', 'AI_ENGINEER'),
   defaultRateLimiter,
+  trialGuard({ action: 'document' }),
   upload.single('file'),
   async (req: Request, res: Response) => {
     if (!req.file) {

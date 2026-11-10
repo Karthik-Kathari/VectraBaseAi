@@ -65,4 +65,13 @@ apps/rag-engine/venv/
 .vercel
 .env*
 
+# AI & Internal Project Documentation (Local Only)
 .agents/
+ARCHITECTURE_DECISIONS.md
+PROGRESS_TRACKER.md
+PROJECT.md
+TEST_INFRA.md
+TEST_READY.md
+ORIGINAL_REQUEST.md
+*.agent*
+

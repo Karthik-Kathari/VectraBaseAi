@@ -111,10 +111,10 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-slate-200/80 dark:border-slate-800/80 bg-white/95 dark:bg-[#090b10]/95 backdrop-blur-md transition-colors">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2 sm:gap-4 box-border">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2 sm:gap-4 box-border">
         
         {/* ─── 1. Brand Logo & Product Badge ─────────────────────────────── */}
-        <div className="flex items-center gap-2 sm:gap-2.5 flex-shrink-0 min-w-0">
+        <div className="flex items-center gap-2 sm:gap-2.5 flex-shrink-0 min-w-0 z-10">
           <Link href="/" className="flex items-center gap-2 sm:gap-2.5 group whitespace-nowrap">
             <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-purple-600 via-purple-500 to-indigo-500 flex items-center justify-center p-1.5 shadow-sm shadow-purple-500/30 group-hover:scale-105 group-hover:shadow-[0_0_12px_rgba(168,85,247,0.4)] transition-all flex-shrink-0">
               <svg className="w-full h-full text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -134,19 +134,19 @@ export function Navbar() {
           </Link>
         </div>
 
-        {/* ─── 2. Desktop Navigation Links ────────────────────────────────── */}
-        {/* Visible on lg+ (1024px+). Uses concise labels that guaranteed never wrap or overflow */}
-        <nav className="hidden lg:flex items-center gap-1 text-xs font-medium min-w-0 flex-shrink">
+        {/* ─── 2. Desktop Navigation Pills (Centrally Positioned Floating Capsule) ── */}
+        {/* Absolute mathematical center on lg+ (1024px+) */}
+        <nav className="hidden lg:flex absolute left-1/2 -translate-x-1/2 items-center gap-1 p-1 rounded-full bg-slate-100/70 dark:bg-slate-900/70 border border-slate-200/60 dark:border-slate-800/60 backdrop-blur-sm text-xs font-medium z-10 pointer-events-auto shadow-xs">
           {primaryLinks.map((link) => {
             const isActive = pathname === link.href;
             return (
               <Link
                 key={link.href}
                 href={link.href as any}
-                className={`px-2.5 py-1.5 rounded-lg transition-all whitespace-nowrap flex-shrink-0 ${
+                className={`px-3 py-1.5 rounded-full transition-all whitespace-nowrap flex-shrink-0 ${
                   isActive
-                    ? 'bg-purple-50 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300 font-semibold shadow-xs'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/80 dark:hover:bg-slate-800/60'
+                    ? 'bg-white dark:bg-slate-800 text-purple-700 dark:text-purple-300 font-semibold shadow-xs border border-slate-200/50 dark:border-slate-700/50'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-800/50'
                 }`}
               >
                 {link.label}
@@ -162,10 +162,10 @@ export function Navbar() {
                 <Link
                   key={link.href}
                   href={link.href as any}
-                  className={`px-2.5 py-1.5 rounded-lg transition-all whitespace-nowrap flex-shrink-0 ${
+                  className={`px-3 py-1.5 rounded-full transition-all whitespace-nowrap flex-shrink-0 ${
                     isActive
-                      ? 'bg-purple-50 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300 font-semibold shadow-xs'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/80 dark:hover:bg-slate-800/60'
+                      ? 'bg-white dark:bg-slate-800 text-purple-700 dark:text-purple-300 font-semibold shadow-xs border border-slate-200/50 dark:border-slate-700/50'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-800/50'
                   }`}
                 >
                   {link.label}
@@ -176,7 +176,7 @@ export function Navbar() {
         </nav>
 
         {/* ─── 3. Right Action Controls ──────────────────────────────────── */}
-        <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0 pr-0.5 sm:pr-1">
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0 pr-0.5 sm:pr-1 z-10">
           
           {/* Quick Search Trigger (Hidden on mobile < md, icon on md-xl, expanded on 2xl+) */}
           <button

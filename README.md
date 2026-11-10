@@ -122,8 +122,6 @@ pnpm --filter api-gateway db:seed:1m
 
 ```
 vectrabase-ai/
-├── PROGRESS_TRACKER.md             # Real-time state tracker & agent continuity protocol
-├── ARCHITECTURE_DECISIONS.md       # Architecture Decision Records (ADRs) & benchmark logs
 ├── docker-compose.yml              # Local Postgres 16 (pgvector) + Redis 7 + Microservices
 ├── turbo.json                      # Turborepo computational pipeline
 ├── package.json                    # Workspace manifest (Author: Karthik Kathari)

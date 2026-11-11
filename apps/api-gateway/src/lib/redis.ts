@@ -5,7 +5,15 @@
 
 import Redis from 'ioredis';
 
-const REDIS_URL = process.env.REDIS_URL ?? 'redis://localhost:6379';
+function normalizeRedisUrl(url: string): string {
+  // Upstash cloud endpoints enforce TLS. Ensure 'rediss://' protocol is used even if entered as 'redis://'.
+  if (url.includes('upstash.io') && url.startsWith('redis://')) {
+    return url.replace(/^redis:\/\//, 'rediss://');
+  }
+  return url;
+}
+
+const REDIS_URL = normalizeRedisUrl(process.env.REDIS_URL ?? 'redis://localhost:6379');
 
 class InMemoryFallbackStore {
   private store = new Map<string, { value: string; expiresAt?: number }>();

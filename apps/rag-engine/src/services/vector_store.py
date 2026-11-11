@@ -80,11 +80,74 @@ async def hybrid_search(
     tenant_id: str,
     top_k: int = 5,
     similarity_threshold: float = 0.72,
+    document_id: str | None = None,
 ) -> list[dict[str, Any]]:
-    """Execute hybrid search combining pgvector cosine similarity and tsvector keyword rank."""
+    """Execute hybrid search combining pgvector cosine similarity and tsvector keyword rank.
+
+    If document_id is provided, search is targeted to ONLY return chunks associated with that document.
+    Falls back to tenant-level search (e.g. whitepaper) if targeted search yields no matches.
+    """
     emb_literal = vector_to_sql_literal(query_embedding)
 
-    query = """
+    # 1. Targeted search for user's newly uploaded document if document_id is provided
+    if document_id:
+        try:
+            query_targeted = """
+                SELECT
+                    dc.id,
+                    dc."documentId",
+                    dc.content,
+                    dc."chunkIndex",
+                    dc."tokenCount",
+                    dc."pageNumber",
+                    d.name as document_name,
+                    ROUND((1 - (dc.embedding <=> $1::vector))::numeric, 4) as cosine_similarity,
+                    COALESCE(ts_rank(to_tsvector('english', dc.content), plainto_tsquery('english', $2)), 0.0) as keyword_rank,
+                    ROUND(
+                        (
+                            0.75 * (1 - (dc.embedding <=> $1::vector)) +
+                            0.25 * COALESCE(ts_rank(to_tsvector('english', dc.content), plainto_tsquery('english', $2)), 0.0)
+                        )::numeric, 4
+                    ) as hybrid_score
+                FROM "DocumentChunk" dc
+                JOIN "Document" d ON d.id = dc."documentId"
+                WHERE dc."tenantId" = $3::uuid
+                  AND (dc."documentId" = $4::uuid OR d.id = $4::uuid)
+                  AND (1 - (dc.embedding <=> $1::vector)) >= $5
+                ORDER BY hybrid_score DESC
+                LIMIT $6;
+            """
+            async with pool.acquire() as conn:
+                rows = await conn.fetch(
+                    query_targeted,
+                    emb_literal,
+                    query_text,
+                    tenant_id,
+                    document_id,
+                    similarity_threshold,
+                    top_k,
+                )
+            if rows:
+                logger.info("Found %d targeted chunks for document %s", len(rows), document_id)
+                return [
+                    {
+                        "chunk_id": str(r["id"]),
+                        "document_id": str(r["documentId"]),
+                        "document_name": r["document_name"],
+                        "page_number": r["pageNumber"],
+                        "chunk_index": r["chunkIndex"],
+                        "similarity": float(r["cosine_similarity"]),
+                        "keyword_rank": float(r["keyword_rank"]),
+                        "hybrid_score": float(r["hybrid_score"]),
+                        "raw_text": r["content"],
+                    }
+                    for r in rows
+                ]
+        except Exception as e:
+            logger.warning("Targeted document query error: %s, falling back to tenant search", e)
+
+    # 2. Fallback search across all tenant documents (default whitepaper)
+    query_fallback = """
         SELECT
             dc.id,
             dc."documentId",
@@ -111,7 +174,7 @@ async def hybrid_search(
 
     async with pool.acquire() as conn:
         rows = await conn.fetch(
-            query,
+            query_fallback,
             emb_literal,
             query_text,
             tenant_id,

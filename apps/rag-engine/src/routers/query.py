@@ -27,6 +27,8 @@ router = APIRouter()
 class QueryPayload(BaseModel):
     query: str
     tenant_id: str
+    document_id: str | None = None
+    documentId: str | None = None
     session_id: str | None = None
     top_k: int = 5
     similarity_threshold: float = 0.72
@@ -37,6 +39,7 @@ class QueryPayload(BaseModel):
 async def query_rag(payload: QueryPayload, pool: asyncpg.Pool = Depends(get_db)):
     """Query the RAG engine and stream citations and answer tokens via SSE."""
     start_total = time.perf_counter()
+    target_doc_id = payload.document_id or payload.documentId
 
     async def event_generator() -> AsyncGenerator[str, None]:
         nonlocal start_total
@@ -46,13 +49,14 @@ async def query_rag(payload: QueryPayload, pool: asyncpg.Pool = Depends(get_db))
         query_vector = await embed_query(payload.query)
         embedding_ms = int((time.perf_counter() - emb_start) * 1000)
 
-        # 2. Hybrid pgvector search
+        # 2. Hybrid pgvector search (filters by target_doc_id if provided)
         search_start = time.perf_counter()
         chunks = await hybrid_search(
             pool=pool,
             query_embedding=query_vector,
             query_text=payload.query,
             tenant_id=payload.tenant_id,
+            document_id=target_doc_id,
             top_k=payload.top_k,
             similarity_threshold=payload.similarity_threshold,
         )
@@ -90,4 +94,3 @@ async def query_rag(payload: QueryPayload, pool: asyncpg.Pool = Depends(get_db))
         yield f"data: {json.dumps({'type': 'done', 'totalLatencyMs': total_latency_ms, 'embeddingMs': embedding_ms, 'vectorSearchMs': vector_search_ms, 'llmStreamMs': llm_stream_ms, 'tokensUsed': token_count, 'chunkCount': len(chunks)})}\n\n"
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
-

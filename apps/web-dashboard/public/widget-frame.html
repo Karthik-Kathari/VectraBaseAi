@@ -84,8 +84,11 @@
         }
         var initFn = typeof w.init === 'function' ? w.init : (w.default && typeof w.default.init === 'function' ? w.default.init : null);
         if (initFn) {
+          var docId = params.get('docId') || (typeof localStorage !== 'undefined' ? localStorage.getItem('vectrabase_active_document_id') : null);
+          var targetTenantId = params.get('tenantId') || (typeof localStorage !== 'undefined' ? localStorage.getItem('vectrabase_active_tenant_id') : null) || '00000000-0000-0000-0000-000000000001';
           initFn({
-            tenantId: '00000000-0000-0000-0000-000000000001',
+            tenantId: targetTenantId,
+            documentId: docId || undefined,
             apiUrl: 'https://vectrabase-api.onrender.com',
             theme: currentTheme
           });

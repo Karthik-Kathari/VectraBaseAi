@@ -11,6 +11,7 @@ import "./assets/main.css";
 
 export interface WidgetInitOptions {
   tenantId: string;
+  documentId?: string;
   apiUrl?: string;
   containerId?: string;
   theme?: 'light' | 'dark';
@@ -61,6 +62,11 @@ function init(options: WidgetInitOptions): void {
   if (options?.tenantId) {
     (window as unknown as Record<string, unknown>).__VECTRABASE_TENANT_ID__ =
       options.tenantId;
+  }
+
+  if (options?.documentId) {
+    (window as unknown as Record<string, unknown>).__VECTRABASE_DOCUMENT_ID__ =
+      options.documentId;
   }
 
   const containerId = options?.containerId ?? "vectrabase-widget";

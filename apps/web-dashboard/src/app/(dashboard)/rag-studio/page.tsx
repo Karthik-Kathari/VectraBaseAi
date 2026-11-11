@@ -102,6 +102,9 @@ export default function RAGStudioPage() {
       setProgressPct(95);
       setStatusMessage('Saving semantic vectors to PostgreSQL pgvector with HNSW indexing...');
 
+      let createdDocId = `doc-${Date.now()}`;
+      let createdTenantId = '00000000-0000-0000-0000-000000000001';
+
       try {
         const res = await fetch(`${apiUrl}/api/documents/ingest`, {
           method: 'POST',
@@ -113,6 +116,14 @@ export default function RAGStudioPage() {
           setIsIngesting(false);
           return;
         }
+
+        const json = await res.json().catch(() => null);
+        if (json?.data?.documentId) {
+          createdDocId = json.data.documentId;
+        }
+        if (json?.data?.tenantId) {
+          createdTenantId = json.data.tenantId;
+        }
       } catch {
         // Fallback simulation for live demonstration resilience
       }
@@ -122,9 +133,25 @@ export default function RAGStudioPage() {
       setStatusMessage('Document successfully indexed and ready for AI chat queries!');
       setLastUploadedDoc(docName);
 
+      // Persist active session document ID and tenant ID to localStorage & sessionStorage
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('vectrabase_active_document_id', createdDocId);
+        localStorage.setItem('vectrabase_active_document_name', docName);
+        localStorage.setItem('vectrabase_active_tenant_id', createdTenantId);
+        sessionStorage.setItem('vectrabase_active_document_id', createdDocId);
+        sessionStorage.setItem('vectrabase_active_document_name', docName);
+        sessionStorage.setItem('vectrabase_active_tenant_id', createdTenantId);
+
+        window.dispatchEvent(
+          new CustomEvent('vectrabase:document-ingested', {
+            detail: { documentId: createdDocId, documentName: docName, tenantId: createdTenantId },
+          })
+        );
+      }
+
       // Append to local document ledger
       const newDoc = {
-        id: `doc-${Date.now()}`,
+        id: createdDocId,
         name: docName,
         source: selectedFile ? (selectedFile.name.endsWith('.pdf') ? 'PDF' : 'DOC') : 'URL',
         status: 'Ready',

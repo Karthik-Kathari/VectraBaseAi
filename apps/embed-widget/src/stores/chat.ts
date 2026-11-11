@@ -86,14 +86,24 @@ export const useChatStore = defineStore('chat', () => {
     const queryStart = performance.now();
 
     const apiUrl = getEffectiveApiUrl();
+    const activeDocId =
+      (typeof window !== 'undefined' &&
+        ((window as unknown as Record<string, unknown>).__VECTRABASE_DOCUMENT_ID__ as string ||
+          localStorage.getItem('vectrabase_active_document_id'))) ||
+      undefined;
 
     try {
       const response = await fetch(`${apiUrl}/api/query`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-tenant-id': tenantId,
+          ...(activeDocId ? { 'x-document-id': activeDocId } : {}),
+        },
         body: JSON.stringify({
           query: query.trim(),
           tenantId,
+          documentId: activeDocId,
         }),
       });
 

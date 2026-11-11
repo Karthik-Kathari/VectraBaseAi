@@ -28,10 +28,38 @@ import { trialGuard } from '../middleware/trialGuard';
 // ---------------------------------------------------------------------------
 // Deep HTML text extractor using cheerio
 // Strips boilerplate (nav, footer, header, scripts, ads) and pulls readable
-// paragraphs, headings and list items from the page body.
+// paragraphs, headings, list items, and page metadata.
 // ---------------------------------------------------------------------------
 function extractTextFromHtml(html: string, sourceUrl: string): string {
   const $ = cheerio.load(html);
+
+  // Extract meta tags first before removing elements
+  const metaTitle = $('title').text().trim();
+  const metaDescription =
+    $('meta[name="description"]').attr('content')?.trim() ||
+    $('meta[property="og:description"]').attr('content')?.trim() ||
+    $('meta[name="twitter:description"]').attr('content')?.trim() ||
+    '';
+  const ogTitle = $('meta[property="og:title"]').attr('content')?.trim() || '';
+
+  // Extract JSON-LD structured data if present
+  const jsonLdTexts: string[] = [];
+  $('script[type="application/ld+json"]').each((_i, el) => {
+    try {
+      const data = JSON.parse($(el).text());
+      const findText = (obj: any): void => {
+        if (!obj || typeof obj !== 'object') return;
+        if (typeof obj.description === 'string') jsonLdTexts.push(obj.description);
+        if (typeof obj.articleBody === 'string') jsonLdTexts.push(obj.articleBody);
+        if (typeof obj.text === 'string') jsonLdTexts.push(obj.text);
+        if (Array.isArray(obj)) obj.forEach(findText);
+        else Object.values(obj).forEach(findText);
+      };
+      findText(data);
+    } catch {
+      // Ignore invalid JSON-LD
+    }
+  });
 
   // 1. Remove all noise/boilerplate elements
   $(
@@ -54,6 +82,14 @@ function extractTextFromHtml(html: string, sourceUrl: string): string {
   // 3. Extract readable text from semantic content elements
   const lines: string[] = [];
 
+  // Include meta title / description at the beginning for rich grounding
+  if (metaTitle || ogTitle) {
+    lines.push(metaTitle || ogTitle);
+  }
+  if (metaDescription) {
+    lines.push(metaDescription);
+  }
+
   // Prefer structured content selectors first
   const prioritySelectors = 'article, main, [role="main"]';
   const priorityEl = $(prioritySelectors).first();
@@ -69,17 +105,22 @@ function extractTextFromHtml(html: string, sourceUrl: string): string {
   // If structured extraction yielded too little, fall back to full body text
   if (lines.join(' ').length < 200) {
     const bodyText = $('body').text().replace(/\s+/g, ' ').trim();
-    if (bodyText.length > 200) {
-      return bodyText;
+    if (bodyText.length > 100) {
+      lines.push(bodyText);
     }
   }
 
-  const result = lines.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+  // Append JSON-LD text if found
+  if (jsonLdTexts.length > 0) {
+    lines.push(...jsonLdTexts);
+  }
 
-  if (result.length < 100) {
+  const result = lines.join('\n\n').replace(/\n{3,}/g, '\n\n').trim();
+
+  if (result.length < 50) {
     throw new Error(
       `Could not extract meaningful content from ${sourceUrl}. ` +
-      'The page may be JavaScript-rendered, login-gated, or mostly images.'
+      'The page may be JavaScript-rendered, login-gated, or empty.'
     );
   }
 
@@ -87,15 +128,49 @@ function extractTextFromHtml(html: string, sourceUrl: string): string {
 }
 
 // ---------------------------------------------------------------------------
-// Multi-strategy URL fetcher
-// Tries up to 4 strategies to get the actual HTML content of a URL.
-// Handles bot-detection blocks, redirects, and JS-rendered pages gracefully.
+// Multi-strategy URL fetcher with Headless SPA Support
+// Tries up to 5 strategies to get the actual content of a URL.
+// Strategy 1 uses headless reader (r.jina.ai) to render JavaScript SPAs.
 // ---------------------------------------------------------------------------
 async function fetchUrlWithFallback(inputUrl: string): Promise<string> {
   const normalizedUrl = inputUrl.startsWith('http') ? inputUrl : `https://${inputUrl}`;
 
-  const strategies: Array<{ label: string; fn: () => Promise<string> }> = [
-    // Strategy 1: Chrome-like desktop browser UA
+  const strategies: Array<{ label: string; fn: () => Promise<string>; isDirectText?: boolean }> = [
+    // Strategy 1: Headless SPA Reader (Jina Reader API) — executes JS & renders client-side React/Vue/Next/Vite apps
+    {
+      label: 'Headless SPA Reader (Jina)',
+      isDirectText: true,
+      fn: async () => {
+        const jinaUrl = `https://r.jina.ai/${normalizedUrl}`;
+        const r = await axios.get(jinaUrl, {
+          timeout: 20000,
+          headers: {
+            'Accept': 'text/plain',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+          },
+          validateStatus: (s) => s >= 200 && s < 400,
+          responseType: 'text',
+        });
+        const raw = String(r.data);
+        // Clean markdown: strip metadata header, cookie disclaimers, unwrap links
+        const cleaned = raw
+          .replace(/^Title:\s*/gmi, '# ')
+          .replace(/^URL Source:.*$/gmi, '')
+          .replace(/^Final URL:.*$/gmi, '')
+          .replace(/^Published Time:.*$/gmi, '')
+          .replace(/^Markdown Content:.*$/gmi, '')
+          .replace(/We value your privacy[\s\S]*?Privacy Policy[^\n]*\n?/gi, '')
+          .replace(/We use cookies[\s\S]*?\n\n/gi, '')
+          .replace(/!\[[^\]]*\]\([^)]*\)/g, '') // remove images
+          .replace(/\[\s*\]\([^)]*\)/g, '')     // remove empty links
+          .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // unwrap links to plain text
+          .replace(/[ \t]+/g, ' ')
+          .replace(/\n{3,}/g, '\n\n')
+          .trim();
+        return cleaned;
+      },
+    },
+    // Strategy 2: Chrome-like desktop browser UA
     {
       label: 'Chrome UA',
       fn: async () => {
@@ -116,7 +191,7 @@ async function fetchUrlWithFallback(inputUrl: string): Promise<string> {
         return String(r.data);
       },
     },
-    // Strategy 2: Googlebot UA (many sites allowlist Googlebot)
+    // Strategy 3: Googlebot UA (many sites allowlist Googlebot)
     {
       label: 'Googlebot UA',
       fn: async () => {
@@ -133,7 +208,7 @@ async function fetchUrlWithFallback(inputUrl: string): Promise<string> {
         return String(r.data);
       },
     },
-    // Strategy 3: Google AMP Cache — often has pre-rendered static text version
+    // Strategy 4: Google AMP Cache — often has pre-rendered static text version
     {
       label: 'Google AMP Cache',
       fn: async () => {
@@ -151,7 +226,7 @@ async function fetchUrlWithFallback(inputUrl: string): Promise<string> {
         return String(r.data);
       },
     },
-    // Strategy 4: archive.org Wayback Machine most recent snapshot
+    // Strategy 5: archive.org Wayback Machine most recent snapshot
     {
       label: 'Wayback Machine',
       fn: async () => {
@@ -173,17 +248,25 @@ async function fetchUrlWithFallback(inputUrl: string): Promise<string> {
   const errors: string[] = [];
   for (const strategy of strategies) {
     try {
-      const html = await strategy.fn();
-      // Quick sanity check — real HTML has tags
-      if (html && html.length > 500 && /<\w/.test(html)) {
-        // Try to extract content to verify it has usable text
-        const extracted = extractTextFromHtml(html, normalizedUrl);
-        if (extracted.length >= 100) {
-          console.log(`[URL Scraper] Strategy "${strategy.label}" succeeded for ${normalizedUrl} — ${extracted.length} chars`);
-          return extracted;
+      const output = await strategy.fn();
+      if (strategy.isDirectText) {
+        if (output && output.length >= 100) {
+          console.log(`[URL Scraper] Strategy "${strategy.label}" succeeded for ${normalizedUrl} — ${output.length} chars`);
+          return output;
         }
+        errors.push(`${strategy.label}: extracted content was too short (${output?.length || 0} chars)`);
+      } else {
+        // Quick sanity check — real HTML has tags
+        if (output && output.length > 300 && /<\w/.test(output)) {
+          // Try to extract content to verify it has usable text
+          const extracted = extractTextFromHtml(output, normalizedUrl);
+          if (extracted.length >= 80) {
+            console.log(`[URL Scraper] Strategy "${strategy.label}" succeeded for ${normalizedUrl} — ${extracted.length} chars`);
+            return extracted;
+          }
+        }
+        errors.push(`${strategy.label}: extracted too little content`);
       }
-      errors.push(`${strategy.label}: extracted too little content`);
     } catch (err: any) {
       errors.push(`${strategy.label}: ${err.message}`);
     }
@@ -192,8 +275,8 @@ async function fetchUrlWithFallback(inputUrl: string): Promise<string> {
   throw new Error(
     `All scraping strategies failed for ${normalizedUrl}. ` +
     `Attempts: ${errors.join(' | ')}. ` +
-    'The page appears to be fully JavaScript-rendered or access-blocked. ' +
-    'Try a direct link to a specific article or documentation page.'
+    'The page appears to be login-gated or blocking requests. ' +
+    'Try a direct link to an article or documentation page.'
   );
 }
 

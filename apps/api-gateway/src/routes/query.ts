@@ -24,6 +24,14 @@ function normalizeQuery(text: string): string {
     .replace(/\s+/g, ' ');
 }
 
+// UUID validation helper — prevents Prisma/PostgreSQL @db.Uuid crashes
+const UUID_REGEX = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+const DEFAULT_TENANT_ID = '00000000-0000-0000-0000-000000000001';
+
+function isUuid(val?: string | null): boolean {
+  return typeof val === 'string' && UUID_REGEX.test(val.trim());
+}
+
 // POST /api/query — Query RAG engine with Redis Semantic Caching & SSE streaming
 queryRouter.post(
   '/',
@@ -40,10 +48,16 @@ queryRouter.post(
       });
     }
 
-    const effectiveDocId = (documentId || document_id || (req.headers['x-document-id'] as string) || '').trim() || null;
-    const effectiveTenantId = tenantId || (req.headers['x-tenant-id'] as string) || '00000000-0000-0000-0000-000000000001';
+    const rawDocId = (documentId || document_id || (req.headers['x-document-id'] as string) || '').trim() || null;
+    const rawTenantId = tenantId || (req.headers['x-tenant-id'] as string) || DEFAULT_TENANT_ID;
+
+    // Guaranteed valid UUIDs for Prisma @db.Uuid columns
+    const safeTenantId = isUuid(rawTenantId) ? rawTenantId : DEFAULT_TENANT_ID;
+    const effectiveTenantId = safeTenantId;
+    const effectiveDocId = rawDocId;
+
     const normalized = normalizeQuery(query);
-    const queryHash = crypto.createHash('md5').update(`${effectiveTenantId}:${effectiveDocId || 'all'}:${normalized}`).digest('hex');
+    const queryHash = crypto.createHash('md5').update(`${safeTenantId}:${effectiveDocId || 'all'}:${normalized}`).digest('hex');
     const cacheKey = `rag:cache:${queryHash}`;
 
     // ─── Step 1: Redis Semantic Cache Check (<2ms) ───────────────────────────
@@ -56,7 +70,7 @@ queryRouter.post(
         // Log cache hit to telemetry asynchronously
         prisma.ragTelemetryLog.create({
           data: {
-            tenantId: effectiveTenantId,
+            tenantId: safeTenantId,
             queryText: query,
             normalizedQueryHash: queryHash,
             queryEmbeddingMs: 0,
@@ -190,12 +204,39 @@ queryRouter.post(
       const totalLatencyMs = Date.now() - startTime;
       let matchedChunks: any[] = [];
 
-      // 1. Try targeted search for user's newly uploaded document chunks
+      // 1. Resolve document UUID if a target document was specified
+      let targetDocumentUuid: string | null = null;
       if (effectiveDocId) {
+        if (isUuid(effectiveDocId)) {
+          targetDocumentUuid = effectiveDocId;
+        } else {
+          // If effectiveDocId is a URL or name, find the actual Document record
+          try {
+            const foundDoc = await prisma.document.findFirst({
+              where: {
+                tenantId: safeTenantId,
+                OR: [
+                  { name: effectiveDocId },
+                  { originalFilename: effectiveDocId },
+                ],
+              },
+              select: { id: true },
+            });
+            if (foundDoc) {
+              targetDocumentUuid = foundDoc.id;
+            }
+          } catch (lookupErr: any) {
+            console.warn('[Doc Name Lookup Warning]', lookupErr.message);
+          }
+        }
+      }
+
+      // 2. Try targeted search for user's newly uploaded document chunks
+      if (targetDocumentUuid) {
         try {
           matchedChunks = await prisma.documentChunk.findMany({
             where: {
-              documentId: effectiveDocId,
+              documentId: targetDocumentUuid,
             },
             include: { document: { select: { id: true, name: true } } },
             take: topK,
@@ -206,11 +247,11 @@ queryRouter.post(
         }
       }
 
-      // 2. If no chunks found for target document (or none specified), search tenant's latest document chunks
+      // 3. If no chunks found for target document (or none specified), search tenant's latest document chunks
       if (matchedChunks.length === 0) {
         try {
           matchedChunks = await prisma.documentChunk.findMany({
-            where: { tenantId: effectiveTenantId },
+            where: { tenantId: safeTenantId },
             include: { document: { select: { id: true, name: true } } },
             take: topK,
             orderBy: { createdAt: 'desc' },

@@ -189,11 +189,59 @@ async def extract_url(url: str) -> str:
             text = cleaned
             logger.info("BeautifulSoup extracted %d chars from '%s'.", len(text), url)
 
-    # ── Guard: refuse to store placeholder-length content ───────────────────
+    # ── Strategy 3: Headless SPA Reader (Jina Reader API) for React/Vue/Vite ─
     if not text or len(text.strip()) < 100:
+        try:
+            jina_url = f"https://r.jina.ai/{url}"
+            async with httpx.AsyncClient(
+                follow_redirects=True,
+                timeout=httpx.Timeout(20.0),
+                headers={"Accept": "text/plain"},
+            ) as client:
+                jina_resp = await client.get(jina_url)
+                if jina_resp.status_code == 200:
+                    raw_jina = jina_resp.text
+                    # Strip metadata headers and boilerplate
+                    cleaned_jina = re.sub(r"^Title:\s*", "# ", raw_jina, flags=re.MULTILINE)
+                    cleaned_jina = re.sub(r"^URL Source:.*$", "", cleaned_jina, flags=re.MULTILINE)
+                    cleaned_jina = re.sub(r"^Final URL:.*$", "", cleaned_jina, flags=re.MULTILINE)
+                    cleaned_jina = re.sub(r"^Published Time:.*$", "", cleaned_jina, flags=re.MULTILINE)
+                    cleaned_jina = re.sub(r"^Markdown Content:.*$", "", cleaned_jina, flags=re.MULTILINE)
+                    cleaned_jina = re.sub(r"We value your privacy[\s\S]*?Privacy Policy[^\n]*\n?", "", cleaned_jina, flags=re.IGNORECASE)
+                    cleaned_jina = re.sub(r"We use cookies[\s\S]*?\n\n", "", cleaned_jina, flags=re.IGNORECASE)
+                    cleaned_jina = re.sub(r"!\[[^\]]*\]\([^)]*\)", "", cleaned_jina)
+                    cleaned_jina = re.sub(r"\[\s*\]\([^)]*\)", "", cleaned_jina)
+                    cleaned_jina = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", cleaned_jina)
+                    cleaned_jina = _clean_text(cleaned_jina)
+                    if len(cleaned_jina) >= 100:
+                        text = cleaned_jina
+                        logger.info("Jina SPA reader extracted %d chars from '%s'.", len(text), url)
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("Jina SPA reader failed for '%s': %s", url, exc)
+
+    # ── Strategy 4: Meta tags fallback (Title, Description, OG) ─────────────
+    if not text or len(text.strip()) < 100:
+        try:
+            soup = BeautifulSoup(html, "lxml")
+            meta_title = soup.title.string.strip() if soup.title and soup.title.string else ""
+            desc_tag = (
+                soup.find("meta", attrs={"name": "description"})
+                or soup.find("meta", attrs={"property": "og:description"})
+                or soup.find("meta", attrs={"name": "twitter:description"})
+            )
+            meta_desc = desc_tag.get("content", "").strip() if desc_tag else ""
+            combined_meta = f"{meta_title}\n\n{meta_desc}".strip()
+            if len(combined_meta) >= 50:
+                text = combined_meta
+                logger.info("Meta tags extractor extracted %d chars from '%s'.", len(text), url)
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("Meta tags extraction failed for '%s': %s", url, exc)
+
+    # ── Guard: refuse to store placeholder-length content ───────────────────
+    if not text or len(text.strip()) < 50:
         raise ValueError(
             f"Could not extract meaningful content from {url}. "
-            "The page may be JavaScript-rendered, login-gated, or mostly images. "
+            "The page may be login-gated or empty. "
             "Try a direct link to a documentation or article page."
         )
 

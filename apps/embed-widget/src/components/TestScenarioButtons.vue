@@ -1,8 +1,9 @@
 <script setup lang="ts">
 /**
- * VectraBase AI — 4 One-Click Recruiter Test Preset Buttons
+ * VectraBase AI — 4 One-Click Recruiter Test Preset Buttons (Collapsible)
  */
 
+import { ref } from 'vue';
 import { WIDGET_TEST_SCENARIOS, type WidgetTestScenario } from '../types/widget';
 
 defineProps<{
@@ -12,6 +13,12 @@ defineProps<{
 const emit = defineEmits<{
   (e: 'selectScenario', scenario: WidgetTestScenario): void;
 }>();
+
+const isCollapsed = ref(false);
+
+function toggleCollapse() {
+  isCollapsed.value = !isCollapsed.value;
+}
 
 function getColorClasses(color: string) {
   switch (color) {
@@ -30,31 +37,68 @@ function getColorClasses(color: string) {
 </script>
 
 <template>
-  <div class="p-3 border-t border-[#1e293b] bg-[#090b10]/80">
-    <div class="flex items-center justify-between mb-2">
-      <span class="text-[11px] font-mono text-slate-400 uppercase tracking-wider font-semibold">
-        Recruiter Interactive Test Presets:
-      </span>
-      <span class="text-[10px] text-slate-500 font-mono">1-Click Live Verification</span>
+  <div class="border-t border-[#1e293b] bg-[#090b10]/95 transition-all select-none flex-shrink-0">
+    <!-- Header with Arrow Toggle to collapse/expand for maximum chat visibility -->
+    <div
+      @click="toggleCollapse"
+      class="flex items-center justify-between p-2.5 px-3 cursor-pointer hover:bg-slate-800/40 transition-colors"
+      title="Click arrow or header to hide/open test presets"
+    >
+      <div class="flex items-center gap-1.5">
+        <button
+          type="button"
+          class="p-0.5 rounded hover:bg-slate-700/50 text-slate-400 hover:text-white transition-all flex items-center justify-center cursor-pointer"
+          :aria-label="isCollapsed ? 'Open Test Presets' : 'Hide Test Presets'"
+        >
+          <svg
+            class="w-3.5 h-3.5 transition-transform duration-200"
+            :class="{ '-rotate-90': isCollapsed, 'rotate-0': !isCollapsed }"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+
+        <span class="text-[11px] font-mono text-slate-300 uppercase tracking-wider font-semibold">
+          Recruiter Interactive Test Presets:
+        </span>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <span class="text-[10px] text-slate-400 font-mono">1-Click Live Verification</span>
+        <span
+          class="text-[9px] font-mono px-1.5 py-0.5 rounded border transition-colors"
+          :class="isCollapsed
+            ? 'text-cyan-400 border-cyan-800/50 bg-cyan-950/50 hover:bg-cyan-900/50'
+            : 'text-slate-400 border-slate-700/50 bg-slate-800/50'"
+        >
+          {{ isCollapsed ? 'Show ▲' : 'Hide ▼' }}
+        </span>
+      </div>
     </div>
 
-    <div class="grid grid-cols-2 gap-2">
-      <button
-        v-for="scenario in WIDGET_TEST_SCENARIOS"
-        :key="scenario.id"
-        type="button"
-        :disabled="disabled"
-        @click="emit('selectScenario', scenario)"
-        class="flex flex-col text-left p-2 rounded-md border text-xs font-mono transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed group cursor-pointer"
-        :class="getColorClasses(scenario.colorClass)"
-        :title="scenario.description"
-      >
-        <span class="font-bold flex items-center justify-between">
-          {{ scenario.label }}
-          <span class="text-[10px] opacity-70 group-hover:translate-x-0.5 transition-transform">→</span>
-        </span>
-        <span class="text-[10px] text-slate-400 truncate mt-0.5">{{ scenario.description }}</span>
-      </button>
+    <!-- Presets Grid (Collapsible) -->
+    <div v-show="!isCollapsed" class="p-3 pt-0">
+      <div class="grid grid-cols-2 gap-2">
+        <button
+          v-for="scenario in WIDGET_TEST_SCENARIOS"
+          :key="scenario.id"
+          type="button"
+          :disabled="disabled"
+          @click.stop="emit('selectScenario', scenario)"
+          class="flex flex-col text-left p-2 rounded-md border text-xs font-mono transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed group cursor-pointer"
+          :class="getColorClasses(scenario.colorClass)"
+          :title="scenario.description"
+        >
+          <span class="font-bold flex items-center justify-between">
+            {{ scenario.label }}
+            <span class="text-[10px] opacity-70 group-hover:translate-x-0.5 transition-transform">→</span>
+          </span>
+          <span class="text-[10px] text-slate-400 truncate mt-0.5">{{ scenario.description }}</span>
+        </button>
+      </div>
     </div>
   </div>
 </template>

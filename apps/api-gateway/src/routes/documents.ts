@@ -52,13 +52,6 @@ function extractTextFromHtml(html: string, sourceUrl: string): string {
   });
 
   // 3. Extract readable text from semantic content elements
-  const contentSelectors = [
-    'article', 'main', '[role="main"]',
-    'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-    'p', 'li', 'blockquote', 'pre', 'td', 'th',
-    'section', 'div',
-  ];
-
   const lines: string[] = [];
 
   // Prefer structured content selectors first

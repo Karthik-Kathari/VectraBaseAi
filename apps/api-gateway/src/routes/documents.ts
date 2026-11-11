@@ -86,6 +86,117 @@ function extractTextFromHtml(html: string, sourceUrl: string): string {
   return result;
 }
 
+// ---------------------------------------------------------------------------
+// Multi-strategy URL fetcher
+// Tries up to 4 strategies to get the actual HTML content of a URL.
+// Handles bot-detection blocks, redirects, and JS-rendered pages gracefully.
+// ---------------------------------------------------------------------------
+async function fetchUrlWithFallback(inputUrl: string): Promise<string> {
+  const normalizedUrl = inputUrl.startsWith('http') ? inputUrl : `https://${inputUrl}`;
+
+  const strategies: Array<{ label: string; fn: () => Promise<string> }> = [
+    // Strategy 1: Chrome-like desktop browser UA
+    {
+      label: 'Chrome UA',
+      fn: async () => {
+        const r = await axios.get(normalizedUrl, {
+          timeout: 15000,
+          maxRedirects: 5,
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache',
+          },
+          validateStatus: (s) => s >= 200 && s < 400,
+          responseType: 'text',
+        });
+        return String(r.data);
+      },
+    },
+    // Strategy 2: Googlebot UA (many sites allowlist Googlebot)
+    {
+      label: 'Googlebot UA',
+      fn: async () => {
+        const r = await axios.get(normalizedUrl, {
+          timeout: 15000,
+          maxRedirects: 5,
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
+            'Accept': 'text/html,*/*',
+          },
+          validateStatus: (s) => s >= 200 && s < 400,
+          responseType: 'text',
+        });
+        return String(r.data);
+      },
+    },
+    // Strategy 3: Google AMP Cache — often has pre-rendered static text version
+    {
+      label: 'Google AMP Cache',
+      fn: async () => {
+        const ampHost = normalizedUrl
+          .replace(/^https?:\/\//, '')
+          .replace(/\//g, '-')
+          .replace(/\./g, '-');
+        const ampUrl = `https://${ampHost}.cdn.ampproject.org/v/s/${normalizedUrl.replace(/^https?:\/\//, '')}`;
+        const r = await axios.get(ampUrl, {
+          timeout: 10000,
+          headers: { 'User-Agent': 'Mozilla/5.0 (compatible; VectraBase-Indexer/1.0)' },
+          validateStatus: (s) => s >= 200 && s < 400,
+          responseType: 'text',
+        });
+        return String(r.data);
+      },
+    },
+    // Strategy 4: archive.org Wayback Machine most recent snapshot
+    {
+      label: 'Wayback Machine',
+      fn: async () => {
+        const availUrl = `https://archive.org/wayback/available?url=${encodeURIComponent(normalizedUrl)}`;
+        const avail = await axios.get(availUrl, { timeout: 8000 });
+        const snapshotUrl = avail.data?.archived_snapshots?.closest?.url;
+        if (!snapshotUrl) throw new Error('No Wayback snapshot available');
+        const r = await axios.get(snapshotUrl, {
+          timeout: 15000,
+          headers: { 'User-Agent': 'Mozilla/5.0 (compatible; VectraBase-Indexer/1.0)' },
+          validateStatus: (s) => s >= 200 && s < 400,
+          responseType: 'text',
+        });
+        return String(r.data);
+      },
+    },
+  ];
+
+  const errors: string[] = [];
+  for (const strategy of strategies) {
+    try {
+      const html = await strategy.fn();
+      // Quick sanity check — real HTML has tags
+      if (html && html.length > 500 && /<\w/.test(html)) {
+        // Try to extract content to verify it has usable text
+        const extracted = extractTextFromHtml(html, normalizedUrl);
+        if (extracted.length >= 100) {
+          console.log(`[URL Scraper] Strategy "${strategy.label}" succeeded for ${normalizedUrl} — ${extracted.length} chars`);
+          return extracted;
+        }
+      }
+      errors.push(`${strategy.label}: extracted too little content`);
+    } catch (err: any) {
+      errors.push(`${strategy.label}: ${err.message}`);
+    }
+  }
+
+  throw new Error(
+    `All scraping strategies failed for ${normalizedUrl}. ` +
+    `Attempts: ${errors.join(' | ')}. ` +
+    'The page appears to be fully JavaScript-rendered or access-blocked. ' +
+    'Try a direct link to a specific article or documentation page.'
+  );
+}
+
 export const documentsRouter = Router();
 documentsRouter.use(authenticate);
 
@@ -469,27 +580,35 @@ documentsRouter.post('/ingest', upload.single('file'), async (req: Request, res:
     } else if (req.body?.url) {
       source = 'URL';
       const inputUrl = String(req.body.url).trim();
-      docName = docName || inputUrl;
+      const normalizedUrl = inputUrl.startsWith('http') ? inputUrl : `https://${inputUrl}`;
+      docName = docName || normalizedUrl;
       mimeType = 'text/html';
 
-      // Deep web scraping with cheerio — strips nav/footer/scripts/ads and
-      // extracts real readable content (paragraphs, headings, lists).
-      const fetchResponse = await axios.get(inputUrl, {
-        timeout: 15000,
-        headers: {
-          'User-Agent':
-            'Mozilla/5.0 (compatible; VectraBase-Indexer/1.0; +https://github.com/Karthik-Kathari/VectraBaseAi)',
-          'Accept': 'text/html,application/xhtml+xml;q=0.9,*/*;q=0.8',
-          'Accept-Language': 'en-US,en;q=0.5',
+      // ── Auto-deduplicate: delete any stale documents for this exact URL ──────
+      // This handles the case where user re-ingests a URL after a fix or update.
+      // Cascading delete removes chunks automatically via foreign key constraint.
+      const staleDocs = await prisma.document.findMany({
+        where: {
+          tenantId,
+          originalFilename: { in: [inputUrl, normalizedUrl] },
         },
-        // Treat any 2xx/3xx as success; axios follows redirects by default
-        maxRedirects: 5,
-        validateStatus: (status) => status >= 200 && status < 400,
+        select: { id: true, sha256Hash: true },
       });
+      if (staleDocs.length > 0) {
+        await prisma.document.deleteMany({
+          where: { id: { in: staleDocs.map((d) => d.id) } },
+        });
+        // Clear Redis dedup locks for deleted docs
+        await Promise.allSettled(
+          staleDocs.map((d) => redis.del(`dedup:${d.sha256Hash}:${tenantId}`))
+        );
+        console.log(`[URL Ingest] Removed ${staleDocs.length} stale doc(s) for ${normalizedUrl}`);
+      }
 
-      const html = String(fetchResponse.data);
-      // extractTextFromHtml throws if extracted content < 100 chars
-      extractedText = extractTextFromHtml(html, inputUrl);
+      // ── Multi-strategy deep web scraping ────────────────────────────────────
+      // Tries Chrome UA → Googlebot UA → AMP Cache → Wayback Machine fallback.
+      // Throws a descriptive error if ALL strategies fail (JS SPA / gated page).
+      extractedText = await fetchUrlWithFallback(normalizedUrl);
     } else {
       docName = docName || 'User_Uploaded_Knowledge_Doc.txt';
       extractedText = req.body?.text || 'Enterprise knowledge base document containing specifications, user guide, and operational instructions.';
@@ -551,6 +670,30 @@ documentsRouter.post('/ingest', upload.single('file'), async (req: Request, res:
         totalTokens: Math.ceil(extractedText.length / 4),
       },
     });
+
+    // ── Invalidate Redis semantic cache for this tenant ──────────────────────
+    // Any previously cached query responses may reference stale placeholder
+    // chunks. Flush all rag:cache:* keys for this tenant so the next query
+    // runs a fresh vector search against the newly ingested real content.
+    try {
+      const pattern = `rag:cache:*`;
+      let cursor = 0;
+      let flushedCount = 0;
+      do {
+        const [nextCursor, keys] = await redis.scan(cursor, { MATCH: pattern, COUNT: 100 });
+        cursor = Number(nextCursor);
+        if (keys.length > 0) {
+          await redis.del(keys);
+          flushedCount += keys.length;
+        }
+      } while (cursor !== 0);
+      if (flushedCount > 0) {
+        console.log(`[Cache Invalidation] Flushed ${flushedCount} stale cache key(s) after ingesting new document for tenant ${tenantId}`);
+      }
+    } catch (cacheErr: any) {
+      // Non-fatal — cache will expire naturally; log but do not fail the request
+      console.warn('[Cache Invalidation Warning]', cacheErr.message);
+    }
 
     res.status(200).json({
       success: true,

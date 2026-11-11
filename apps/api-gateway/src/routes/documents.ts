@@ -16,6 +16,7 @@ import fs from 'fs';
 import path from 'path';
 import FormData from 'form-data';
 import axios, { AxiosError } from 'axios';
+import * as cheerio from 'cheerio';
 import { z } from 'zod';
 import { prisma } from '../lib/prisma';
 import { redis } from '../lib/redis';
@@ -23,6 +24,74 @@ import { authenticate } from '../middleware/auth';
 import { requireRole } from '../middleware/rbac';
 import { defaultRateLimiter } from '../middleware/rateLimiter';
 import { trialGuard } from '../middleware/trialGuard';
+
+// ---------------------------------------------------------------------------
+// Deep HTML text extractor using cheerio
+// Strips boilerplate (nav, footer, header, scripts, ads) and pulls readable
+// paragraphs, headings and list items from the page body.
+// ---------------------------------------------------------------------------
+function extractTextFromHtml(html: string, sourceUrl: string): string {
+  const $ = cheerio.load(html);
+
+  // 1. Remove all noise/boilerplate elements
+  $(
+    'script, style, noscript, iframe, form, button, input, select, textarea, ' +
+    'nav, footer, header, aside, [role="navigation"], [role="banner"], ' +
+    '[role="complementary"], [aria-hidden="true"]'
+  ).remove();
+
+  // 2. Remove elements whose class/id hints suggest noise
+  const noisePattern = /\b(nav|menu|sidebar|footer|header|cookie|banner|popup|modal|overlay|ad(?:vert)?|promo|social|share|comment|related|widget|newsletter)\b/i;
+  $('*').each((_i, el) => {
+    if (el.type !== 'tag') return;
+    const classAttr = $(el).attr('class') || '';
+    const idAttr = $(el).attr('id') || '';
+    if (noisePattern.test(classAttr) || noisePattern.test(idAttr)) {
+      $(el).remove();
+    }
+  });
+
+  // 3. Extract readable text from semantic content elements
+  const contentSelectors = [
+    'article', 'main', '[role="main"]',
+    'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+    'p', 'li', 'blockquote', 'pre', 'td', 'th',
+    'section', 'div',
+  ];
+
+  const lines: string[] = [];
+
+  // Prefer structured content selectors first
+  const prioritySelectors = 'article, main, [role="main"]';
+  const priorityEl = $(prioritySelectors).first();
+  const root = priorityEl.length ? priorityEl : $('body');
+
+  root.find('h1, h2, h3, h4, h5, h6, p, li, blockquote, pre, td, th').each((_i, el) => {
+    const text = $(el).text().trim();
+    if (text.length > 20) {
+      lines.push(text);
+    }
+  });
+
+  // If structured extraction yielded too little, fall back to full body text
+  if (lines.join(' ').length < 200) {
+    const bodyText = $('body').text().replace(/\s+/g, ' ').trim();
+    if (bodyText.length > 200) {
+      return bodyText;
+    }
+  }
+
+  const result = lines.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+
+  if (result.length < 100) {
+    throw new Error(
+      `Could not extract meaningful content from ${sourceUrl}. ` +
+      'The page may be JavaScript-rendered, login-gated, or mostly images.'
+    );
+  }
+
+  return result;
+}
 
 export const documentsRouter = Router();
 documentsRouter.use(authenticate);
@@ -409,21 +478,25 @@ documentsRouter.post('/ingest', upload.single('file'), async (req: Request, res:
       const inputUrl = String(req.body.url).trim();
       docName = docName || inputUrl;
       mimeType = 'text/html';
-      try {
-        const response = await axios.get(inputUrl, { timeout: 8000, headers: { 'User-Agent': 'VectraBase-Crawler/1.0' } });
-        const html = String(response.data);
-        extractedText = html
-          .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, ' ')
-          .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, ' ')
-          .replace(/<[^>]+>/g, ' ')
-          .replace(/\s+/g, ' ')
-          .trim();
-        if (extractedText.length < 50) {
-          extractedText = `Documentation content scraped from ${inputUrl}. Overview, technical specifications, and user documentation.`;
-        }
-      } catch {
-        extractedText = `Documentation content scraped from ${inputUrl}. Overview, technical specifications, and API documentation for ${inputUrl}.`;
-      }
+
+      // Deep web scraping with cheerio — strips nav/footer/scripts/ads and
+      // extracts real readable content (paragraphs, headings, lists).
+      const fetchResponse = await axios.get(inputUrl, {
+        timeout: 15000,
+        headers: {
+          'User-Agent':
+            'Mozilla/5.0 (compatible; VectraBase-Indexer/1.0; +https://github.com/Karthik-Kathari/VectraBaseAi)',
+          'Accept': 'text/html,application/xhtml+xml;q=0.9,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.5',
+        },
+        // Treat any 2xx/3xx as success; axios follows redirects by default
+        maxRedirects: 5,
+        validateStatus: (status) => status >= 200 && status < 400,
+      });
+
+      const html = String(fetchResponse.data);
+      // extractTextFromHtml throws if extracted content < 100 chars
+      extractedText = extractTextFromHtml(html, inputUrl);
     } else {
       docName = docName || 'User_Uploaded_Knowledge_Doc.txt';
       extractedText = req.body?.text || 'Enterprise knowledge base document containing specifications, user guide, and operational instructions.';

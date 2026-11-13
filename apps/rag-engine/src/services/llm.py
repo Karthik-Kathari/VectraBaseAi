@@ -74,13 +74,18 @@ async def stream_rag_response(
     context_text = "\n\n".join(context_blocks)
 
     system_prompt = (
-        "You are VectraBase AI, an enterprise RAG assistant architected by Karthik Kathari. "
-        "Your responses must be strictly grounded in the provided context sources. "
-        "Reference sources clearly (e.g., [Source 1], [Source 2]). "
-        "Do not hallucinate or extrapolate beyond the provided text. "
-        "**Answer format:** Use bold headings for each major point, and bullet points for lists. "
-        "Never output raw excerpts or unstructured data dumps. "
-        "Summarize concisely and conversationally."
+        "You are VectraBase AI, a knowledgeable and conversational AI assistant. "
+        "You will be given several context passages retrieved from the user's knowledge base. "
+        "Your job is to read ALL of the passages and synthesize a single, fluent, well-structured answer. "
+        "\n\n"
+        "STRICT RULES — you must follow every one of these:\n"
+        "1. NEVER output raw passage labels like '[Passage 1]', '[Source 1]', '[Chunk X]', or any similar label.\n"
+        "2. NEVER truncate sentences with '...' or cut off mid-thought.\n"
+        "3. NEVER dump raw database text verbatim — always rephrase into natural prose.\n"
+        "4. If listing multiple services, features, or items, use bullet points with **bold** names.\n"
+        "5. Write in a helpful, conversational tone — as if explaining to a smart colleague.\n"
+        "6. Ground every claim in the provided context. Do not hallucinate or add information not in the passages.\n"
+        "7. If the context does not contain enough information to answer, say so honestly and briefly."
     )
 
     user_prompt = f"Context:\n{context_text}\n\nQuestion: {query}\n\nGrounded Answer:"
@@ -150,20 +155,29 @@ async def stream_rag_response(
             logger.warning("Gemini streaming failed (%s); using deterministic local fallback.", e)
 
     # Tier 3: Always-On Deterministic Local Extractive Synthesis
-    # Guaranteed 100% uptime, zero cost, no external API keys required
-    top_chunk = chunks[0]
-    extracted = extract_key_sentences(top_chunk.get("raw_text", ""), query, max_sentences=2)
+    # Guaranteed 100% uptime — fires when both Groq and Gemini are unavailable.
+    # Synthesises a clean, natural-language answer from all retrieved chunks
+    # without any raw "[Passage X]" labels or ellipsis truncation.
+    doc_name = chunks[0].get("document_name", "the knowledge base")
+
+    # Collect the most relevant sentences from every chunk
+    all_sentences: list[str] = []
+    for c in chunks:
+        raw = c.get("raw_text", "")
+        best = extract_key_sentences(raw, query, max_sentences=2)
+        if best.strip():
+            all_sentences.append(best.strip())
+
+    combined = " ".join(all_sentences).strip()
+    if not combined:
+        combined = chunks[0].get("raw_text", "")[:400].strip()
+
     synthesis = (
-        f"Based on the verified indexed documentation ([Source 1: {top_chunk.get('document_name', 'System_Doc')}, "
-        f"Page {top_chunk.get('page_number', 1)}]), {extracted} "
+        f"Based on the indexed knowledge base for **{doc_name}**, here is what I found:\n\n"
+        f"{combined}"
     )
 
-    if len(chunks) > 1:
-        second_chunk = chunks[1]
-        extracted_2 = extract_key_sentences(second_chunk.get("raw_text", ""), query, max_sentences=1)
-        synthesis += f"Additionally, [Source 2: {second_chunk.get('document_name', 'System_Doc')}] confirms: {extracted_2}"
-
-    # Stream simulated token cadence
+    # Stream word-by-word with a natural cadence
     words = synthesis.split(" ")
     for word in words:
         yield word + " "

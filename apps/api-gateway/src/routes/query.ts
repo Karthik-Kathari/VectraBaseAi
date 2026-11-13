@@ -264,7 +264,7 @@ queryRouter.post(
       if (matchedChunks.length > 0) {
         const docName = matchedChunks[0].document?.name || 'Uploaded Knowledge Document';
 
-        // Stream grounded citations from the user's actual document
+        // Stream citations (full content — no truncation)
         for (let i = 0; i < matchedChunks.length; i++) {
           const c = matchedChunks[i];
           res.write(
@@ -283,9 +283,16 @@ queryRouter.post(
           );
         }
 
-        // Synthesize response grounded in user-uploaded data
-        const primaryPassage = matchedChunks[0].content;
-        const answer = `Based on your indexed document "${docName}", here is what was found regarding "${query}":\n\n${primaryPassage}\n\n${matchedChunks.length > 1 ? `Key supporting context:\n${matchedChunks.slice(1, 3).map((c, idx) => `• [Passage ${idx + 2}]: ${c.content.slice(0, 160)}...`).join('\n')}` : ''}`;
+        // Build a clean, natural-language synthesis from all retrieved chunks.
+        // — No raw "[Passage X]" labels, no ellipsis truncation, no data dumps.
+        const allContent = matchedChunks
+          .map(c => c.content.trim())
+          .filter(Boolean)
+          .join('\n\n');
+
+        const answer =
+          `Based on the indexed knowledge base for **${docName}**, here is what I found about "${query}":\n\n` +
+          allContent;
 
         const words = answer.split(' ');
         for (const word of words) {

@@ -26,6 +26,11 @@ export const metadata: Metadata = {
   icons: {
     icon: '/favicon.ico',
   },
+  // Add these two properties below:
+  metadataBase: new URL('https://vectrabaseai.vercel.app'),
+  alternates: {
+    canonical: '/',
+  },
 };
 
 export default function RootLayout({

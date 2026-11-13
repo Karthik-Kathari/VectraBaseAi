@@ -1,13 +1,5 @@
-/**
- * VectraBase AI — Document Management Routes
- * Author: Karthik Kathari
- *
- * POST   /api/documents/upload     — Upload + SHA-256 dedup + proxy to FastAPI
- * GET    /api/documents            — List documents with pagination
- * GET    /api/documents/:id        — Get document with chunk count
- * DELETE /api/documents/:id        — Soft-delete (mark as FAILED / remove)
- * GET    /api/documents/:id/chunks — Cursor-paginated chunks
- */
+// VectraBase AI — Document Management Routes
+// Refactored to fix syntax errors and apply cleaning improvements
 
 import { Router, Request, Response } from 'express';
 import multer from 'multer';
@@ -26,14 +18,27 @@ import { defaultRateLimiter } from '../middleware/rateLimiter';
 import { trialGuard } from '../middleware/trialGuard';
 
 // ---------------------------------------------------------------------------
-// Deep HTML text extractor using cheerio
-// Strips boilerplate (nav, footer, header, scripts, ads) and pulls readable
-// paragraphs, headings, list items, and page metadata.
+// Helper: Deep HTML text extractor using cheerio
 // ---------------------------------------------------------------------------
+function cleanExtractedText(text: string): string {
+  // Remove button/CTA phrases (case‑insensitive)
+  const btnPattern = /\b(View All|Click Here|Learn More|Sign Up|Register|Get Started)\b/gi;
+  text = text.replace(btnPattern, '');
+  // Remove pricing suffixes like .com/yr, .in/yr, .net/yr, etc.
+  const pricePattern = /\.\w{2,3}\/yr/gi;
+  text = text.replace(pricePattern, '');
+  // Remove all‑caps lines that are short navigation headers (5-20 chars)
+  const capsPattern: RegExp = /^[A-Z\s]{5,20}$/gm;
+  text = text.replace(capsPattern, '');
+  // Collapse whitespace and excess newlines
+  text = text.replace(/[ \t]+/g, ' ');
+  text = text.replace(/\n{3,}/g, '\n\n');
+  return text.trim();
+}
+
 function extractTextFromHtml(html: string, sourceUrl: string): string {
   const $ = cheerio.load(html);
-
-  // Extract meta tags first before removing elements
+  // Meta data
   const metaTitle = $('title').text().trim();
   const metaDescription =
     $('meta[name="description"]').attr('content')?.trim() ||
@@ -42,7 +47,7 @@ function extractTextFromHtml(html: string, sourceUrl: string): string {
     '';
   const ogTitle = $('meta[property="og:title"]').attr('content')?.trim() || '';
 
-  // Extract JSON-LD structured data if present
+  // JSON‑LD extraction
   const jsonLdTexts: string[] = [];
   $('script[type="application/ld+json"]').each((_i, el) => {
     try {
@@ -56,19 +61,13 @@ function extractTextFromHtml(html: string, sourceUrl: string): string {
         else Object.values(obj).forEach(findText);
       };
       findText(data);
-    } catch {
-      // Ignore invalid JSON-LD
-    }
+    } catch {}
   });
 
-  // 1. Remove all noise/boilerplate elements
-  $(
-    'script, style, noscript, iframe, form, button, input, select, textarea, ' +
-    'nav, footer, header, aside, [role="navigation"], [role="banner"], ' +
-    '[role="complementary"], [aria-hidden="true"]'
-  ).remove();
+  // Remove boilerplate elements
+  $('script, style, noscript, iframe, form, button, input, select, textarea, nav, footer, header, aside, [role="navigation"], [role="banner"], [role="complementary"], [aria-hidden="true"]').remove();
 
-  // 2. Remove elements whose class/id hints suggest noise
+  // Remove noisy elements by class/id
   const noisePattern = /\b(nav|menu|sidebar|footer|header|cookie|banner|popup|modal|overlay|ad(?:vert)?|promo|social|share|comment|related|widget|newsletter)\b/i;
   $('*').each((_i, el) => {
     if (el.type !== 'tag') return;
@@ -79,80 +78,56 @@ function extractTextFromHtml(html: string, sourceUrl: string): string {
     }
   });
 
-  // 3. Extract readable text from semantic content elements
   const lines: string[] = [];
+  if (metaTitle || ogTitle) lines.push(metaTitle || ogTitle);
+  if (metaDescription) lines.push(metaDescription);
 
-  // Include meta title / description at the beginning for rich grounding
-  if (metaTitle || ogTitle) {
-    lines.push(metaTitle || ogTitle);
-  }
-  if (metaDescription) {
-    lines.push(metaDescription);
-  }
-
-  // Prefer structured content selectors first
   const prioritySelectors = 'article, main, [role="main"]';
   const priorityEl = $(prioritySelectors).first();
   const root = priorityEl.length ? priorityEl : $('body');
 
   root.find('h1, h2, h3, h4, h5, h6, p, li, blockquote, pre, td, th').each((_i, el) => {
-    const text = $(el).text().trim();
-    if (text.length > 20) {
-      lines.push(text);
-    }
+    const txt = $(el).text().trim();
+    if (txt.length > 20) lines.push(txt);
   });
 
-  // If structured extraction yielded too little, fall back to full body text
   if (lines.join(' ').length < 200) {
     const bodyText = $('body').text().replace(/\s+/g, ' ').trim();
-    if (bodyText.length > 100) {
-      lines.push(bodyText);
-    }
+    if (bodyText.length > 100) lines.push(bodyText);
   }
 
-  // Append JSON-LD text if found
-  if (jsonLdTexts.length > 0) {
-    lines.push(...jsonLdTexts);
-  }
+  if (jsonLdTexts.length > 0) lines.push(...jsonLdTexts);
 
   const result = lines.join('\n\n').replace(/\n{3,}/g, '\n\n').trim();
-
   if (result.length < 50) {
-    throw new Error(
-      `Could not extract meaningful content from ${sourceUrl}. ` +
-      'The page may be JavaScript-rendered, login-gated, or empty.'
-    );
+    throw new Error(`Could not extract meaningful content from ${sourceUrl}. The page may be JavaScript-rendered, login-gated, or empty.`);
   }
-
   return result;
 }
 
 // ---------------------------------------------------------------------------
-// Multi-strategy URL fetcher with Headless SPA Support
-// Tries up to 5 strategies to get the actual content of a URL.
-// Strategy 1 uses headless reader (r.jina.ai) to render JavaScript SPAs.
+// Multi‑strategy URL fetcher with Headless SPA support
 // ---------------------------------------------------------------------------
 async function fetchUrlWithFallback(inputUrl: string): Promise<string> {
   const normalizedUrl = inputUrl.startsWith('http') ? inputUrl : `https://${inputUrl}`;
-
   const strategies: Array<{ label: string; fn: () => Promise<string>; isDirectText?: boolean }> = [
-    // Strategy 1: Headless SPA Reader (Jina Reader API) — executes JS & renders client-side React/Vue/Next/Vite apps
     {
       label: 'Headless SPA Reader (Jina)',
       isDirectText: true,
       fn: async () => {
         const jinaUrl = `https://r.jina.ai/${normalizedUrl}`;
+        // Wait briefly to allow any SPA content to be fully rendered on the Jina side (if applicable)
+        await new Promise(r => setTimeout(r, 2000));
         const r = await axios.get(jinaUrl, {
           timeout: 20000,
           headers: {
-            'Accept': 'text/plain',
+            Accept: 'text/plain',
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
           },
-          validateStatus: (s) => s >= 200 && s < 400,
+          validateStatus: s => s >= 200 && s < 400,
           responseType: 'text',
         });
         const raw = String(r.data);
-        // Clean markdown: strip metadata header, cookie disclaimers, unwrap links
         const cleaned = raw
           .replace(/^Title:\s*/gmi, '# ')
           .replace(/^URL Source:.*$/gmi, '')
@@ -161,16 +136,18 @@ async function fetchUrlWithFallback(inputUrl: string): Promise<string> {
           .replace(/^Markdown Content:.*$/gmi, '')
           .replace(/We value your privacy[\s\S]*?Privacy Policy[^\n]*\n?/gi, '')
           .replace(/We use cookies[\s\S]*?\n\n/gi, '')
-          .replace(/!\[[^\]]*\]\([^)]*\)/g, '') // remove images
-          .replace(/\[\s*\]\([^)]*\)/g, '')     // remove empty links
-          .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // unwrap links to plain text
+          .replace(/!\[[^\]]*\]\([^)]*\)/g, '') // images
+          .replace(/\[\s*\]\([^)]*\)/g, '') // empty links
+          .replace(/\[([^\]]+)\]([^)]+)/g, '$1') // unwrap links
           .replace(/[ \t]+/g, ' ')
           .replace(/\n{3,}/g, '\n\n')
           .trim();
+        console.log('=== EXTRACTED TEXT (JINA) START ===');
+        console.log(cleaned);
+        console.log('=== EXTRACTED TEXT (JINA) END ===');
         return cleaned;
       },
     },
-    // Strategy 2: Chrome-like desktop browser UA
     {
       label: 'Chrome UA',
       fn: async () => {
@@ -179,19 +156,18 @@ async function fetchUrlWithFallback(inputUrl: string): Promise<string> {
           maxRedirects: 5,
           headers: {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+            Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
             'Accept-Language': 'en-US,en;q=0.9',
             'Accept-Encoding': 'gzip, deflate, br',
             'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache',
+            Pragma: 'no-cache',
           },
-          validateStatus: (s) => s >= 200 && s < 400,
+          validateStatus: s => s >= 200 && s < 400,
           responseType: 'text',
         });
         return String(r.data);
       },
     },
-    // Strategy 3: Googlebot UA (many sites allowlist Googlebot)
     {
       label: 'Googlebot UA',
       fn: async () => {
@@ -200,33 +176,28 @@ async function fetchUrlWithFallback(inputUrl: string): Promise<string> {
           maxRedirects: 5,
           headers: {
             'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
-            'Accept': 'text/html,*/*',
+            Accept: 'text/html,*/*',
           },
-          validateStatus: (s) => s >= 200 && s < 400,
+          validateStatus: s => s >= 200 && s < 400,
           responseType: 'text',
         });
         return String(r.data);
       },
     },
-    // Strategy 4: Google AMP Cache — often has pre-rendered static text version
     {
       label: 'Google AMP Cache',
       fn: async () => {
-        const ampHost = normalizedUrl
-          .replace(/^https?:\/\//, '')
-          .replace(/\//g, '-')
-          .replace(/\./g, '-');
+        const ampHost = normalizedUrl.replace(/^https?:\/\//, '').replace(/\//g, '-').replace(/\./g, '-');
         const ampUrl = `https://${ampHost}.cdn.ampproject.org/v/s/${normalizedUrl.replace(/^https?:\/\//, '')}`;
         const r = await axios.get(ampUrl, {
           timeout: 10000,
           headers: { 'User-Agent': 'Mozilla/5.0 (compatible; VectraBase-Indexer/1.0)' },
-          validateStatus: (s) => s >= 200 && s < 400,
+          validateStatus: s => s >= 200 && s < 400,
           responseType: 'text',
         });
         return String(r.data);
       },
     },
-    // Strategy 5: archive.org Wayback Machine most recent snapshot
     {
       label: 'Wayback Machine',
       fn: async () => {
@@ -237,7 +208,7 @@ async function fetchUrlWithFallback(inputUrl: string): Promise<string> {
         const r = await axios.get(snapshotUrl, {
           timeout: 15000,
           headers: { 'User-Agent': 'Mozilla/5.0 (compatible; VectraBase-Indexer/1.0)' },
-          validateStatus: (s) => s >= 200 && s < 400,
+          validateStatus: s => s >= 200 && s < 400,
           responseType: 'text',
         });
         return String(r.data);
@@ -251,50 +222,36 @@ async function fetchUrlWithFallback(inputUrl: string): Promise<string> {
       const output = await strategy.fn();
       if (strategy.isDirectText) {
         if (output && output.length >= 100) {
-          console.log(`[URL Scraper] Strategy "${strategy.label}" succeeded for ${normalizedUrl} — ${output.length} chars`);
+          console.log(`[URL Scraper] Strategy "${strategy.label}" succeeded for ${normalizedUrl} – ${output.length} chars`);
           return output;
         }
         errors.push(`${strategy.label}: extracted content was too short (${output?.length || 0} chars)`);
       } else {
-        // Quick sanity check — real HTML has tags
         if (output && output.length > 300 && /<\w/.test(output)) {
-          // Try to extract content to verify it has usable text
           const extracted = extractTextFromHtml(output, normalizedUrl);
           if (extracted.length >= 80) {
-            console.log(`[URL Scraper] Strategy "${strategy.label}" succeeded for ${normalizedUrl} — ${extracted.length} chars`);
+            console.log(`[URL Scraper] Strategy "${strategy.label}" succeeded for ${normalizedUrl} – ${extracted.length} chars`);
             return extracted;
           }
+          errors.push(`${strategy.label}: extracted too little content`);
+        } else {
+          errors.push(`${strategy.label}: output not HTML or too short`);
         }
-        errors.push(`${strategy.label}: extracted too little content`);
       }
     } catch (err: any) {
       errors.push(`${strategy.label}: ${err.message}`);
     }
   }
-
-  throw new Error(
-    `All scraping strategies failed for ${normalizedUrl}. ` +
-    `Attempts: ${errors.join(' | ')}. ` +
-    'The page appears to be login-gated or blocking requests. ' +
-    'Try a direct link to an article or documentation page.'
-  );
+  throw new Error(`All scraping strategies failed for ${normalizedUrl}. Attempts: ${errors.join(' | ')}. The page may be login‑gated or blocking requests.`);
 }
 
-export const documentsRouter = Router();
-documentsRouter.use(authenticate);
-
-// ─── Multer Configuration ─────────────────────────────────────────────────────
-
-const ALLOWED_MIME_TYPES = new Set([
-  'application/pdf',
-  'text/markdown',
-  'text/plain',
-  'text/x-markdown',
-]);
-
+// ---------------------------------------------------------------------------
+// Multer configuration
+// ---------------------------------------------------------------------------
+const ALLOWED_MIME_TYPES = new Set(['application/pdf', 'text/markdown', 'text/plain', 'text/x-markdown']);
 const upload = multer({
   dest: path.join(process.cwd(), 'uploads', 'tmp'),
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB
   fileFilter: (_req, file, cb) => {
     if (ALLOWED_MIME_TYPES.has(file.mimetype) || file.originalname.endsWith('.md')) {
       cb(null, true);
@@ -304,13 +261,14 @@ const upload = multer({
   },
 });
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
 function computeFileSha256(filePath: string): Promise<string> {
   return new Promise((resolve, reject) => {
     const hash = crypto.createHash('sha256');
     const stream = fs.createReadStream(filePath);
-    stream.on('data', (chunk) => hash.update(chunk));
+    stream.on('data', chunk => hash.update(chunk));
     stream.on('end', () => resolve(hash.digest('hex')));
     stream.on('error', reject);
   });
@@ -322,8 +280,12 @@ function detectSource(mimeType: string, originalName: string): 'PDF' | 'MARKDOWN
   return 'TXT';
 }
 
-// ─── POST /upload ─────────────────────────────────────────────────────────────
+const documentsRouter = Router();
+documentsRouter.use(authenticate);
 
+// ---------------------------------------------------------------------------
+// POST /upload – file upload and ingestion proxy
+// ---------------------------------------------------------------------------
 documentsRouter.post(
   '/upload',
   requireRole('WORKSPACE_OWNER', 'AI_ENGINEER'),
@@ -332,43 +294,29 @@ documentsRouter.post(
   upload.single('file'),
   async (req: Request, res: Response) => {
     if (!req.file) {
-      res.status(400).json({ success: false, error: { code: 'NO_FILE', message: 'No file uploaded' } });
-      return;
+      return res.status(400).json({ success: false, error: { code: 'NO_FILE', message: 'No file uploaded' } });
     }
-
     const tenantId = req.user!.tenantId;
     const tmpFilePath = req.file.path;
-
     try {
-      // 1. Compute SHA-256 hash of file content
       const sha256Hash = await computeFileSha256(tmpFilePath);
-
-      // 2. Check Redis idempotency lock (SETNX)
       const dedupKey = `dedup:${sha256Hash}:${tenantId}`;
-      const lockAcquired = await redis.set(dedupKey, '1', 'EX', 300, 'NX'); // 5-min lock
+      const lockAcquired = await redis.set(dedupKey, '1', 'EX', 300, 'NX');
 
       if (!lockAcquired) {
-        // Lock exists — check if document is already indexed
         const existingDoc = await prisma.document.findFirst({
           where: { sha256Hash, tenantId, status: { in: ['INDEXED', 'PROCESSING'] } },
           select: { id: true, name: true, status: true, totalChunks: true },
         });
-
         if (existingDoc) {
-          // Clean up tmp file
           fs.unlink(tmpFilePath, () => {});
-          res.status(200).json({
-            success: true,
-            data: { document: existingDoc, deduplicated: true, message: 'Document already exists (SHA-256 match)' },
-          });
-          return;
+          return res.status(200).json({ success: true, data: { document: existingDoc, deduplicated: true, message: 'Document already exists (SHA-256 match)' } });
         }
       }
 
       const source = detectSource(req.file.mimetype, req.file.originalname);
       const docName = (req.body.name as string | undefined) ?? path.basename(req.file.originalname, path.extname(req.file.originalname));
 
-      // 3. Create document record in DB (PENDING state)
       const document = await prisma.document.create({
         data: {
           tenantId,
@@ -382,24 +330,18 @@ documentsRouter.post(
         },
       });
 
-      // 4. Set up SSE headers for progress streaming
+      // SSE headers for progress streaming
       res.setHeader('Content-Type', 'text/event-stream');
       res.setHeader('Cache-Control', 'no-cache');
       res.setHeader('Connection', 'keep-alive');
       res.setHeader('X-Accel-Buffering', 'no');
       res.flushHeaders();
 
-      // Send initial event
       res.write(`data: ${JSON.stringify({ event: 'started', documentId: document.id, status: 'PROCESSING' })}\n\n`);
 
-      // 5. Proxy to FastAPI RAG engine for ingestion
       const ragEngineUrl = process.env.RAG_ENGINE_URL ?? 'http://localhost:8000';
-
       const formData = new FormData();
-      formData.append('file', fs.createReadStream(tmpFilePath), {
-        filename: req.file.originalname,
-        contentType: req.file.mimetype,
-      });
+      formData.append('file', fs.createReadStream(tmpFilePath), { filename: req.file.originalname, contentType: req.file.mimetype });
       formData.append('document_id', document.id);
       formData.append('tenant_id', tenantId);
       formData.append('source', source);
@@ -408,42 +350,25 @@ documentsRouter.post(
         const ragResponse = await axios.post(`${ragEngineUrl}/ingest`, formData, {
           headers: { ...formData.getHeaders() },
           responseType: 'stream',
-          timeout: 300_000, // 5 minutes
+          timeout: 300_000,
         });
-
-        // Forward SSE events from FastAPI to client
-        ragResponse.data.on('data', (chunk: Buffer) => {
-          res.write(chunk.toString());
-        });
-
+        ragResponse.data.on('data', (chunk: Buffer) => res.write(chunk.toString()));
         ragResponse.data.on('end', async () => {
-          // Update document status
-          const updatedDoc = await prisma.document.update({
-            where: { id: document.id },
-            data: { status: 'INDEXED' },
-          });
-
-          res.write(`data: ${JSON.stringify({ event: 'completed', documentId: document.id, status: 'INDEXED', totalChunks: updatedDoc.totalChunks })}\n\n`);
+          await prisma.document.update({ where: { id: document.id }, data: { status: 'INDEXED' } });
+          res.write(`data: ${JSON.stringify({ event: 'completed', documentId: document.id, status: 'INDEXED' })}\n\n`);
           res.write('data: [DONE]\n\n');
           res.end();
           fs.unlink(tmpFilePath, () => {});
         });
-
         ragResponse.data.on('error', async (err: Error) => {
-          await prisma.document.update({
-            where: { id: document.id },
-            data: { status: 'FAILED', errorMessage: err.message },
-          });
+          await prisma.document.update({ where: { id: document.id }, data: { status: 'FAILED', errorMessage: err.message } });
           res.write(`data: ${JSON.stringify({ event: 'error', message: err.message })}\n\n`);
           res.end();
           fs.unlink(tmpFilePath, () => {});
         });
       } catch (ragErr) {
         const message = ragErr instanceof AxiosError ? ragErr.message : 'RAG engine unavailable';
-        await prisma.document.update({
-          where: { id: document.id },
-          data: { status: 'FAILED', errorMessage: message },
-        });
+        await prisma.document.update({ where: { id: document.id }, data: { status: 'FAILED', errorMessage: message } });
         res.write(`data: ${JSON.stringify({ event: 'error', documentId: document.id, message })}\n\n`);
         res.end();
         fs.unlink(tmpFilePath, () => {});
@@ -453,11 +378,12 @@ documentsRouter.post(
       const message = err instanceof Error ? err.message : 'Upload failed';
       res.status(500).json({ success: false, error: { code: 'UPLOAD_FAILED', message } });
     }
-  },
+  }
 );
 
-// ─── GET / — List Documents ───────────────────────────────────────────────────
-
+// ---------------------------------------------------------------------------
+// GET / – List documents
+// ---------------------------------------------------------------------------
 const ListQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
@@ -468,25 +394,19 @@ const ListQuerySchema = z.object({
 documentsRouter.get('/', defaultRateLimiter, async (req: Request, res: Response) => {
   const parse = ListQuerySchema.safeParse(req.query);
   if (!parse.success) {
-    res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: parse.error.issues[0]?.message } });
-    return;
+    return res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: parse.error.issues[0]?.message } });
   }
-
   const { page, limit, status, search } = parse.data;
   const tenantId = req.user!.tenantId;
   const skip = (page - 1) * limit;
-
-  const where = {
-    tenantId,
-    ...(status && { status }),
-    ...(search && {
-      OR: [
-        { name: { contains: search, mode: 'insensitive' as const } },
-        { originalFilename: { contains: search, mode: 'insensitive' as const } },
-      ],
-    }),
-  };
-
+  const where: any = { tenantId };
+  if (status) where.status = status;
+  if (search) {
+    where.OR = [
+      { name: { contains: search, mode: 'insensitive' } },
+      { originalFilename: { contains: search, mode: 'insensitive' } },
+    ];
+  }
   const [documents, total] = await Promise.all([
     prisma.document.findMany({
       where,
@@ -509,70 +429,44 @@ documentsRouter.get('/', defaultRateLimiter, async (req: Request, res: Response)
     }),
     prisma.document.count({ where }),
   ]);
-
-  res.json({
-    success: true,
-    data: {
-      documents,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-        hasMore: skip + documents.length < total,
-      },
-    },
-  });
+  res.json({ success: true, data: { documents, pagination: { page, limit, total, totalPages: Math.ceil(total / limit), hasMore: skip + documents.length < total } } });
 });
 
-// ─── GET /:id — Get Single Document ───────────────────────────────────────────
-
+// ---------------------------------------------------------------------------
+// GET /:id – Single document
+// ---------------------------------------------------------------------------
 documentsRouter.get('/:id', defaultRateLimiter, async (req: Request, res: Response) => {
   const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const tenantId = req.user!.tenantId;
-
   const document = await prisma.document.findFirst({
     where: { id, tenantId },
-    include: {
-      _count: { select: { chunks: true } },
-    },
+    include: { _count: { select: { chunks: true } } },
   });
-
   if (!document) {
-    res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Document not found' } });
-    return;
+    return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Document not found' } });
   }
-
   res.json({ success: true, data: { document } });
 });
 
-// ─── DELETE /:id — Delete Document ───────────────────────────────────────────
+// ---------------------------------------------------------------------------
+// DELETE /:id – Delete document
+// ---------------------------------------------------------------------------
+documentsRouter.delete('/:id', requireRole('WORKSPACE_OWNER', 'AI_ENGINEER'), async (req: Request, res: Response) => {
+  const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const tenantId = req.user!.tenantId;
+  const document = await prisma.document.findFirst({ where: { id, tenantId } });
+  if (!document) {
+    return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Document not found' } });
+  }
+  await prisma.document.delete({ where: { id } });
+  // Remove dedup lock from Redis
+  await redis.del(`dedup:${document.sha256Hash}:${tenantId}`);
+  res.json({ success: true, data: { message: 'Document deleted successfully' } });
+});
 
-documentsRouter.delete(
-  '/:id',
-  requireRole('WORKSPACE_OWNER', 'AI_ENGINEER'),
-  async (req: Request, res: Response) => {
-    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-    const tenantId = req.user!.tenantId;
-
-    const document = await prisma.document.findFirst({ where: { id, tenantId } });
-    if (!document) {
-      res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Document not found' } });
-      return;
-    }
-
-    // Delete document and cascading chunks
-    await prisma.document.delete({ where: { id } });
-
-    // Remove dedup lock from Redis
-    await redis.del(`dedup:${document.sha256Hash}:${tenantId}`);
-
-    res.json({ success: true, data: { message: 'Document deleted successfully' } });
-  },
-);
-
-// ─── GET /:id/chunks — Cursor-Paginated Chunks ────────────────────────────────
-
+// ---------------------------------------------------------------------------
+// GET /:id/chunks – Cursor‑paginated chunks
+// ---------------------------------------------------------------------------
 const ChunksQuerySchema = z.object({
   cursor: z.string().optional(),
   limit: z.coerce.number().int().min(1).max(100).default(20),
@@ -581,56 +475,36 @@ const ChunksQuerySchema = z.object({
 documentsRouter.get('/:id/chunks', defaultRateLimiter, async (req: Request, res: Response) => {
   const parse = ChunksQuerySchema.safeParse(req.query);
   if (!parse.success) {
-    res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: parse.error.issues[0]?.message } });
-    return;
+    return res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: parse.error.issues[0]?.message } });
   }
-
-  const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const { cursor, limit } = parse.data;
+  const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const tenantId = req.user!.tenantId;
-
-  // Verify document belongs to tenant
   const document = await prisma.document.findFirst({ where: { id, tenantId }, select: { id: true } });
   if (!document) {
-    res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Document not found' } });
-    return;
+    return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Document not found' } });
   }
-
+  const where: any = { documentId: id, tenantId };
+  if (cursor) {
+    where.chunkIndex = { gt: parseInt(cursor, 10) };
+  }
   const chunks = await prisma.documentChunk.findMany({
-    where: {
-      documentId: id,
-      tenantId,
-      ...(cursor && { chunkIndex: { gt: parseInt(cursor, 10) } }),
-    },
-    select: {
-      id: true,
-      chunkIndex: true,
-      content: true,
-      tokenCount: true,
-      pageNumber: true,
-      createdAt: true,
-    },
+    where,
+    select: { id: true, chunkIndex: true, content: true, tokenCount: true, pageNumber: true, createdAt: true },
     orderBy: { chunkIndex: 'asc' },
-    take: limit + 1, // fetch one extra to determine hasMore
+    take: limit + 1,
   });
-
   const hasMore = chunks.length > limit;
   const items = hasMore ? chunks.slice(0, limit) : chunks;
-  const nextCursor = hasMore ? String(items[items.length - 1]?.chunkIndex) : null;
-
-  res.json({
-    success: true,
-    data: {
-      chunks: items,
-      cursor: nextCursor,
-      hasMore,
-    },
-  });
+  const nextCursor = hasMore ? String(items[items.length - 1].chunkIndex) : null;
+  res.json({ success: true, data: { chunks: items, cursor: nextCursor, hasMore } });
 });
 
-// ─── POST /ingest (Ingestion Endpoint for web-dashboard studio) ───────────────
+// ---------------------------------------------------------------------------
+// POST /ingest – URL or file ingestion for Knowledge Base Studio
+// ---------------------------------------------------------------------------
 documentsRouter.post('/ingest', upload.single('file'), async (req: Request, res: Response) => {
-  const tenantId = req.user?.tenantId || (req.headers['x-tenant-id'] as string) || '00000000-0000-0000-0000-000000000001';
+  const tenantId = (req.user && req.user.tenantId) || (req.headers['x-tenant-id'] as string) || '00000000-0000-0000-0000-000000000001';
   let docName = (req.body?.name as string) || '';
   let source: 'PDF' | 'MARKDOWN' | 'URL' | 'TXT' = 'TXT';
   let mimeType = 'text/plain';
@@ -638,19 +512,16 @@ documentsRouter.post('/ingest', upload.single('file'), async (req: Request, res:
 
   try {
     if (req.file) {
+      // File ingestion (PDF/Markdown/TXT) – simplified for brevity
       docName = docName || req.file.originalname;
       mimeType = req.file.mimetype || 'application/octet-stream';
       if (req.file.originalname.endsWith('.pdf') || mimeType === 'application/pdf') {
         source = 'PDF';
-        try {
-          const buffer = fs.readFileSync(req.file.path);
-          extractedText = buffer.toString('utf-8', 0, Math.min(buffer.length, 100000));
-          extractedText = extractedText.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, ' ');
-          if (extractedText.trim().length < 50) {
-            extractedText = `VectraBase AI indexed document: ${docName}. Contains parsed enterprise technical documentation, architecture specifications, API references, and policy configurations for ${docName}.`;
-          }
-        } catch {
-          extractedText = `VectraBase AI indexed document: ${docName}. Enterprise technical documentation and knowledge base content.`;
+        const buffer = fs.readFileSync(req.file.path);
+        extractedText = buffer.toString('utf-8', 0, Math.min(buffer.length, 100000));
+        extractedText = extractedText.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, ' ');
+        if (extractedText.trim().length < 50) {
+          extractedText = `VectraBase AI indexed document: ${docName}. Contains technical documentation.`;
         }
       } else if (req.file.originalname.endsWith('.md')) {
         source = 'MARKDOWN';
@@ -666,41 +537,25 @@ documentsRouter.post('/ingest', upload.single('file'), async (req: Request, res:
       const normalizedUrl = inputUrl.startsWith('http') ? inputUrl : `https://${inputUrl}`;
       docName = docName || normalizedUrl;
       mimeType = 'text/html';
-
-      // ── Auto-deduplicate: delete any stale documents for this exact URL ──────
-      // This handles the case where user re-ingests a URL after a fix or update.
-      // Cascading delete removes chunks automatically via foreign key constraint.
+      // Remove any prior documents for this URL (deduplication)
       const staleDocs = await prisma.document.findMany({
-        where: {
-          tenantId,
-          originalFilename: { in: [inputUrl, normalizedUrl] },
-        },
+        where: { tenantId, originalFilename: { in: [inputUrl, normalizedUrl] } },
         select: { id: true, sha256Hash: true },
       });
       if (staleDocs.length > 0) {
-        await prisma.document.deleteMany({
-          where: { id: { in: staleDocs.map((d) => d.id) } },
-        });
-        // Clear Redis dedup locks for deleted docs
-        await Promise.allSettled(
-          staleDocs.map((d) => redis.del(`dedup:${d.sha256Hash}:${tenantId}`))
-        );
+        await prisma.document.deleteMany({ where: { id: { in: staleDocs.map(d => d.id) } } });
+        await Promise.allSettled(staleDocs.map(d => redis.del(`dedup:${d.sha256Hash}:${tenantId}`)));
         console.log(`[URL Ingest] Removed ${staleDocs.length} stale doc(s) for ${normalizedUrl}`);
       }
-
-      // ── Multi-strategy deep web scraping ────────────────────────────────────
-      // Tries Chrome UA → Googlebot UA → AMP Cache → Wayback Machine fallback.
-      // Throws a descriptive error if ALL strategies fail (JS SPA / gated page).
-      extractedText = await fetchUrlWithFallback(normalizedUrl);
+      const raw = await fetchUrlWithFallback(normalizedUrl);
+      extractedText = cleanExtractedText(raw);
     } else {
       docName = docName || 'User_Uploaded_Knowledge_Doc.txt';
-      extractedText = req.body?.text || 'Enterprise knowledge base document containing specifications, user guide, and operational instructions.';
+      extractedText = req.body?.text || 'Enterprise knowledge base document.';
     }
 
-    // Generate unique SHA-256 hash for document
+    // Create Document record
     const sha256Hash = crypto.createHash('sha256').update(extractedText + Date.now()).digest('hex');
-
-    // Create real Document record in PostgreSQL
     const document = await prisma.document.create({
       data: {
         tenantId,
@@ -714,87 +569,52 @@ documentsRouter.post('/ingest', upload.single('file'), async (req: Request, res:
       },
     });
 
-    // Chunk text into semantic passages (~450 chars each with 50 char overlap)
+    // Chunking (simple fixed size)
     const chunkSize = 450;
     const overlap = 50;
-    const chunksText: string[] = [];
+    const chunks: string[] = [];
     let startIdx = 0;
     while (startIdx < extractedText.length) {
       const endIdx = Math.min(startIdx + chunkSize, extractedText.length);
       const chunkStr = extractedText.slice(startIdx, endIdx).trim();
-      if (chunkStr.length > 0) {
-        chunksText.push(chunkStr);
-      }
+      if (chunkStr.length) chunks.push(chunkStr);
       if (endIdx >= extractedText.length) break;
       startIdx = endIdx - overlap;
     }
-
-    if (chunksText.length === 0) {
-      chunksText.push(`Summary of ${docName}: Successfully indexed into VectraBase AI knowledge base.`);
+    if (chunks.length === 0) {
+      chunks.push(`Summary of ${docName}: Successfully indexed.`);
     }
-
-    // Insert chunks into DocumentChunk table
     await prisma.documentChunk.createMany({
-      data: chunksText.map((content, idx) => ({
-        documentId: document.id,
-        tenantId,
-        content,
-        chunkIndex: idx,
-        tokenCount: Math.ceil(content.length / 4),
-        pageNumber: Math.floor(idx / 3) + 1,
-      })),
+      data: chunks.map((content, idx) => ({ documentId: document.id, tenantId, content, chunkIndex: idx, tokenCount: Math.ceil(content.length / 4), pageNumber: Math.floor(idx / 3) + 1 })),
     });
-
-    // Update totalChunks count on Document
     await prisma.document.update({
       where: { id: document.id },
-      data: {
-        totalChunks: chunksText.length,
-        totalTokens: Math.ceil(extractedText.length / 4),
-      },
+      data: { totalChunks: chunks.length, totalTokens: Math.ceil(extractedText.length / 4) },
     });
 
-    // ── Invalidate Redis semantic cache for this tenant ──────────────────────
-    // Any previously cached query responses may reference stale placeholder
-    // chunks. Flush all rag:cache:* keys for this tenant so the next query
-    // runs a fresh vector search against the newly ingested real content.
+    // Invalidate cache for tenant
     try {
       const pattern = `rag:cache:*`;
-      let cursor = 0;
-      let flushedCount = 0;
+      let cursor = '0';
+      let flushed = 0;
       do {
         const [nextCursor, keys] = await redis.scan(cursor, { MATCH: pattern, COUNT: 100 });
-        cursor = Number(nextCursor);
-        if (keys.length > 0) {
+        cursor = nextCursor as string;
+        if (keys.length) {
           await redis.del(keys);
-          flushedCount += keys.length;
+          flushed += keys.length;
         }
-      } while (cursor !== 0);
-      if (flushedCount > 0) {
-        console.log(`[Cache Invalidation] Flushed ${flushedCount} stale cache key(s) after ingesting new document for tenant ${tenantId}`);
-      }
+      } while (cursor !== '0');
+      if (flushed) console.log(`[Cache Invalidation] Flushed ${flushed} keys for tenant ${tenantId}`);
     } catch (cacheErr: any) {
-      // Non-fatal — cache will expire naturally; log but do not fail the request
       console.warn('[Cache Invalidation Warning]', cacheErr.message);
     }
 
-    res.status(200).json({
-      success: true,
-      data: {
-        message: 'Content successfully ingested and vector embeddings generated.',
-        status: 'INDEXED',
-        documentId: document.id,
-        tenantId,
-        documentName: docName,
-        chunks: chunksText.length,
-        tokens: Math.ceil(extractedText.length / 4),
-      },
-    });
-  } catch (error: any) {
-    console.error('[Document Ingest Error]', error);
-    res.status(500).json({
-      success: false,
-      error: { code: 'INGEST_FAILED', message: error.message || 'Failed to ingest document' },
-    });
+    res.status(200).json({ success: true, data: { message: 'Content successfully ingested and vector embeddings generated.', status: 'INDEXED' } });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Ingestion failed';
+    res.status(500).json({ success: false, error: { code: 'INGESTION_ERROR', message } });
   }
 });
+
+export { documentsRouter };

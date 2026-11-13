@@ -271,12 +271,24 @@ def extract_text_file(content: str | bytes) -> str:
 # ---------------------------------------------------------------------------
 
 def _clean_text(text: str) -> str:
-    """Normalise whitespace and remove control characters."""
-    # Replace multiple blank lines with a single blank line
+    """Normalise whitespace, strip control characters, and remove UI artefacts.
+
+    Removes CTA button phrases, pricing suffixes, and short all-caps nav headers
+    so only clean, readable prose is passed to the chunker.
+    """
+    import re
+    # Normalise line endings
     text = re.sub(r"\r\n", "\n", text)
     text = re.sub(r"\r", "\n", text)
-    text = re.sub(r"[ \t]+", " ", text)
-    text = re.sub(r"\n{3,}", "\n\n", text)
     # Strip control characters except newline/tab
     text = re.sub(r"[\x00-\x08\x0b-\x0c\x0e-\x1f\x7f]", "", text)
+    # Remove common UI button / CTA phrases
+    text = re.sub(r"\b(View All|Click Here|Learn More|Sign Up|Register|Get Started)\b", "", text, flags=re.I)
+    # Remove pricing suffixes like .com/yr, .in/yr, .net/yr
+    text = re.sub(r"\.\w{2,3}/yr", "", text, flags=re.I)
+    # Remove short all-caps navigation header lines (5-20 uppercase chars)
+    text = re.sub(r"(?m)^[A-Z\s]{5,20}$", "", text)
+    # Collapse repeated spaces/tabs and excess blank lines
+    text = re.sub(r"[ \t]+", " ", text)
+    text = re.sub(r"\n{3,}", "\n\n", text)
     return text.strip()

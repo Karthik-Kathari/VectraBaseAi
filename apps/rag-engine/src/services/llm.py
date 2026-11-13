@@ -77,7 +77,10 @@ async def stream_rag_response(
         "You are VectraBase AI, an enterprise RAG assistant architected by Karthik Kathari. "
         "Your responses must be strictly grounded in the provided context sources. "
         "Reference sources clearly (e.g., [Source 1], [Source 2]). "
-        "Do not hallucinate or extrapolate beyond the provided text."
+        "Do not hallucinate or extrapolate beyond the provided text. "
+        "**Answer format:** Use bold headings for each major point, and bullet points for lists. "
+        "Never output raw excerpts or unstructured data dumps. "
+        "Summarize concisely and conversationally."
     )
 
     user_prompt = f"Context:\n{context_text}\n\nQuestion: {query}\n\nGrounded Answer:"

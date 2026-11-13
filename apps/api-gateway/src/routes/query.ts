@@ -122,7 +122,7 @@ queryRouter.post(
         },
         {
           responseType: 'stream',
-          timeout: 45000,
+          timeout: 12000, // 12s hard cap — prevents 19s UI hangs on cold starts
         },
       );
 

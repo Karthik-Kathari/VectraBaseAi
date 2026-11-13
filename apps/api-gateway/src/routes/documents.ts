@@ -116,8 +116,6 @@ async function fetchUrlWithFallback(inputUrl: string): Promise<string> {
       isDirectText: true,
       fn: async () => {
         const jinaUrl = `https://r.jina.ai/${normalizedUrl}`;
-        // Wait briefly to allow any SPA content to be fully rendered on the Jina side (if applicable)
-        await new Promise(r => setTimeout(r, 2000));
         const r = await axios.get(jinaUrl, {
           timeout: 20000,
           headers: {
@@ -128,6 +126,9 @@ async function fetchUrlWithFallback(inputUrl: string): Promise<string> {
           responseType: 'text',
         });
         const raw = String(r.data);
+        if (!raw || raw.length < 50) {
+          throw new Error(`Jina returned empty/too-short response (${raw.length} chars) for ${normalizedUrl}`);
+        }
         const cleaned = raw
           .replace(/^Title:\s*/gmi, '# ')
           .replace(/^URL Source:.*$/gmi, '')
@@ -142,9 +143,13 @@ async function fetchUrlWithFallback(inputUrl: string): Promise<string> {
           .replace(/[ \t]+/g, ' ')
           .replace(/\n{3,}/g, '\n\n')
           .trim();
-        console.log('=== EXTRACTED TEXT (JINA) START ===');
-        console.log(cleaned);
-        console.log('=== EXTRACTED TEXT (JINA) END ===');
+        if (cleaned.length < 100) {
+          throw new Error(`Jina content after cleaning is too short (${cleaned.length} chars). Raw was ${raw.length} chars — cleaning may be too aggressive for this URL.`);
+        }
+        console.log(`[Jina Extractor] Raw: ${raw.length} chars → Cleaned: ${cleaned.length} chars`);
+        console.log('=== EXTRACTED TEXT (JINA) SAMPLE (first 500 chars) ===');
+        console.log(cleaned.slice(0, 500));
+        console.log('=== END SAMPLE ===');
         return cleaned;
       },
     },
@@ -549,6 +554,18 @@ documentsRouter.post('/ingest', upload.single('file'), async (req: Request, res:
       }
       const raw = await fetchUrlWithFallback(normalizedUrl);
       extractedText = cleanExtractedText(raw);
+
+      // ── Safety guard: ensure cleaning didn't wipe the content ──────────────
+      console.log(`[Ingest] URL extraction complete — raw: ${raw.length} chars, after clean: ${extractedText.length} chars`);
+      if (extractedText.trim().length < 80) {
+        return res.status(422).json({
+          success: false,
+          error: {
+            code: 'EXTRACTION_EMPTY',
+            message: `Extraction succeeded (${raw.length} raw chars) but cleaning reduced content to ${extractedText.length} chars. The page may consist only of navigation/JS with no readable paragraphs. Please try a specific article URL.`,
+          },
+        });
+      }
     } else {
       docName = docName || 'User_Uploaded_Knowledge_Doc.txt';
       extractedText = req.body?.text || 'Enterprise knowledge base document.';

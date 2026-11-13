@@ -85,43 +85,67 @@ async def stream_rag_response(
 
     user_prompt = f"Context:\n{context_text}\n\nQuestion: {query}\n\nGrounded Answer:"
 
-    # Tier 1: Groq API
+    # Tier 1: Groq API — strict 9s timeout to prevent UI hangs
     if GROQ_API_KEY:
         try:
             from groq import AsyncGroq
             client = AsyncGroq(api_key=GROQ_API_KEY)
-            stream = await client.chat.completions.create(
-                model=model,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt},
-                ],
-                temperature=0.2,
-                max_tokens=1024,
-                stream=True,
-            )
-            async for chunk in stream:
-                content = chunk.choices[0].delta.content or ""
-                if content:
-                    yield content
+
+            async def _groq_stream() -> AsyncGenerator[str, None]:
+                stream = await client.chat.completions.create(
+                    model=model,
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_prompt},
+                    ],
+                    temperature=0.2,
+                    max_tokens=1024,
+                    stream=True,
+                )
+                async for chunk in stream:
+                    content = chunk.choices[0].delta.content or ""
+                    if content:
+                        yield content
+
+            # Collect with a hard 9-second wall-clock timeout
+            tokens: list[str] = []
+            async def _collect_groq() -> None:
+                async for t in _groq_stream():
+                    tokens.append(t)
+
+            await asyncio.wait_for(_collect_groq(), timeout=9.0)
+            for t in tokens:
+                yield t
             return
+        except asyncio.TimeoutError:
+            logger.warning("Groq timed out after 9s; attempting Gemini fallback.")
         except Exception as e:
             logger.warning("Groq streaming failed (%s); attempting Gemini fallback.", e)
 
-    # Tier 2: Gemini API
+    # Tier 2: Gemini API — strict 9s timeout
     if GEMINI_API_KEY:
         try:
             import google.generativeai as genai
             genai.configure(api_key=GEMINI_API_KEY)
             gemini_model = genai.GenerativeModel("gemini-1.5-flash")
-            response = await gemini_model.generate_content_async(
-                f"{system_prompt}\n\n{user_prompt}",
-                stream=True,
-            )
-            async for chunk in response:
-                if chunk.text:
-                    yield chunk.text
+
+            async def _collect_gemini() -> list[str]:
+                parts: list[str] = []
+                response = await gemini_model.generate_content_async(
+                    f"{system_prompt}\n\n{user_prompt}",
+                    stream=True,
+                )
+                async for chunk in response:
+                    if chunk.text:
+                        parts.append(chunk.text)
+                return parts
+
+            gemini_parts = await asyncio.wait_for(_collect_gemini(), timeout=9.0)
+            for part in gemini_parts:
+                yield part
             return
+        except asyncio.TimeoutError:
+            logger.warning("Gemini timed out after 9s; using deterministic local fallback.")
         except Exception as e:
             logger.warning("Gemini streaming failed (%s); using deterministic local fallback.", e)
 

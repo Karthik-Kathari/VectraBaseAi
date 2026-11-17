@@ -48,7 +48,7 @@ class Settings(BaseSettings):
     )
 
     # ------------------------------------------------------------------ Server
-    port: int = Field(default=8000, description="Port the Uvicorn server listens on.")
+    port: int = Field(default=10000, description="Port the Uvicorn server listens on.")
     cors_origins: str = Field(
         default="*",
         description="Comma-separated list of allowed CORS origins, or '*' for all.",

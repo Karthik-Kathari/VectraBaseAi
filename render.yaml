@@ -41,10 +41,10 @@ services:
     region: oregon
     rootDir: apps/rag-engine
     buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn src.main:app --host 0.0.0.0 --port 8000
+    startCommand: uvicorn src.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: PORT
-        value: 8000
+        value: 10000
       - key: DATABASE_URL
         sync: false
       - key: GROQ_API_KEY

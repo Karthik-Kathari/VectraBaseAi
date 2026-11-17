@@ -98,3 +98,9 @@ async def root():
         "docs": "/docs",
         "health": "/health",
     }
+
+
+if __name__ == "__main__":
+    import uvicorn
+    listen_port = int(os.environ.get("PORT", settings.port))
+    uvicorn.run("main:app", host="0.0.0.0", port=listen_port)

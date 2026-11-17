@@ -32,6 +32,104 @@ function isUuid(val?: string | null): boolean {
   return typeof val === 'string' && UUID_REGEX.test(val.trim());
 }
 
+// ---------------------------------------------------------------------------
+// Fallback LLM / Intelligent Synthesis Engine for API Gateway
+// ---------------------------------------------------------------------------
+async function synthesizeFallbackResponse(
+  query: string,
+  docName: string,
+  chunks: Array<{ content: string; document?: { name: string } }>
+): Promise<string> {
+  const geminiKey = process.env.GEMINI_API_KEY;
+  const groqKey = process.env.GROQ_API_KEY;
+
+  // 1. Deduplicate lines and paragraphs across chunks
+  const seenParagraphs = new Set<string>();
+  const cleanParagraphs: string[] = [];
+
+  for (const c of chunks) {
+    const rawLines = c.content.split(/\n+/).map(l => l.trim()).filter(l => l.length > 20);
+    for (const line of rawLines) {
+      const fp = line.slice(0, 80).toLowerCase();
+      if (!seenParagraphs.has(fp)) {
+        seenParagraphs.add(fp);
+        cleanParagraphs.push(line);
+      }
+    }
+  }
+
+  const contextText = cleanParagraphs.join('\n\n');
+
+  const systemPrompt =
+    `You are VectraBase AI, an enterprise conversational AI assistant.\n` +
+    `Synthesize a clear, fluid, well-structured answer to the user's question based strictly on the provided context.\n\n` +
+    `Rules:\n` +
+    `- NEVER output raw chunk or passage numbers like '[Passage 1]' or '[Source 1]'.\n` +
+    `- NEVER end with '...' or leave sentences cut off.\n` +
+    `- For multiple services, features, or offerings, format using bullet points with **bold** titles.\n` +
+    `- Write in a natural, helpful, conversational tone.\n` +
+    `- Ground your response strictly in the provided context. If the context does not contain enough information, state so briefly.`;
+
+  // Try Groq if available
+  if (groqKey) {
+    try {
+      const resp = await axios.post(
+        'https://api.groq.com/openai/v1/chat/completions',
+        {
+          model: 'llama-3.3-70b-versatile',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: `Context:\n${contextText}\n\nQuestion: ${query}\n\nAnswer:` },
+          ],
+          temperature: 0.2,
+          max_tokens: 800,
+        },
+        {
+          headers: { Authorization: `Bearer ${groqKey}` },
+          timeout: 6000,
+        }
+      );
+      const text = resp.data?.choices?.[0]?.message?.content?.trim();
+      if (text) return text;
+    } catch (e: any) {
+      console.warn('[Fallback LLM Groq Error]', e.message);
+    }
+  }
+
+  // Try Gemini if available
+  if (geminiKey) {
+    try {
+      const resp = await axios.post(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`,
+        {
+          contents: [
+            {
+              role: 'user',
+              parts: [{ text: `${systemPrompt}\n\nContext:\n${contextText}\n\nQuestion: ${query}\n\nAnswer:` }],
+            },
+          ],
+          generationConfig: {
+            temperature: 0.2,
+            maxOutputTokens: 800,
+          },
+        },
+        { timeout: 6000 }
+      );
+      const text = resp.data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+      if (text) return text;
+    } catch (e: any) {
+      console.warn('[Fallback LLM Gemini Error]', e.message);
+    }
+  }
+
+  // Pure deterministic synthesis (zero-API-key fallback)
+  if (cleanParagraphs.length === 0) {
+    return `Based on the indexed knowledge base for **${docName}**, no specific content was found for "${query}".`;
+  }
+
+  return `Based on the indexed knowledge base for **${docName}**:\n\n${cleanParagraphs.join('\n\n')}`;
+}
+
 // POST /api/query — Query RAG engine with Redis Semantic Caching & SSE streaming
 queryRouter.post(
   '/',
@@ -210,7 +308,6 @@ queryRouter.post(
         if (isUuid(effectiveDocId)) {
           targetDocumentUuid = effectiveDocId;
         } else {
-          // If effectiveDocId is a URL or name, find the actual Document record
           try {
             const foundDoc = await prisma.document.findFirst({
               where: {
@@ -231,7 +328,37 @@ queryRouter.post(
         }
       }
 
-      // 2. Try targeted search for user's newly uploaded document chunks
+      // If document wasn't explicitly given, check if any document name matches query keywords
+      // (e.g., query has "deltapreneur" -> matches "http://deltapreneur.com/" or "delta.txt")
+      if (!targetDocumentUuid) {
+        const queryTokens = query
+          .toLowerCase()
+          .replace(/[^\w\s]/g, '')
+          .split(/\s+/)
+          .filter(w => w.length > 3 && !['what', 'does', 'tell', 'about', 'explain', 'with', 'from', 'this', 'that', 'have'].includes(w));
+
+        for (const token of queryTokens) {
+          try {
+            const found = await prisma.document.findFirst({
+              where: {
+                tenantId: safeTenantId,
+                OR: [
+                  { name: { contains: token, mode: 'insensitive' } },
+                  { originalFilename: { contains: token, mode: 'insensitive' } },
+                ],
+              },
+              select: { id: true },
+              orderBy: { createdAt: 'desc' },
+            });
+            if (found) {
+              targetDocumentUuid = found.id;
+              break;
+            }
+          } catch {}
+        }
+      }
+
+      // 2. Fetch chunks targeted to that document
       if (targetDocumentUuid) {
         try {
           matchedChunks = await prisma.documentChunk.findMany({
@@ -247,7 +374,32 @@ queryRouter.post(
         }
       }
 
-      // 3. If no chunks found for target document (or none specified), search tenant's latest document chunks
+      // 3. If still no chunks, search chunks by query keywords (never random tenant chunks)
+      if (matchedChunks.length === 0) {
+        const queryTokens = query
+          .toLowerCase()
+          .replace(/[^\w\s]/g, '')
+          .split(/\s+/)
+          .filter(w => w.length > 3 && !['what', 'does', 'tell', 'about', 'explain', 'with', 'from', 'this', 'that', 'have'].includes(w));
+
+        if (queryTokens.length > 0) {
+          try {
+            matchedChunks = await prisma.documentChunk.findMany({
+              where: {
+                tenantId: safeTenantId,
+                OR: queryTokens.map(tok => ({ content: { contains: tok, mode: 'insensitive' } })),
+              },
+              include: { document: { select: { id: true, name: true } } },
+              take: topK,
+              orderBy: { createdAt: 'desc' },
+            });
+          } catch (e: any) {
+            console.warn('[Keyword Chunk Query Warning]', e.message);
+          }
+        }
+      }
+
+      // 4. Last resort: latest chunks for this tenant
       if (matchedChunks.length === 0) {
         try {
           matchedChunks = await prisma.documentChunk.findMany({
@@ -264,9 +416,20 @@ queryRouter.post(
       if (matchedChunks.length > 0) {
         const docName = matchedChunks[0].document?.name || 'Uploaded Knowledge Document';
 
-        // Stream citations (full content — no truncation)
-        for (let i = 0; i < matchedChunks.length; i++) {
-          const c = matchedChunks[i];
+        // Deduplicate chunks to remove repeated text from duplicate docs (e.g. http vs https)
+        const seenChunkFp = new Set<string>();
+        const uniqueChunks: typeof matchedChunks = [];
+        for (const c of matchedChunks) {
+          const fp = c.content.slice(0, 80).toLowerCase().trim();
+          if (fp && !seenChunkFp.has(fp)) {
+            seenChunkFp.add(fp);
+            uniqueChunks.push(c);
+          }
+        }
+
+        // Stream citation pills
+        for (let i = 0; i < uniqueChunks.length; i++) {
+          const c = uniqueChunks[i];
           res.write(
             `data: ${JSON.stringify({
               type: 'citation',
@@ -283,23 +446,15 @@ queryRouter.post(
           );
         }
 
-        // Build a clean, natural-language synthesis from all retrieved chunks.
-        // — No raw "[Passage X]" labels, no ellipsis truncation, no data dumps.
-        const allContent = matchedChunks
-          .map(c => c.content.trim())
-          .filter(Boolean)
-          .join('\n\n');
-
-        const answer =
-          `Based on the indexed knowledge base for **${docName}**, here is what I found about "${query}":\n\n` +
-          allContent;
+        // Synthesize response using LLM (Gemini / Groq) or clean local synthesis
+        const answer = await synthesizeFallbackResponse(query, docName, uniqueChunks);
 
         const words = answer.split(' ');
         for (const word of words) {
           res.write(`data: ${JSON.stringify({ type: 'token', token: word + ' ' })}\n\n`);
         }
 
-        res.write(`data: ${JSON.stringify({ type: 'done', totalLatencyMs, cacheHit: false, chunkCount: matchedChunks.length })}\n\n`);
+        res.write(`data: ${JSON.stringify({ type: 'done', totalLatencyMs: Date.now() - startTime, cacheHit: false, chunkCount: uniqueChunks.length })}\n\n`);
         res.end();
         return;
       }

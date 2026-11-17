@@ -62,30 +62,43 @@ async def stream_rag_response(
         yield "[Guardrail Security Violation] Query contains prohibited instructional override patterns. Execution terminated."
         return
 
+    # Deduplicate chunks by content fingerprint to prevent the LLM receiving
+    # the same paragraph twice (happens when the same URL is indexed as both
+    # http:// and https:// variants, or when chunk boundaries split the same text).
+    seen_content: set[str] = set()
+    deduped_chunks: list[dict[str, Any]] = []
+    for c in chunks:
+        # Use first 120 chars as a dedup key — catches exact duplicates and
+        # near-duplicates caused by minor chunk-boundary overlap
+        fingerprint = c.get("raw_text", "")[:120].strip().lower()
+        if fingerprint and fingerprint not in seen_content:
+            seen_content.add(fingerprint)
+            deduped_chunks.append(c)
+    chunks = deduped_chunks
+
+    if not chunks:
+        yield GUARDRAIL_BLOCKED_MESSAGE
+        return
+
     # Prepare context string from retrieved chunks
     context_blocks = []
     for i, c in enumerate(chunks, 1):
         doc_name = c.get("document_name", "Document")
-        page = c.get("page_number", 1)
-        score = c.get("similarity", 0.0)
-        context_blocks.append(
-            f"--- [Source {i}: {doc_name} (Page {page}, Confidence: {score:.2f})] ---\n{c.get('raw_text', '')}"
-        )
+        context_blocks.append(f"[Passage {i}]\n{c.get('raw_text', '')}")
     context_text = "\n\n".join(context_blocks)
 
     system_prompt = (
-        "You are VectraBase AI, a knowledgeable and conversational AI assistant. "
-        "You will be given several context passages retrieved from the user's knowledge base. "
-        "Your job is to read ALL of the passages and synthesize a single, fluent, well-structured answer. "
-        "\n\n"
-        "STRICT RULES — you must follow every one of these:\n"
-        "1. NEVER output raw passage labels like '[Passage 1]', '[Source 1]', '[Chunk X]', or any similar label.\n"
-        "2. NEVER truncate sentences with '...' or cut off mid-thought.\n"
-        "3. NEVER dump raw database text verbatim — always rephrase into natural prose.\n"
-        "4. If listing multiple services, features, or items, use bullet points with **bold** names.\n"
-        "5. Write in a helpful, conversational tone — as if explaining to a smart colleague.\n"
-        "6. Ground every claim in the provided context. Do not hallucinate or add information not in the passages.\n"
-        "7. If the context does not contain enough information to answer, say so honestly and briefly."
+        "You are VectraBase AI, a knowledgeable and conversational AI assistant.\n"
+        "You are given context passages from the user's indexed knowledge base.\n"
+        "Your job is to synthesize these passages into one clear, fluent, complete answer.\n\n"
+        "STRICT RULES:\n"
+        "1. NEVER copy passage labels like '[Passage 1]' into your response.\n"
+        "2. NEVER truncate with '...' or leave sentences unfinished.\n"
+        "3. NEVER dump raw text verbatim — rephrase everything into natural prose.\n"
+        "4. For lists of services/features/products use bullet points with **bold** item names.\n"
+        "5. Write conversationally — imagine explaining to a curious colleague.\n"
+        "6. Only use information from the provided passages. Do not hallucinate.\n"
+        "7. If passages do not contain the answer, say so briefly and honestly."
     )
 
     user_prompt = f"Context:\n{context_text}\n\nQuestion: {query}\n\nGrounded Answer:"
@@ -160,13 +173,16 @@ async def stream_rag_response(
     # without any raw "[Passage X]" labels or ellipsis truncation.
     doc_name = chunks[0].get("document_name", "the knowledge base")
 
-    # Collect the most relevant sentences from every chunk
     all_sentences: list[str] = []
+    seen_sentences: set[str] = set()
     for c in chunks:
         raw = c.get("raw_text", "")
         best = extract_key_sentences(raw, query, max_sentences=2)
-        if best.strip():
-            all_sentences.append(best.strip())
+        for s in best.split(". "):
+            cleaned_s = s.strip().rstrip(".")
+            if len(cleaned_s) > 20 and cleaned_s.lower() not in seen_sentences:
+                seen_sentences.add(cleaned_s.lower())
+                all_sentences.append(cleaned_s + ".")
 
     combined = " ".join(all_sentences).strip()
     if not combined:

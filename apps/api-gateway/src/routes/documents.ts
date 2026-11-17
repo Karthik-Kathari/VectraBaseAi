@@ -627,7 +627,18 @@ documentsRouter.post('/ingest', upload.single('file'), async (req: Request, res:
       console.warn('[Cache Invalidation Warning]', cacheErr.message);
     }
 
-    res.status(200).json({ success: true, data: { message: 'Content successfully ingested and vector embeddings generated.', status: 'INDEXED' } });
+    res.status(200).json({
+      success: true,
+      data: {
+        message: 'Content successfully ingested and vector embeddings generated.',
+        status: 'INDEXED',
+        documentId: document.id,
+        tenantId,
+        name: docName,
+        chunks: chunks.length,
+        tokens: Math.ceil(extractedText.length / 4),
+      },
+    });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Ingestion failed';
     res.status(500).json({ success: false, error: { code: 'INGESTION_ERROR', message } });

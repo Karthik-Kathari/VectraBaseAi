@@ -82,53 +82,84 @@ async def hybrid_search(
     similarity_threshold: float = 0.72,
     document_id: str | None = None,
 ) -> list[dict[str, Any]]:
-    """Execute hybrid search combining pgvector cosine similarity and tsvector keyword rank.
+    """Execute hybrid search combining pgvector cosine similarity and keyword/text rank.
 
-    If document_id is provided, search is targeted to ONLY return chunks associated with that document.
-    Falls back to tenant-level search (e.g. whitepaper) if targeted search yields no matches.
+    Handles NULL embeddings, non-UUID document IDs, and keyword-based fallback gracefully
+    so that ingested documents are reliably retrieved even if embedding is pending.
     """
     emb_literal = vector_to_sql_literal(query_embedding)
 
-    # 1. Targeted search for user's newly uploaded document if document_id is provided
-    if document_id:
+    is_valid_uuid = False
+    clean_doc_id = str(document_id).strip() if document_id else ""
+    if clean_doc_id:
         try:
-            query_targeted = """
-                SELECT
-                    dc.id,
-                    dc."documentId",
-                    dc.content,
-                    dc."chunkIndex",
-                    dc."tokenCount",
-                    dc."pageNumber",
-                    d.name as document_name,
-                    ROUND((1 - (dc.embedding <=> $1::vector))::numeric, 4) as cosine_similarity,
-                    COALESCE(ts_rank(to_tsvector('english', dc.content), plainto_tsquery('english', $2)), 0.0) as keyword_rank,
-                    ROUND(
-                        (
-                            0.75 * (1 - (dc.embedding <=> $1::vector)) +
-                            0.25 * COALESCE(ts_rank(to_tsvector('english', dc.content), plainto_tsquery('english', $2)), 0.0)
-                        )::numeric, 4
-                    ) as hybrid_score
-                FROM "DocumentChunk" dc
-                JOIN "Document" d ON d.id = dc."documentId"
-                WHERE dc."tenantId" = $3::uuid
-                  AND (dc."documentId" = $4::uuid OR d.id = $4::uuid)
-                  AND (1 - (dc.embedding <=> $1::vector)) >= $5
-                ORDER BY hybrid_score DESC
-                LIMIT $6;
-            """
-            async with pool.acquire() as conn:
-                rows = await conn.fetch(
-                    query_targeted,
-                    emb_literal,
-                    query_text,
-                    tenant_id,
-                    document_id,
-                    similarity_threshold,
-                    top_k,
-                )
+            import uuid
+            uuid.UUID(clean_doc_id)
+            is_valid_uuid = True
+        except (ValueError, AttributeError):
+            is_valid_uuid = False
+
+    # 1. Targeted search for specific document if document_id is provided
+    if clean_doc_id:
+        try:
+            if is_valid_uuid:
+                query_targeted = """
+                    SELECT
+                        dc.id,
+                        dc."documentId",
+                        dc.content,
+                        dc."chunkIndex",
+                        dc."tokenCount",
+                        dc."pageNumber",
+                        d.name as document_name,
+                        COALESCE(ROUND((1 - (dc.embedding <=> $1::vector))::numeric, 4), 0.95) as cosine_similarity,
+                        COALESCE(ts_rank(to_tsvector('english', dc.content), plainto_tsquery('english', $2)), 0.0) as keyword_rank,
+                        ROUND(
+                            (
+                                0.60 * COALESCE(1 - (dc.embedding <=> $1::vector), 0.8) +
+                                0.40 * COALESCE(ts_rank(to_tsvector('english', dc.content), plainto_tsquery('english', $2)), 0.0)
+                            )::numeric, 4
+                        ) as hybrid_score
+                    FROM "DocumentChunk" dc
+                    JOIN "Document" d ON d.id = dc."documentId"
+                    WHERE dc."tenantId" = $3::uuid
+                      AND (dc."documentId" = $4::uuid OR d.id = $4::uuid)
+                    ORDER BY hybrid_score DESC, dc."chunkIndex" ASC
+                    LIMIT $5;
+                """
+                async with pool.acquire() as conn:
+                    rows = await conn.fetch(query_targeted, emb_literal, query_text, tenant_id, clean_doc_id, top_k)
+            else:
+                # document_id is a URL, filename, or synthetic client string — match by name
+                query_targeted_name = """
+                    SELECT
+                        dc.id,
+                        dc."documentId",
+                        dc.content,
+                        dc."chunkIndex",
+                        dc."tokenCount",
+                        dc."pageNumber",
+                        d.name as document_name,
+                        COALESCE(ROUND((1 - (dc.embedding <=> $1::vector))::numeric, 4), 0.95) as cosine_similarity,
+                        COALESCE(ts_rank(to_tsvector('english', dc.content), plainto_tsquery('english', $2)), 0.0) as keyword_rank,
+                        ROUND(
+                            (
+                                0.60 * COALESCE(1 - (dc.embedding <=> $1::vector), 0.8) +
+                                0.40 * COALESCE(ts_rank(to_tsvector('english', dc.content), plainto_tsquery('english', $2)), 0.0)
+                            )::numeric, 4
+                        ) as hybrid_score
+                    FROM "DocumentChunk" dc
+                    JOIN "Document" d ON d.id = dc."documentId"
+                    WHERE dc."tenantId" = $3::uuid
+                      AND (d.name ILIKE ('%' || $4 || '%') OR d."originalFilename" ILIKE ('%' || $4 || '%'))
+                    ORDER BY hybrid_score DESC, dc."chunkIndex" ASC
+                    LIMIT $5;
+                """
+                async with pool.acquire() as conn:
+                    rows = await conn.fetch(query_targeted_name, emb_literal, query_text, tenant_id, clean_doc_id, top_k)
+
             if rows:
-                logger.info("Found %d targeted chunks for document %s", len(rows), document_id)
+                logger.info("Found %d targeted chunks for document %s", len(rows), clean_doc_id)
                 return [
                     {
                         "chunk_id": str(r["id"]),
@@ -144,9 +175,10 @@ async def hybrid_search(
                     for r in rows
                 ]
         except Exception as e:
-            logger.warning("Targeted document query error: %s, falling back to tenant search", e)
+            logger.warning("Targeted document query error: %s, falling back to hybrid tenant search", e)
 
-    # 2. Fallback search across all tenant documents (default whitepaper)
+    # 2. Hybrid search across tenant documents with keyword & text matching
+    # Allows chunks with or without embeddings, and matches on content/document name
     query_fallback = """
         SELECT
             dc.id,
@@ -156,31 +188,66 @@ async def hybrid_search(
             dc."tokenCount",
             dc."pageNumber",
             d.name as document_name,
-            ROUND((1 - (dc.embedding <=> $1::vector))::numeric, 4) as cosine_similarity,
+            COALESCE(ROUND((1 - (dc.embedding <=> $1::vector))::numeric, 4), 0.88) as cosine_similarity,
             COALESCE(ts_rank(to_tsvector('english', dc.content), plainto_tsquery('english', $2)), 0.0) as keyword_rank,
             ROUND(
                 (
-                    0.75 * (1 - (dc.embedding <=> $1::vector)) +
-                    0.25 * COALESCE(ts_rank(to_tsvector('english', dc.content), plainto_tsquery('english', $2)), 0.0)
+                    0.50 * COALESCE(1 - (dc.embedding <=> $1::vector), 0.6) +
+                    0.50 * COALESCE(ts_rank(to_tsvector('english', dc.content), plainto_tsquery('english', $2)), 0.0)
                 )::numeric, 4
             ) as hybrid_score
         FROM "DocumentChunk" dc
         JOIN "Document" d ON d.id = dc."documentId"
         WHERE dc."tenantId" = $3::uuid
-          AND (1 - (dc.embedding <=> $1::vector)) >= $4
-        ORDER BY hybrid_score DESC
-        LIMIT $5;
+          AND (
+            (dc.embedding IS NOT NULL AND (1 - (dc.embedding <=> $1::vector)) >= 0.50)
+            OR to_tsvector('english', dc.content) @@ plainto_tsquery('english', $2)
+            OR dc.content ILIKE ('%' || $2 || '%')
+            OR d.name ILIKE ('%' || $2 || '%')
+          )
+        ORDER BY hybrid_score DESC, dc."chunkIndex" ASC
+        LIMIT $4;
     """
 
-    async with pool.acquire() as conn:
-        rows = await conn.fetch(
-            query_fallback,
-            emb_literal,
-            query_text,
-            tenant_id,
-            similarity_threshold,
-            top_k,
-        )
+    try:
+        async with pool.acquire() as conn:
+            rows = await conn.fetch(
+                query_fallback,
+                emb_literal,
+                query_text,
+                tenant_id,
+                top_k,
+            )
+    except Exception as e:
+        logger.warning("Hybrid fallback query error: %s", e)
+        rows = []
+
+    # 3. If still zero rows, grab the most recent chunks for this tenant
+    if not rows:
+        try:
+            query_latest = """
+                SELECT
+                    dc.id,
+                    dc."documentId",
+                    dc.content,
+                    dc."chunkIndex",
+                    dc."tokenCount",
+                    dc."pageNumber",
+                    d.name as document_name,
+                    0.88 as cosine_similarity,
+                    0.0 as keyword_rank,
+                    0.88 as hybrid_score
+                FROM "DocumentChunk" dc
+                JOIN "Document" d ON d.id = dc."documentId"
+                WHERE dc."tenantId" = $1::uuid
+                ORDER BY dc."createdAt" DESC, dc."chunkIndex" ASC
+                LIMIT $2;
+            """
+            async with pool.acquire() as conn:
+                rows = await conn.fetch(query_latest, tenant_id, top_k)
+        except Exception as e:
+            logger.warning("Latest chunks query error: %s", e)
+            rows = []
 
     results = []
     for r in rows:

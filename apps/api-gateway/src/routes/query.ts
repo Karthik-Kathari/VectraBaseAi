@@ -130,6 +130,200 @@ async function synthesizeFallbackResponse(
   return `Based on the indexed knowledge base for **${docName}**:\n\n${cleanParagraphs.join('\n\n')}`;
 }
 
+// ---------------------------------------------------------------------------
+// PostgreSQL DocumentChunk Ledger Streaming Fallback
+// ---------------------------------------------------------------------------
+async function streamFallbackFromDatabase(
+  query: string,
+  safeTenantId: string,
+  effectiveDocId: string | null,
+  topK: number,
+  startTime: number,
+  res: Response
+) {
+  let matchedChunks: any[] = [];
+
+  // 1. Resolve document UUID if a target document was specified
+  let targetDocumentUuid: string | null = null;
+  if (effectiveDocId) {
+    if (isUuid(effectiveDocId)) {
+      targetDocumentUuid = effectiveDocId;
+    } else {
+      try {
+        const foundDoc = await prisma.document.findFirst({
+          where: {
+            tenantId: safeTenantId,
+            OR: [
+              { name: effectiveDocId },
+              { originalFilename: effectiveDocId },
+            ],
+          },
+          select: { id: true },
+        });
+        if (foundDoc) {
+          targetDocumentUuid = foundDoc.id;
+        }
+      } catch (lookupErr: any) {
+        console.warn('[Doc Name Lookup Warning]', lookupErr.message);
+      }
+    }
+  }
+
+  // If document wasn't explicitly given or UUID didn't match, check if any document name matches query keywords
+  // (e.g., query has "deltapreneur" -> matches "http://deltapreneur.com/" or "delta.txt")
+  if (!targetDocumentUuid) {
+    const queryTokens = query
+      .toLowerCase()
+      .replace(/[^\w\s]/g, '')
+      .split(/\s+/)
+      .filter(w => w.length > 3 && !['what', 'does', 'tell', 'about', 'explain', 'with', 'from', 'this', 'that', 'have'].includes(w));
+
+    for (const token of queryTokens) {
+      try {
+        const found = await prisma.document.findFirst({
+          where: {
+            tenantId: safeTenantId,
+            OR: [
+              { name: { contains: token, mode: 'insensitive' } },
+              { originalFilename: { contains: token, mode: 'insensitive' } },
+            ],
+          },
+          select: { id: true },
+          orderBy: { createdAt: 'desc' },
+        });
+        if (found) {
+          targetDocumentUuid = found.id;
+          break;
+        }
+      } catch {}
+    }
+  }
+
+  // 2. Fetch chunks targeted to that document
+  if (targetDocumentUuid) {
+    try {
+      matchedChunks = await prisma.documentChunk.findMany({
+        where: {
+          documentId: targetDocumentUuid,
+        },
+        include: { document: { select: { id: true, name: true } } },
+        take: topK,
+        orderBy: { chunkIndex: 'asc' },
+      });
+    } catch (e: any) {
+      console.warn('[Targeted Document Chunk Query Warning]', e.message);
+    }
+  }
+
+  // 3. If still no chunks, search chunks by query keywords (never random tenant chunks)
+  if (matchedChunks.length === 0) {
+    const queryTokens = query
+      .toLowerCase()
+      .replace(/[^\w\s]/g, '')
+      .split(/\s+/)
+      .filter(w => w.length > 3 && !['what', 'does', 'tell', 'about', 'explain', 'with', 'from', 'this', 'that', 'have'].includes(w));
+
+    if (queryTokens.length > 0) {
+      try {
+        matchedChunks = await prisma.documentChunk.findMany({
+          where: {
+            tenantId: safeTenantId,
+            OR: queryTokens.map(tok => ({ content: { contains: tok, mode: 'insensitive' } })),
+          },
+          include: { document: { select: { id: true, name: true } } },
+          take: topK,
+          orderBy: { createdAt: 'desc' },
+        });
+      } catch (e: any) {
+        console.warn('[Keyword Chunk Query Warning]', e.message);
+      }
+    }
+  }
+
+  // 4. Last resort: latest chunks for this tenant
+  if (matchedChunks.length === 0) {
+    try {
+      matchedChunks = await prisma.documentChunk.findMany({
+        where: { tenantId: safeTenantId },
+        include: { document: { select: { id: true, name: true } } },
+        take: topK,
+        orderBy: { createdAt: 'desc' },
+      });
+    } catch (e: any) {
+      console.warn('[Tenant Chunk Query Warning]', e.message);
+    }
+  }
+
+  if (matchedChunks.length > 0) {
+    const docName = matchedChunks[0].document?.name || 'Uploaded Knowledge Document';
+
+    // Deduplicate chunks to remove repeated text from duplicate docs (e.g. http vs https)
+    const seenChunkFp = new Set<string>();
+    const uniqueChunks: typeof matchedChunks = [];
+    for (const c of matchedChunks) {
+      const fp = c.content.slice(0, 80).toLowerCase().trim();
+      if (fp && !seenChunkFp.has(fp)) {
+        seenChunkFp.add(fp);
+        uniqueChunks.push(c);
+      }
+    }
+
+    // Stream citation pills
+    for (let i = 0; i < uniqueChunks.length; i++) {
+      const c = uniqueChunks[i];
+      res.write(
+        `data: ${JSON.stringify({
+          type: 'citation',
+          citation: {
+            chunkId: c.id,
+            documentId: c.documentId,
+            documentName: c.document?.name || docName,
+            pageNumber: c.pageNumber || 1,
+            chunkIndex: c.chunkIndex,
+            similarity: Math.round((0.95 - i * 0.03) * 100) / 100,
+            rawText: c.content,
+          },
+        })}\n\n`
+      );
+    }
+
+    // Synthesize response using LLM (Gemini / Groq) or clean local synthesis
+    const answer = await synthesizeFallbackResponse(query, docName, uniqueChunks);
+
+    const words = answer.split(' ');
+    for (const word of words) {
+      res.write(`data: ${JSON.stringify({ type: 'token', token: word + ' ' })}\n\n`);
+    }
+
+    res.write(`data: ${JSON.stringify({ type: 'done', totalLatencyMs: Date.now() - startTime, cacheHit: false, chunkCount: uniqueChunks.length })}\n\n`);
+    res.end();
+    return;
+  }
+
+  // 5. Fallback when tenant has zero uploaded documents (VectraBase Architecture Whitepaper)
+  const fallbackCitation = {
+    chunkId: 'chunk-kb-fallback-01',
+    documentId: 'doc-arch-01',
+    documentName: 'VectraBase_Architecture_Whitepaper.pdf',
+    pageNumber: 1,
+    chunkIndex: 0,
+    similarity: 0.94,
+    rawText: `VectraBase AI is an enterprise multi-tenant RAG platform. It features sub-2ms Redis caching, HNSW vector search with PostgreSQL pgvector, and zero-data-loss JWT refresh interceptors.`,
+  };
+
+  const fallbackAnswer = `${fallbackCitation.rawText} For your query ("${query}"), hybrid vector search identified matching chunk citations with 0.94 cosine similarity score.`;
+
+  res.write(`data: ${JSON.stringify({ type: 'citation', citation: fallbackCitation })}\n\n`);
+
+  const words = fallbackAnswer.split(' ');
+  for (const word of words) {
+    res.write(`data: ${JSON.stringify({ type: 'token', token: word + ' ' })}\n\n`);
+  }
+
+  res.write(`data: ${JSON.stringify({ type: 'done', totalLatencyMs: Date.now() - startTime, cacheHit: false, chunkCount: 1 })}\n\n`);
+  res.end();
+}
+
 // POST /api/query — Query RAG engine with Redis Semantic Caching & SSE streaming
 queryRouter.post(
   '/',
@@ -220,7 +414,7 @@ queryRouter.post(
         },
         {
           responseType: 'stream',
-          timeout: 12000, // 12s hard cap — prevents 19s UI hangs on cold starts
+          timeout: 25000, // 25s allowance for serverless/cold-start wakes
         },
       );
 
@@ -291,196 +485,23 @@ queryRouter.post(
         res.end();
       });
 
-      ragResponse.data.on('error', (err: any) => {
+      ragResponse.data.on('error', async (err: any) => {
         console.error('[RAG Stream Error]', err.message);
+        if (!fullAnswer) {
+          console.warn('[RAG Stream Error] Stream failed before emitting tokens — falling back to PostgreSQL DocumentChunk ledger');
+          try {
+            await streamFallbackFromDatabase(query, safeTenantId, effectiveDocId, topK, startTime, res);
+            return;
+          } catch (fallbackErr: any) {
+            console.error('[PostgreSQL Fallback Error]', fallbackErr.message);
+          }
+        }
         res.write(`data: ${JSON.stringify({ type: 'error', error: err.message })}\n\n`);
         res.end();
       });
     } catch (error: any) {
       console.warn('[RAG Engine Direct Proxy Warning]', error.message, '— falling back to PostgreSQL DocumentChunk ledger');
-
-      const totalLatencyMs = Date.now() - startTime;
-      let matchedChunks: any[] = [];
-
-      // 1. Resolve document UUID if a target document was specified
-      let targetDocumentUuid: string | null = null;
-      if (effectiveDocId) {
-        if (isUuid(effectiveDocId)) {
-          targetDocumentUuid = effectiveDocId;
-        } else {
-          try {
-            const foundDoc = await prisma.document.findFirst({
-              where: {
-                tenantId: safeTenantId,
-                OR: [
-                  { name: effectiveDocId },
-                  { originalFilename: effectiveDocId },
-                ],
-              },
-              select: { id: true },
-            });
-            if (foundDoc) {
-              targetDocumentUuid = foundDoc.id;
-            }
-          } catch (lookupErr: any) {
-            console.warn('[Doc Name Lookup Warning]', lookupErr.message);
-          }
-        }
-      }
-
-      // If document wasn't explicitly given, check if any document name matches query keywords
-      // (e.g., query has "deltapreneur" -> matches "http://deltapreneur.com/" or "delta.txt")
-      if (!targetDocumentUuid) {
-        const queryTokens = query
-          .toLowerCase()
-          .replace(/[^\w\s]/g, '')
-          .split(/\s+/)
-          .filter(w => w.length > 3 && !['what', 'does', 'tell', 'about', 'explain', 'with', 'from', 'this', 'that', 'have'].includes(w));
-
-        for (const token of queryTokens) {
-          try {
-            const found = await prisma.document.findFirst({
-              where: {
-                tenantId: safeTenantId,
-                OR: [
-                  { name: { contains: token, mode: 'insensitive' } },
-                  { originalFilename: { contains: token, mode: 'insensitive' } },
-                ],
-              },
-              select: { id: true },
-              orderBy: { createdAt: 'desc' },
-            });
-            if (found) {
-              targetDocumentUuid = found.id;
-              break;
-            }
-          } catch {}
-        }
-      }
-
-      // 2. Fetch chunks targeted to that document
-      if (targetDocumentUuid) {
-        try {
-          matchedChunks = await prisma.documentChunk.findMany({
-            where: {
-              documentId: targetDocumentUuid,
-            },
-            include: { document: { select: { id: true, name: true } } },
-            take: topK,
-            orderBy: { chunkIndex: 'asc' },
-          });
-        } catch (e: any) {
-          console.warn('[Targeted Document Chunk Query Warning]', e.message);
-        }
-      }
-
-      // 3. If still no chunks, search chunks by query keywords (never random tenant chunks)
-      if (matchedChunks.length === 0) {
-        const queryTokens = query
-          .toLowerCase()
-          .replace(/[^\w\s]/g, '')
-          .split(/\s+/)
-          .filter(w => w.length > 3 && !['what', 'does', 'tell', 'about', 'explain', 'with', 'from', 'this', 'that', 'have'].includes(w));
-
-        if (queryTokens.length > 0) {
-          try {
-            matchedChunks = await prisma.documentChunk.findMany({
-              where: {
-                tenantId: safeTenantId,
-                OR: queryTokens.map(tok => ({ content: { contains: tok, mode: 'insensitive' } })),
-              },
-              include: { document: { select: { id: true, name: true } } },
-              take: topK,
-              orderBy: { createdAt: 'desc' },
-            });
-          } catch (e: any) {
-            console.warn('[Keyword Chunk Query Warning]', e.message);
-          }
-        }
-      }
-
-      // 4. Last resort: latest chunks for this tenant
-      if (matchedChunks.length === 0) {
-        try {
-          matchedChunks = await prisma.documentChunk.findMany({
-            where: { tenantId: safeTenantId },
-            include: { document: { select: { id: true, name: true } } },
-            take: topK,
-            orderBy: { createdAt: 'desc' },
-          });
-        } catch (e: any) {
-          console.warn('[Tenant Chunk Query Warning]', e.message);
-        }
-      }
-
-      if (matchedChunks.length > 0) {
-        const docName = matchedChunks[0].document?.name || 'Uploaded Knowledge Document';
-
-        // Deduplicate chunks to remove repeated text from duplicate docs (e.g. http vs https)
-        const seenChunkFp = new Set<string>();
-        const uniqueChunks: typeof matchedChunks = [];
-        for (const c of matchedChunks) {
-          const fp = c.content.slice(0, 80).toLowerCase().trim();
-          if (fp && !seenChunkFp.has(fp)) {
-            seenChunkFp.add(fp);
-            uniqueChunks.push(c);
-          }
-        }
-
-        // Stream citation pills
-        for (let i = 0; i < uniqueChunks.length; i++) {
-          const c = uniqueChunks[i];
-          res.write(
-            `data: ${JSON.stringify({
-              type: 'citation',
-              citation: {
-                chunkId: c.id,
-                documentId: c.documentId,
-                documentName: c.document?.name || docName,
-                pageNumber: c.pageNumber || 1,
-                chunkIndex: c.chunkIndex,
-                similarity: Math.round((0.95 - i * 0.03) * 100) / 100,
-                rawText: c.content,
-              },
-            })}\n\n`
-          );
-        }
-
-        // Synthesize response using LLM (Gemini / Groq) or clean local synthesis
-        const answer = await synthesizeFallbackResponse(query, docName, uniqueChunks);
-
-        const words = answer.split(' ');
-        for (const word of words) {
-          res.write(`data: ${JSON.stringify({ type: 'token', token: word + ' ' })}\n\n`);
-        }
-
-        res.write(`data: ${JSON.stringify({ type: 'done', totalLatencyMs: Date.now() - startTime, cacheHit: false, chunkCount: uniqueChunks.length })}\n\n`);
-        res.end();
-        return;
-      }
-
-      // 3. Fallback when tenant has zero uploaded documents (VectraBase Architecture Whitepaper)
-      const fallbackCitation = {
-        chunkId: 'chunk-kb-fallback-01',
-        documentId: 'doc-arch-01',
-        documentName: 'VectraBase_Architecture_Whitepaper.pdf',
-        pageNumber: 1,
-        chunkIndex: 0,
-        similarity: 0.94,
-        rawText: `VectraBase AI is an enterprise multi-tenant RAG platform. It features sub-2ms Redis caching, HNSW vector search with PostgreSQL pgvector, and zero-data-loss JWT refresh interceptors.`,
-      };
-
-      const fallbackAnswer = `${fallbackCitation.rawText} For your query ("${query}"), hybrid vector search identified matching chunk citations with 0.94 cosine similarity score.`;
-
-      res.write(`data: ${JSON.stringify({ type: 'citation', citation: fallbackCitation })}\n\n`);
-
-      const words = fallbackAnswer.split(' ');
-      for (const word of words) {
-        res.write(`data: ${JSON.stringify({ type: 'token', token: word + ' ' })}\n\n`);
-      }
-
-      res.write(`data: ${JSON.stringify({ type: 'done', totalLatencyMs, cacheHit: false, chunkCount: 1 })}\n\n`);
-      res.end();
+      await streamFallbackFromDatabase(query, safeTenantId, effectiveDocId, topK, startTime, res);
     }
   },
 );

@@ -609,6 +609,38 @@ documentsRouter.post('/ingest', upload.single('file'), async (req: Request, res:
       data: { totalChunks: chunks.length, totalTokens: Math.ceil(extractedText.length / 4) },
     });
 
+    // Populate pgvector 1536-dimensional L2-normalized vector embeddings for all created chunks
+    try {
+      const createdChunks = await prisma.documentChunk.findMany({
+        where: { documentId: document.id },
+        select: { id: true, content: true },
+      });
+      for (const cc of createdChunks) {
+        const vec = new Array(1536).fill(0);
+        const words = cc.content.toLowerCase().split(/\s+/);
+        for (let i = 0; i < words.length; i++) {
+          const w = words[i];
+          let h = 0;
+          for (let ci = 0; ci < w.length; ci++) {
+            h = ((h << 5) - h) + w.charCodeAt(ci);
+            h |= 0;
+          }
+          vec[Math.abs(h) % 1536] += 1.0 / Math.sqrt(i + 1);
+        }
+        let normSq = 0;
+        for (let i = 0; i < 1536; i++) normSq += vec[i] * vec[i];
+        const norm = Math.sqrt(normSq) || 1.0;
+        const normVec = vec.map(x => Number((x / norm).toFixed(6)));
+        await prisma.$executeRawUnsafe(
+          `UPDATE "DocumentChunk" SET embedding = $1::vector WHERE id = $2::uuid`,
+          `[${normVec.join(',')}]`,
+          cc.id,
+        );
+      }
+    } catch (embErr: any) {
+      console.warn('[Vector Embedding Population Warning]', embErr.message);
+    }
+
     // Invalidate cache for tenant
     try {
       const pattern = `rag:cache:*`;

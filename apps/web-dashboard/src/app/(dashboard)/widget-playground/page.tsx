@@ -75,7 +75,7 @@ export default function WidgetPlaygroundPage() {
   }
 
   const activeTheme = mounted && (resolvedTheme || theme) ? (resolvedTheme || theme) : 'dark';
-  const iframeSrc = `/widget-frame.html?theme=${activeTheme}`;
+  const iframeSrc = `/widget-frame.html?theme=${activeTheme}${activeDocumentId ? `&docId=${encodeURIComponent(activeDocumentId)}` : ''}`;
 
   const embedSnippet = `<link rel="stylesheet" href="https://vectrabaseai.vercel.app/widget.css">
 <div id="vectrabase-widget"></div>
